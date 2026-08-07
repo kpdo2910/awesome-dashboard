@@ -1,0 +1,22 @@
+{
+    "userName": "",
+    "customGreeting": "",
+    "theme": "terracotta",
+    "customAccent": null,
+    "language": "auto",
+    "sidebarMode": "hidden",
+    "showStats": true,
+    "showHeatmap": true,
+    "showPomodoro": true,
+    "pomodoroFocusMinutes": 25,
+    "pomodoroBreakMinutes": 5,
+    "hideNativeBottomBar": true,
+    "hideNativeToolbar": false,
+    "styleOverview": true,
+    "styleReviewer": true,
+    "events": [],
+    "cardSkinDecks": {},
+    "styleToolbar": true,
+    "styleSystemScreens": true,
+    "shownWelcome": false
+}

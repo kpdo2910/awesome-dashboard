@@ -1,0 +1,272 @@
+/* ============================================================
+   Deck overview layout, markup built by screens/overview.py.
+   Scoped to html.awd-overview.
+   ============================================================ */
+
+html.awd-overview,
+html.awd-overview body {
+  margin: 0;
+  padding: 0;
+  background: var(--awd-bg) !important;
+  color: var(--awd-text);
+  /* Stop Chromium's scroll anchoring from nudging the page when the
+     forecast bars or subdeck rows settle into place. */
+  overflow-anchor: none;
+}
+
+html.awd-overview { scrollbar-gutter: stable; }
+
+html.awd-overview body {
+  font-family: "Poppins", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "Hiragino Sans", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Anki's shell centers overview content in a narrow column; the redesign
+   manages its own width. */
+html.awd-overview #middle,
+html.awd-overview center { width: auto; text-align: left; }
+
+.awd-ov {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 14px 26px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  animation: awdOvIn .32s ease both;
+}
+
+@keyframes awdOvIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+/* ---------- back link ---------- */
+.awd-ov-top { display: flex; align-items: center; }
+.awd-ov-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 10px 5px 4px;
+  border-radius: 8px;
+  color: var(--awd-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.awd-ov-back:hover { background: var(--awd-inset); }
+.awd-ov-back svg { width: 14px; height: 14px; }
+
+/* ---------- header ---------- */
+.awd-ov-head { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+.awd-ov-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  font-size: 26px;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+.awd-ov-headtext { min-width: 0; }
+.awd-ov-name {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -.3px;
+  line-height: 1.2;
+}
+.awd-ov-desc {
+  font-size: 13.5px;
+  color: var(--awd-subtle);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+.awd-ov-desc p { margin: 0; }
+
+/* ---------- count cards ---------- */
+.awd-ov-counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 22px;
+}
+.awd-ov-count {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  border-radius: 16px;
+  padding: 13px 16px;
+}
+.awd-ov-count-label { font-size: 12px; color: var(--awd-subtle); }
+.awd-ov-count-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.awd-ov-count.new   .awd-ov-count-value { color: var(--awd-new); }
+.awd-ov-count.learn .awd-ov-count-value { color: var(--awd-learn); }
+.awd-ov-count.due   .awd-ov-count-value { color: var(--awd-due); }
+
+/* ---------- primary study button ---------- */
+.awd-ov-studybox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 26px;
+}
+/* Scoped through html.awd-overview so these out-rank Anki's own
+   `button:hover` rule, which would otherwise repaint the button white. */
+html.awd-overview .awd-ov-study {
+  min-width: 300px;
+  height: 46px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 13px;
+  background: var(--awd-accent);
+  color: var(--awd-on-accent, #ffffff);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px var(--awd-accent-soft);
+  transition: filter .15s ease, transform .1s ease;
+}
+html.awd-overview .awd-ov-study:hover {
+  background: var(--awd-accent);
+  color: var(--awd-on-accent, #ffffff);
+  filter: brightness(1.08);
+}
+html.awd-overview .awd-ov-study:active {
+  background: var(--awd-accent);
+  transform: scale(.985);
+}
+.awd-ov-study-hint {
+  font-size: 12px;
+  color: var(--awd-faint);
+  margin-top: 9px;
+}
+
+/* ---------- cards (forecast, subdecks) ---------- */
+.awd-ov-card {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-top: 24px;
+}
+.awd-ov-card + .awd-ov-card { margin-top: 13px; }
+.awd-ov-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+/* forecast bars */
+.awd-ov-bars {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  height: 92px;
+}
+.awd-ov-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+}
+.awd-ov-bar-n {
+  font-size: 10.5px;
+  color: var(--awd-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.awd-ov-bar-track {
+  width: 100%;
+  max-width: 34px;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  background: var(--awd-inset);
+  border-radius: 6px 6px 3px 3px;
+  overflow: hidden;
+}
+.awd-ov-bar-track i {
+  display: block;
+  width: 100%;
+  background: var(--awd-accent);
+  border-radius: 6px 6px 3px 3px;
+  transition: height .35s ease;
+}
+/* A day with nothing due stays empty — no stub of colour at the baseline. */
+.awd-ov-bar-track i[style*="height:0%"] { display: none; }
+.awd-ov-bar-d { font-size: 10.5px; color: var(--awd-faint); }
+
+/* subdecks */
+.awd-ov-subs { padding-bottom: 6px; }
+.awd-ov-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px;
+  border-top: 1px solid var(--awd-border);
+  cursor: pointer;
+}
+.awd-ov-sub:hover { background: var(--awd-inset); }
+.awd-ov-sub-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.awd-ov-sub-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.awd-ov-sub-n {
+  font-size: 12px;
+  color: var(--awd-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- footer links ---------- */
+.awd-ov-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin-top: 22px;
+}
+.awd-ov-link {
+  font-size: 12.5px;
+  color: var(--awd-subtle);
+  cursor: pointer;
+  transition: color .15s ease;
+}
+.awd-ov-link:hover { color: var(--awd-accent); }
+
+@media (max-width: 620px) {
+  .awd-ov { padding: 12px 14px 30px; }
+  .awd-ov-counts { grid-template-columns: 1fr; }
+  .awd-ov-study { min-width: 0; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-ov { animation: none; }
+  .awd-ov-bar-track i { transition: none; }
+}

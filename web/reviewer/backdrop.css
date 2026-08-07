@@ -1,0 +1,95 @@
+/* ============================================================
+   Awesome Dashboard — review screen skin (opt-in, config styleReviewer).
+
+   Deliberately conservative: it themes the page AROUND the card
+   (background, content width, answer bar) and never restyles the
+   card content itself, so custom note-type templates stay intact.
+   Scopes:
+     html.awd-reviewer      — the card webview
+     html.awd-reviewer-bar  — the bottom answer-bar webview
+   ============================================================ */
+
+/* ---------- card webview: warm backdrop + readable width ---------- */
+
+html.awd-reviewer body,
+html.awd-reviewer body.card {
+  background: var(--awd-bg) !important;
+}
+
+html.awd-reviewer #qa {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 10px 14px 26px;
+  box-sizing: border-box;
+}
+
+/* ---------- answer bar ---------- */
+
+html.awd-reviewer-bar body {
+  background: var(--awd-bg) !important;
+  font-family: "Poppins", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "Hiragino Sans", sans-serif;
+}
+
+html.awd-reviewer-bar #outer {
+  background: var(--awd-bg) !important;
+  border-top: 1px solid var(--awd-border);
+}
+
+/* every control in the bar becomes a pill */
+html.awd-reviewer-bar button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--awd-subtle);
+  background: var(--awd-inset);
+  border: none;
+  border-radius: 99px;
+  padding: 8px 18px;
+  margin: 2px 3px;
+  cursor: pointer;
+  transition: transform .1s ease, filter .15s ease, background .15s ease;
+}
+html.awd-reviewer-bar button:hover  { filter: brightness(1.05); background: var(--awd-border); }
+html.awd-reviewer-bar button:active { transform: scale(.96); }
+html.awd-reviewer-bar button:focus-visible {
+  outline: 2px solid var(--awd-accent);
+  outline-offset: 2px;
+}
+
+/* answer buttons: soft chip + semantic colour per ease */
+html.awd-reviewer-bar button[data-ease] {
+  min-width: 76px;
+  padding: 9px 20px;
+}
+html.awd-reviewer-bar button[data-ease="1"] { color: var(--awd-new);   background: var(--awd-new-soft); }
+html.awd-reviewer-bar button[data-ease="2"] { color: var(--awd-learn); background: var(--awd-learn-soft); }
+html.awd-reviewer-bar button[data-ease="3"] { color: var(--awd-due);   background: var(--awd-due-soft); }
+html.awd-reviewer-bar button[data-ease="4"] { color: var(--awd-subtle); background: var(--awd-inset); }
+
+/* the "Show answer" button gets the accent treatment */
+html.awd-reviewer-bar button#ansbut {
+  color: var(--awd-on-accent, #ffffff);
+  background: var(--awd-accent);
+  padding: 9px 30px;
+}
+html.awd-reviewer-bar button#ansbut:hover { background: var(--awd-accent); filter: brightness(1.08); }
+
+/* interval times above the answer buttons */
+html.awd-reviewer-bar .stattxt,
+html.awd-reviewer-bar .nobold {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--awd-faint);
+}
+
+/* remaining-count indicators (new / learn / review) */
+html.awd-reviewer-bar .new-count    { color: var(--awd-new); }
+html.awd-reviewer-bar .learn-count  { color: var(--awd-learn); }
+html.awd-reviewer-bar .review-count { color: var(--awd-due); }
+
+html.awd-reviewer-bar #time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--awd-faint);
+}

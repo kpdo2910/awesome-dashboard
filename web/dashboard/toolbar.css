@@ -1,0 +1,44 @@
+/* ============================================================
+   Awesome Dashboard — top toolbar / bottom bar reskin (scoped, gentle).
+   ============================================================ */
+
+html.awd-toolbar body {
+  background: var(--awd-bg) !important;
+  font-family: "Poppins", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "Hiragino Sans", sans-serif;
+}
+
+html.awd-toolbar #header {
+  border-bottom: none;
+}
+
+html.awd-toolbar .toolbar {
+  background: var(--awd-surface) !important;
+  border: 1px solid var(--awd-border);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 6px 18px var(--awd-shadow) !important;
+}
+
+html.awd-toolbar .hitem,
+html.awd-toolbar a {
+  color: var(--awd-subtle) !important;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 4px 12px;
+  border-radius: 99px;
+  transition: background .15s ease, color .15s ease;
+}
+
+html.awd-toolbar .hitem:hover,
+html.awd-toolbar a:hover {
+  color: var(--awd-accent) !important;
+  background: var(--awd-accent-soft);
+}
+
+html.awd-toolbar #sync-spinner svg,
+html.awd-toolbar .sync-icon {
+  color: var(--awd-accent);
+  fill: var(--awd-accent);
+}

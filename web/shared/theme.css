@@ -1,0 +1,29 @@
+/* ============================================================
+   Cross-fade between palettes.
+
+   The transition only exists while a swap is in flight, so it
+   never slows down hover states or fights the reviewer's flip.
+   Only colour properties are listed — transform is left alone.
+   ============================================================ */
+
+html.awd-theming,
+html.awd-theming *,
+html.awd-theming *::before,
+html.awd-theming *::after {
+  transition:
+    background-color .34s ease,
+    background-image .34s ease,
+    color .34s ease,
+    border-color .34s ease,
+    outline-color .34s ease,
+    fill .34s ease,
+    stroke .34s ease,
+    box-shadow .34s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.awd-theming,
+  html.awd-theming *,
+  html.awd-theming *::before,
+  html.awd-theming *::after { transition: none !important; }
+}

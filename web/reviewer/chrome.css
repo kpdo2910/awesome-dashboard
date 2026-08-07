@@ -1,0 +1,188 @@
+/* ============================================================
+   Reviewer chrome — in-page header and footer that stand in for
+   Anki's top toolbar and answer bar. Scoped to
+   html.awd-rev-chrome; markup from reviewer_chrome.py.
+   ============================================================ */
+
+html.awd-rev-chrome body {
+  /* Keep card content clear of the fixed bars. */
+  padding-top: 58px !important;
+  padding-bottom: 132px !important;
+  box-sizing: border-box;
+  /* Cards swap content, images decode and audio buttons appear after the
+     first paint; Chromium's scroll anchoring reacts to those height changes
+     by shifting the scroll position, which shows up as a sudden jerk. */
+  overflow-anchor: none;
+}
+
+html.awd-rev-chrome {
+  overflow-anchor: none;
+  scrollbar-gutter: stable;
+}
+
+/* The per-deck card skin's own progress bar sits under the header. */
+html.awd-rev-chrome .awd-skin-progress { top: 50px; }
+
+.awd-rev-top,
+.awd-rev-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  font-family: "Poppins", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "Hiragino Sans", sans-serif;
+}
+
+/* ---------- header ---------- */
+.awd-rev-top {
+  top: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background: var(--awd-bg);
+  border-bottom: 1px solid var(--awd-border);
+}
+
+.awd-rev-title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--awd-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.awd-rev-tools { display: flex; gap: 2px; }
+
+html.awd-rev-chrome .awd-rev-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--awd-subtle);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+html.awd-rev-chrome .awd-rev-btn:hover {
+  background: var(--awd-inset);
+  color: var(--awd-text);
+}
+html.awd-rev-chrome .awd-rev-btn.icon { width: 34px; padding: 0; }
+html.awd-rev-chrome .awd-rev-back { color: var(--awd-accent); padding-left: 4px; }
+html.awd-rev-chrome .awd-rev-back:hover { color: var(--awd-accent); }
+.awd-rev-btn svg { width: 16px; height: 16px; }
+.awd-rev-back svg { width: 14px; height: 14px; }
+
+/* ---------- footer ---------- */
+.awd-rev-bottom {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 16px 18px;
+  box-sizing: border-box;
+  background: var(--awd-bg);
+}
+
+.awd-rev-counts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.awd-rev-plus { color: var(--awd-faint); font-weight: 500; }
+.awd-rev-count.new   { color: var(--awd-new); }
+.awd-rev-count.learn { color: var(--awd-learn); }
+.awd-rev-count.due   { color: var(--awd-due); }
+.awd-rev-count.current { text-decoration: underline; text-underline-offset: 3px; }
+
+html.awd-rev-chrome .awd-rev-show {
+  min-width: 280px;
+  height: 44px;
+  padding: 0 26px;
+  border: none;
+  border-radius: 12px;
+  background: var(--awd-accent);
+  color: var(--awd-on-accent, #ffffff);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .15s ease, transform .1s ease;
+}
+html.awd-rev-chrome .awd-rev-show:hover {
+  background: var(--awd-accent);
+  color: var(--awd-on-accent, #ffffff);
+  filter: brightness(1.08);
+}
+html.awd-rev-chrome .awd-rev-show:active { transform: scale(.985); }
+
+/* ---------- rating buttons ---------- */
+.awd-rev-rates { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; }
+
+html.awd-rev-chrome .awd-rev-rate {
+  width: 126px;
+  height: 50px;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font: inherit;
+  cursor: pointer;
+  transition: background .15s ease, transform .1s ease;
+}
+html.awd-rev-chrome .awd-rev-rate:active { transform: scale(.97); }
+.awd-rev-rate-t { font-size: 10.5px; font-weight: 500; opacity: .85; }
+.awd-rev-rate-l { font-size: 14px; font-weight: 700; }
+
+/* Apple semantic ratings, as in the design; the brighter set for dark mode. */
+html.awd-rev-chrome .awd-rev-rate.ease1 { background: rgba(255, 59, 48, .13); color: #FF3B30; }
+html.awd-rev-chrome .awd-rev-rate.ease2 { background: rgba(255, 149, 0, .14); color: #FF9500; }
+html.awd-rev-chrome .awd-rev-rate.ease3 { background: rgba(52, 199, 89, .15); color: #28a04c; }
+html.awd-rev-chrome .awd-rev-rate.ease4 { background: rgba(0, 122, 255, .12); color: #007AFF; }
+html.awd-rev-chrome .awd-rev-rate.ease1:hover { background: rgba(255, 59, 48, .22); }
+html.awd-rev-chrome .awd-rev-rate.ease2:hover { background: rgba(255, 149, 0, .24); }
+html.awd-rev-chrome .awd-rev-rate.ease3:hover { background: rgba(52, 199, 89, .25); }
+html.awd-rev-chrome .awd-rev-rate.ease4:hover { background: rgba(0, 122, 255, .20); }
+
+html.awd-rev-chrome.night-mode .awd-rev-rate.ease1,
+html.awd-rev-chrome .night-mode .awd-rev-rate.ease1 { background: rgba(255, 69, 58, .20); color: #FF453A; }
+html.awd-rev-chrome.night-mode .awd-rev-rate.ease2,
+html.awd-rev-chrome .night-mode .awd-rev-rate.ease2 { background: rgba(255, 159, 10, .20); color: #FF9F0A; }
+html.awd-rev-chrome.night-mode .awd-rev-rate.ease3,
+html.awd-rev-chrome .night-mode .awd-rev-rate.ease3 { background: rgba(48, 209, 88, .20); color: #30D158; }
+html.awd-rev-chrome.night-mode .awd-rev-rate.ease4,
+html.awd-rev-chrome .night-mode .awd-rev-rate.ease4 { background: rgba(10, 132, 255, .20); color: #0A84FF; }
+
+/* Two rating buttons per row on narrow windows. */
+@media (max-width: 620px) {
+  html.awd-rev-chrome .awd-rev-rate { width: calc(50% - 5px); }
+  html.awd-rev-chrome .awd-rev-show { min-width: 0; width: 100%; }
+  html.awd-rev-chrome body { padding-bottom: 190px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.awd-rev-chrome .awd-rev-rate,
+  html.awd-rev-chrome .awd-rev-show,
+  html.awd-rev-chrome .awd-rev-btn { transition: none; }
+}

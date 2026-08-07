@@ -1,0 +1,248 @@
+/* ============================================================
+   Awesome Dashboard — universal card skin (per-deck opt-in).
+   Styles the shell built by card_skin.py; theme via --awd-* vars.
+   ============================================================ */
+
+/* thin session progress bar pinned to the top of the screen */
+.awd-skin-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--awd-inset, rgba(120, 120, 128, .15));
+  z-index: 9990;
+}
+.awd-skin-progress i {
+  display: block;
+  height: 100%;
+  background: var(--awd-accent, #c94f35);
+  border-radius: 0 99px 99px 0;
+  transition: width .4s ease;
+}
+
+.awd-skin {
+  max-width: 620px;
+  margin: 26px auto 30px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  font-family: "Poppins", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "Hiragino Sans", sans-serif;
+  text-align: left;
+}
+
+.awd-skin-card {
+  background: var(--awd-surface, #ffffff);
+  border: 1px solid var(--awd-border, #ece2d9);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px var(--awd-shadow, rgba(70, 45, 30, .12));
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--awd-text, #211d1a);
+}
+
+/* question entrance rises softly */
+.awd-skin > .awd-skin-card.question { animation: awdSkinUp .45s ease both; }
+@keyframes awdSkinUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.awd-skin-card.question {
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* --- horizontal flip scene (answer side holds both faces) --- */
+.awd-flip-scene {
+  perspective: 1500px;
+  cursor: grab;
+  touch-action: none;   /* swipe gestures own the pointer */
+  user-select: none;
+}
+.awd-flip-scene:active { cursor: grabbing; }
+.awd-flip-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform .65s cubic-bezier(.32, .75, .3, 1);
+}
+.awd-flip-face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.awd-flip-face > .awd-skin-card { width: 100%; box-sizing: border-box; }
+.awd-flip-face.back { transform: rotateY(180deg); }
+.awd-flip-inner.flipped { transform: rotateY(180deg); }
+
+/* --- header row: chip + counter --- */
+.awd-skin-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.awd-skin-chip {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--awd-subtle, #6b625b);
+  background: var(--awd-inset, #f1ece7);
+  padding: 5px 12px;
+  border-radius: 99px;
+}
+.awd-skin-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--awd-faint, #a89e96);
+}
+
+/* --- reading + word + audio --- */
+.awd-skin-center { text-align: center; padding: 8px 0 2px; }
+.awd-skin-reading {
+  font-size: 15px;
+  letter-spacing: 5px;
+  font-weight: 600;
+  color: var(--awd-accent, #c94f35);
+  margin-bottom: 6px;
+}
+.awd-skin-wordrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.awd-skin-word {
+  font-size: 46px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+.awd-skin-audio {
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: var(--awd-accent-soft, #f7e8e2);
+  color: var(--awd-accent, #c94f35);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  transition: transform .15s ease, filter .15s ease;
+}
+.awd-skin-audio:hover { transform: scale(1.08); }
+.awd-skin-audio:active { transform: scale(.95); }
+.awd-skin-audio svg { width: 18px; height: 18px; margin-left: 2px; }
+
+.awd-skin-line {
+  height: 1px;
+  background: var(--awd-border, #ece2d9);
+  border: none;
+  margin: 2px 0;
+}
+
+/* --- meanings --- */
+.awd-skin-meaning { font-size: 17px; line-height: 1.65; margin: 0; }
+.awd-skin-meaning.single { padding: 2px 4px; }
+ol.awd-skin-meaning {
+  list-style: none;
+  counter-reset: awd-mean;
+  padding: 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+ol.awd-skin-meaning li { counter-increment: awd-mean; }
+ol.awd-skin-meaning li::before {
+  content: counter(awd-mean) ". ";
+  font-weight: 800;
+  color: var(--awd-accent, #c94f35);
+}
+
+/* --- image --- */
+.awd-skin-img { text-align: center; }
+.awd-skin-img img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 14px;
+  display: inline-block;
+}
+
+/* --- collapsible example / notes --- */
+.awd-skin-fold summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 11px 16px;
+  border-radius: 12px;
+  background: var(--awd-inset, #f1ece7);
+  color: var(--awd-subtle, #6b625b);
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  user-select: none;
+  transition: background .2s ease, transform .1s ease;
+}
+.awd-skin-fold summary::-webkit-details-marker { display: none; }
+.awd-skin-fold summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  transition: transform .2s ease;
+}
+.awd-skin-fold[open] summary::before { transform: rotate(90deg); }
+.awd-skin-fold summary:active { transform: scale(.985); }
+.awd-skin-fold.accent summary {
+  background: var(--awd-accent-soft, #f7e8e2);
+  color: var(--awd-accent, #c94f35);
+}
+.awd-skin-fold summary:hover { filter: brightness(.97); }
+.awd-skin-fold-body {
+  padding: 13px 6px 4px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.awd-skin-fold-body p { margin: 0 0 8px; }
+.awd-skin-fold-body p:last-child { margin-bottom: 0; }
+
+/* --- arrow/swipe rating hint under the card --- */
+.awd-skin-keys {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--awd-faint, #a89e96);
+}
+.awd-skin-keys .k-again { color: var(--awd-new, #c94f35); }
+.awd-skin-keys .k-hard  { color: var(--awd-learn, #a06a2c); }
+.awd-skin-keys .k-good  { color: var(--awd-due, #5f7f4e); }
+.awd-skin-keys .k-easy  { color: var(--awd-subtle, #6b625b); }
+
+/* restyle Anki's own replay buttons inside skinned question content */
+.awd-skin .replay-button svg { width: 38px; height: 38px; }
+.awd-skin .replay-button svg circle {
+  fill: var(--awd-accent-soft, #f7e8e2);
+  stroke: var(--awd-accent, #c94f35);
+}
+.awd-skin .replay-button svg path { fill: var(--awd-accent, #c94f35); }
+
+@media (max-width: 560px) {
+  .awd-skin-word { font-size: 36px; }
+  .awd-skin-card { padding: 20px 18px; border-radius: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-skin > .awd-skin-card.question { animation: none; }
+  .awd-flip-inner { transition: none; }
+}

@@ -1,0 +1,83 @@
+<!-- Paste this into the Description box at https://ankiweb.net/shared/addons/ (Upload).
+     AnkiWeb renders HTML, strips most attributes, and does NOT host images:
+     every <img src> must be an absolute raw.githubusercontent.com URL, so the
+     repo has to be pushed to GitHub before this renders. -->
+
+<p>Awesome Dashboard replaces Anki's deck screen, deck overview and review chrome
+with a single, consistent interface: stat cards, a GitHub-style activity heatmap,
+a Pomodoro timer, exam countdowns and an optional sidebar — across six colour
+themes with matching light and dark palettes, in English, Vietnamese and
+Japanese.</p>
+
+<img src="https://raw.githubusercontent.com/kpdo2910/awesome-dashboard/main/docs/images/feature-en.png" width="700" alt="Awesome Dashboard screenshot">
+
+<p>Developed and tested on Anki 26.08.</p>
+
+<h3>Dashboard</h3>
+<p>A time-of-day greeting, quick actions, stat cards, an activity heatmap you can
+browse year by year, and a Pomodoro timer that keeps running while you study.
+Exam countdowns sit under the greeting and turn orange inside 14 days.</p>
+<p>The sidebar is optional and comes in two widths — full, or a compact icon rail.
+While it is shown, the deck list and the header card move into it, with deck
+search and a tinted icon per deck.</p>
+
+<h3>Deck overview</h3>
+<p>Back link, deck icon and description, three count cards, one primary study
+button, a <b>7-day forecast</b> built from the scheduler's real due dates, the
+subdeck list, and quiet footer actions (options, custom study, rename, export,
+description). Anki's own bars are hidden here — the page carries its own.</p>
+
+<h3>Review screen</h3>
+<p>The header (back, deck name, edit, more) and footer (remaining counts, then
+Show answer or the four rating buttons) are drawn in the page, so Anki's top
+toolbar and answer bar can step aside. Rating intervals come from the scheduler,
+so they follow your deck presets and FSRS.</p>
+<p>An optional <b>card skin</b> rebuilds the answer from the note's fields —
+reading above the word, audio button, numbered meanings, image, collapsible
+example and notes — with a horizontal flip animation. Click or press Space to
+flip; rate with the arrow keys or a mouse swipe and the card flies away.</p>
+
+<h3>Settings</h3>
+<p>Five pages, laid out like macOS System Settings:</p>
+<ul>
+  <li><b>General</b> — name, greeting, language, sidebar mode, dashboard
+      sections, Pomodoro lengths</li>
+  <li><b>Appearance</b> — theme, light/dark mode, which screens to theme, hiding
+      Anki's native bars</li>
+  <li><b>Decks</b> — per-deck card skin, and rename / options / export / delete</li>
+  <li><b>FSRS</b> — enable FSRS, desired retention, optimise and evaluate
+      parameters</li>
+  <li><b>Events</b> — exam countdown list</li>
+</ul>
+
+<h3>FSRS</h3>
+<p>Anki ships the FSRS scheduler natively; this add-on drives it from one place —
+global on/off, per-preset desired retention, parameter optimisation and
+evaluation, and days since the last optimisation.</p>
+
+<h3>Themes</h3>
+<p>Six themes (Terracotta, Glass — Apple HIG, Matcha, Ajisai, Sakura, Sumi), each
+with light and dark palettes, plus a <b>System / Light / Dark</b> switch that
+changes Anki's own appearance. Switching cross-fades the open page instead of
+re-rendering it. Optionally themes Anki's other screens (Add, Browse, Stats,
+dialogs) through its CSS variables and the Qt palette.</p>
+
+<h3>Languages</h3>
+<p>English, Tiếng Việt and 日本語, following Anki's language by default. Missing
+keys fall back to English, so a partial translation is fine. Adding a language is
+copying <code>i18n/en.json</code> and translating the values.</p>
+<p>Anki's own screens — its toolbar, Add, Browse, deck options, even the rating
+button labels — follow Anki's language, not this setting. So after you pick a
+language the add-on offers to switch Anki to it as well and restart.</p>
+
+<h3>Links</h3>
+<ul>
+  <li>Source, issues and full documentation:
+      <a href="https://github.com/kpdo2910/awesome-dashboard">github.com/kpdo2910/awesome-dashboard</a></li>
+  <li>Vietnamese README:
+      <a href="https://github.com/kpdo2910/awesome-dashboard/blob/main/README.vi.md">README.vi.md</a></li>
+  <li>Configuration keys:
+      <a href="https://github.com/kpdo2910/awesome-dashboard/blob/main/config.md">config.md</a></li>
+</ul>
+
+<p>MIT licensed.</p>
