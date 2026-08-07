@@ -1,13 +1,9 @@
 """Theme Anki's other screens to match the active palette.
 
-Two layers, both driven by the same Awesome Dashboard palette:
-
-- Webviews (editor in Add/Browse, Stats, deck options, dialogs...): Anki's
-  own CSS custom properties (--canvas / --fg / --button-primary-* / ...) are
-  overridden via webview_will_set_content. The reviewer card webview is
-  excluded so note templates render untouched.
-- Qt chrome (window backgrounds, inputs, selections): the application
-  QPalette is rebuilt from the palette. Reverting fully needs a restart.
+Webviews (editor, Stats, deck options, dialogs) get Anki's own CSS custom
+properties overridden via webview_will_set_content — the reviewer card webview
+is excluded so note templates render untouched. Qt chrome (window backgrounds,
+inputs, selections) gets a rebuilt QPalette, which needs a restart to revert.
 """
 
 import os
@@ -115,12 +111,12 @@ def anki_vars_css(theme_name: str, night: bool) -> str:
 # --- Qt application palette ------------------------------------------------------
 
 def install_sveltekit_hook() -> None:
-    """Sveltekit pages (Stats, Deck Options, Congrats, ...) bypass
-    webview_will_set_content, and set their colors as inline custom
-    properties on <html>. Wrap their loader and write our values with
-    setProperty after load (re-applied to outlive hydration and Anki's own
-    late writes — inline style is the same mechanism Anki uses, so the last
-    writer wins)."""
+    """Theme the SvelteKit pages (Stats, Deck Options, Congrats).
+
+    They bypass webview_will_set_content and set their colours inline on <html>, so
+    their loader is wrapped and the values re-applied after load to outlive
+    hydration — inline style is Anki's own mechanism, so the last writer wins.
+    """
     from aqt.webview import AnkiWebView
 
     if getattr(AnkiWebView, "_awd_sveltekit_wrapped", False):
@@ -184,9 +180,8 @@ def _live_webviews():
 def animate_theme_change() -> None:
     """Cross-fade the live pages into the current palette.
 
-    Re-rendering would swap the colours in one hard cut (and lose scroll
-    position); pushing the CSS variables into the pages that are already open
-    lets `theme.css` transition them instead.
+    Re-rendering would cut hard and lose scroll position; pushing the CSS variables
+    into open pages lets `theme.css` transition them instead.
     """
     import json
 

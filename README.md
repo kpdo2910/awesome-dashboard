@@ -86,12 +86,16 @@ keeps your current language rather than leaving the two out of step.
 
 ## Install
 
-1. Download the `.ankiaddon` file from the
-   [latest release](https://github.com/kpdo2910/awesome-dashboard/releases/latest).
-2. Anki → **Tools → Add-ons → Install from file…** → pick that file.
-3. Restart Anki.
-4. Open **Tools → Awesome Dashboard Settings…** (or the ⚙ button on the
-   dashboard).
+**From AnkiWeb** — in Anki, **Tools → Add-ons → Get Add-ons…**, then paste the
+code [`1243176816`](https://ankiweb.net/shared/info/1243176816). Updates arrive
+automatically from then on.
+
+**From a file** — download the `.ankiaddon` from the
+[latest release](https://github.com/kpdo2910/awesome-dashboard/releases/latest),
+then **Tools → Add-ons → Install from file…** and pick it.
+
+Either way, restart Anki afterwards, then open **Tools → Awesome Dashboard
+Settings…** (or the ⚙ button on the dashboard).
 
 ## Licence
 

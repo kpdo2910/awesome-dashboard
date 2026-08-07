@@ -1,10 +1,8 @@
 """Reviewer chrome — replaces Anki's top toolbar and answer bar during review.
 
-The page keeps its own bars inside the reviewer webview: a header (back,
-deck name, edit / more) and a footer (remaining counts, then either "Show
-answer" or the four rating buttons). Everything routes through the reviewer's
-native pycmd commands, and the rating buttons' intervals come from the
-scheduler — never hardcoded, so they follow the user's deck settings and FSRS.
+The page carries its own header (back, deck name, edit, more) and footer
+(counts, then Show answer or the rating buttons). Everything routes through
+the reviewer's native pycmd commands, and intervals come from the scheduler.
 """
 
 import html
@@ -45,9 +43,8 @@ def _icon(name: str) -> str:
 def _pom_html() -> str:
     """Pinned Pomodoro in the header's right-hand cluster.
 
-    One button carrying the countdown — click starts, pauses or resumes — plus a
-    skip button that only appears while a phase is running. Labels and state
-    both arrive from AwdRev.pomRender, so the markup here is an empty shell.
+    One button carrying the countdown (click to start, pause or resume) plus a skip
+    button shown only while running. AwdRev.pomRender fills in state and labels.
     """
     return f"""
     <div class="awd-rev-pom idle" id="awd-rev-pom">

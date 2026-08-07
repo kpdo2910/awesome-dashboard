@@ -3,7 +3,6 @@
    Styles the shell built by card_skin.py; theme via --awd-* vars.
    ============================================================ */
 
-/* thin session progress bar pinned to the top of the screen */
 .awd-skin-progress {
   position: fixed;
   top: 0;
@@ -43,7 +42,6 @@
   color: var(--awd-text, #211d1a);
 }
 
-/* question entrance rises softly */
 .awd-skin > .awd-skin-card.question { animation: awdSkinUp .45s ease both; }
 @keyframes awdSkinUp {
   from { transform: translateY(12px); opacity: 0; }

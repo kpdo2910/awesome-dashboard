@@ -1,8 +1,7 @@
 """Collection statistics for the dashboard.
 
-All revlog queries exclude type 4 (manual reschedules) and group entries by
-the local study day, honouring Anki's rollover hour — the same day boundaries
-the scheduler itself uses.
+Revlog queries skip type 4 (manual reschedules) and group by local study day,
+honouring Anki's rollover hour — the scheduler's own day boundaries.
 """
 
 import time

@@ -1,9 +1,8 @@
 """Handles the dashboard's custom pycmd messages (namespace "awd:").
 
-Standard deck commands (open/opts/create/import/shared/...) are left to
-Anki's own DeckBrowser._linkHandler. Collapse/expand is handled here instead
-of natively: the native command re-renders the whole page, while this add-on's
-dashboard toggles the DOM client-side and only persists the state.
+Standard deck commands are left to Anki's own DeckBrowser._linkHandler.
+Collapse/expand is handled here instead: the native command re-renders the
+whole page, while this toggles the DOM client-side and just persists the state.
 """
 
 from aqt import mw
@@ -69,8 +68,8 @@ def _open_settings() -> None:
 def _restart_anki() -> None:
     """Close Anki gracefully (collection is saved) and launch a fresh instance.
 
-    A detached helper waits for this process to fully exit before relaunching,
-    so the new instance never trips over the profile lock.
+    A detached helper waits for this process to exit, so the new instance never
+    trips over the profile lock.
     """
     import os
     import subprocess

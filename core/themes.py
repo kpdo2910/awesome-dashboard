@@ -1,8 +1,7 @@
-"""Awesome Dashboard theme palettes.
+"""Theme palettes: each ships light and dark sets of the same CSS variables.
 
-Every theme ships a light and a dark palette of the same CSS variables.
-The default "terracotta" palette follows the warm-paper + terracotta design
-language of the user's card templates (Anki Card Design).
+The default "terracotta" follows the warm-paper design language of the user's
+card templates.
 """
 
 THEMES = {
@@ -281,9 +280,8 @@ def _rgb(value: str):
 def derive_accents(accent: str) -> dict:
     """The full accent family implied by one colour.
 
-    Soft/hover are the accent at low alpha so they sit correctly on both light
-    and dark backgrounds, and the on-accent text flips to dark only when the
-    accent is bright enough to need it.
+    Soft/hover are the accent at low alpha so they work on light and dark alike;
+    on-accent text flips to dark only when the accent is bright enough to need it.
     """
     rgb = _rgb(accent)
     if rgb is None:

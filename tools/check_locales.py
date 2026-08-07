@@ -3,9 +3,8 @@
 
     python3 tools/check_locales.py
 
-Reports, per locale, keys missing against English, plus any tr() key used in
-the code that no locale defines, and any string nothing references.
-Exits non-zero if something is missing, so it can gate a release.
+Reports per-locale keys missing against English, tr() keys no locale defines,
+and strings nothing references. Exits non-zero so it can gate a release.
 """
 
 import json

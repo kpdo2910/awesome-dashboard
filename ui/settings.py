@@ -1,8 +1,7 @@
 """Qt settings dialog (Tools → Awesome Dashboard Settings…, or the dashboard gear).
 
-macOS System Settings layout: a left nav with colored icon squares
-(General / Appearance / Events), and pages built from grouped inset cards —
-rows separated by hairlines, switches and segmented controls right-aligned.
+macOS System Settings layout: a left nav with colored icon squares, and pages
+built from grouped inset cards.
 """
 
 from aqt import mw
@@ -154,10 +153,9 @@ def _reload_current_screen() -> None:
 def _offer_anki_language(code: str, previous: str) -> None:
     """Put Anki itself into the language just picked here, or undo the pick.
 
-    Anki keeps its own UI language and only reads it at startup, so switching
-    takes the same two steps its Preferences does: `pm.setLang` then a restart.
-    Turning that down rolls the add-on back to `previous` — a half-applied
-    change would leave the add-on and Anki speaking different languages.
+    Anki reads its UI language only at startup, so this takes the same two steps
+    Preferences does: `pm.setLang` then a restart. Declining rolls the add-on back
+    to `previous`, rather than leaving the two speaking different languages.
     """
     from aqt.utils import askUser, showWarning
 
@@ -837,9 +835,8 @@ class AwdSettingsDialog(QDialog):
     def _deck_action(self, kind: str) -> None:
         """Run one of Anki's own deck commands on the selected deck.
 
-        The settings dialog is modal, so it saves and closes first — every one
-        of these commands opens its own window (or a confirmation) that would
-        otherwise be stuck behind it.
+        This dialog is modal, so it saves and closes first — each command opens its own
+        window that would otherwise be stuck behind it.
         """
         did = self.deck_combo.currentData()
         if did is None:

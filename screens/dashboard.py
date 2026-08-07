@@ -1,9 +1,8 @@
 """Dashboard renderer — replaces DeckBrowser._renderPage.
 
-Builds the whole deck-browser page: greeting header, stat cards, activity
-heatmap, Pomodoro widget and the deck list. Standard deck interactions reuse
-Anki's own bridge commands (open/opts/collapse/...), so native behaviour like
-the per-deck options menu keeps working untouched.
+Builds the deck-browser page: greeting, stat cards, heatmap, Pomodoro and the
+deck list. Deck interactions reuse Anki's own bridge commands, so native
+behaviour like the options menu keeps working.
 """
 
 import html
@@ -317,10 +316,8 @@ def _deck_row_html(node, depth: int) -> str:
 
 
 def _deck_group_html(node, depth: int) -> str:
-    """A deck row plus its (always-rendered) children.
-
-    Children live in the DOM even while collapsed, so expanding is a pure
-    client-side class toggle — no page re-render, no flash.
+    """A deck row plus its children, which stay in the DOM even when collapsed —
+    expanding is a class toggle, not a re-render.
     """
     row = _deck_row_html(node, depth)
     if not node.children:
@@ -631,11 +628,10 @@ _bar_guards = []
 def _install_show_blocker(widget, slot: int) -> None:
     """Swallow .show() calls aimed at a bar on screens that hide it.
 
-    Anki's mouse-leave auto-reveal shows the bar and our guard re-hides it a
-    tick later — that one-frame flash resizes the main webview and reads as
-    the page "jerking" up/down. Blocking the show up front removes the flash
-    entirely. QWidget.setVisible still works, so _force_bar_visible can always
-    bring the bar back for other screens."""
+    Anki's mouse-leave auto-reveal shows the bar and our guard re-hides it a tick
+    later; that one-frame flash resizes the webview and reads as the page jerking.
+    QWidget.setVisible still works, so _force_bar_visible can bring it back.
+    """
     if getattr(widget, "_awd_show_blocked", False):
         return
     original_show = widget.show
@@ -674,11 +670,9 @@ def install_bar_guards() -> None:
 def _force_bar_visible(widget, visible: bool) -> None:
     """Truly show/hide one of Anki's bar webviews.
 
-    Anki 26's ToolbarWebView.hide()/show() are *logical*: they collapse the
-    bar to 1px but keep the QWidget visible (so mouse-hover can reveal it),
-    and moveToState() later calls adjustHeightToFit() which re-measures the
-    content and resurrects the bar. Calling QWidget.setVisible directly
-    bypasses the overrides and is immune to those height adjustments.
+    Anki 26's ToolbarWebView.hide()/show() are logical: they collapse the bar to
+    1px but keep the widget visible, and adjustHeightToFit() later resurrects it.
+    QWidget.setVisible bypasses those overrides.
     """
     from aqt.qt import QWidget
 
@@ -693,9 +687,8 @@ def _force_bar_visible(widget, visible: bool) -> None:
 def bars_hidden_for(state: str, config: dict) -> tuple:
     """(hide_bottom, hide_top) for a given main-window state.
 
-    The dashboard hides the bars it replaces with its own pills. The redesigned
-    overview hides both — it carries a back link and its own footer actions, so
-    the native chrome would only duplicate them.
+    The dashboard hides the bars it replaces with its own pills; the overview hides
+    both, since it carries its own back link and footer actions.
     """
     if state == "deckBrowser":
         return (
@@ -713,8 +706,7 @@ def bars_hidden_for(state: str, config: dict) -> tuple:
 def apply_bar_visibility(state: str) -> None:
     """Show or hide Anki's native top/bottom bars for the current screen.
 
-    Each widget is handled in its own try/except: one failure must never
-    prevent the other bar from being hidden.
+    Each widget gets its own try/except so one failure can't strand the other.
     """
     install_bar_guards()
     hide_bottom, hide_top = bars_hidden_for(state, conf.get())

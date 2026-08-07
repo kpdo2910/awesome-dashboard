@@ -87,11 +87,16 @@ bên lệch nhau.
 
 ## Cài đặt
 
-1. Tải file `.ankiaddon` từ
-   [release mới nhất](https://github.com/kpdo2910/awesome-dashboard/releases/latest).
-2. Anki → **Tools → Add-ons → Install from file…** → chọn file vừa tải.
-3. Khởi động lại Anki.
-4. Mở **Tools → Cài đặt Awesome Dashboard…** (hoặc nút ⚙ trên bảng điều khiển).
+**Từ AnkiWeb** — trong Anki, mở **Tools → Add-ons → Get Add-ons…** rồi dán mã
+[`1243176816`](https://ankiweb.net/shared/info/1243176816). Các bản cập nhật sau
+đó sẽ về tự động.
+
+**Từ file** — tải file `.ankiaddon` ở
+[release mới nhất](https://github.com/kpdo2910/awesome-dashboard/releases/latest),
+rồi **Tools → Add-ons → Install from file…** và chọn file đó.
+
+Cách nào cũng cần khởi động lại Anki, sau đó mở **Tools → Cài đặt Awesome
+Dashboard…** (hoặc nút ⚙ trên bảng điều khiển).
 
 ## Giấy phép
 

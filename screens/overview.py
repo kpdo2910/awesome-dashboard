@@ -1,10 +1,8 @@
 """Deck overview renderer — replaces Overview._renderPage.
 
-Rebuilds the screen you land on after clicking a deck: back link, deck header,
-three count cards, one primary study button, a 7-day forecast and quiet footer
-actions. Anki's own top/bottom bars
-are hidden here (the page carries its own back link and actions), and every
-action reuses Anki's native overview commands so behaviour is unchanged.
+Back link, deck header, three count cards, one study button, a 7-day forecast
+and quiet footer actions. Anki's own bars are hidden (the page carries its
+own), and every action reuses Anki's native overview commands.
 """
 
 import html
@@ -47,11 +45,10 @@ def _description(deck) -> str:
 
 
 def _forecast(did: int, days: int = 7) -> list:
-    """Cards already scheduled to come due on each of the next `days` days.
+    """Cards already due on each of the next `days` days.
 
-    Straight from the scheduler's own due dates — with FSRS enabled those are
-    exactly the intervals FSRS picked. `odid` is matched too, so cards this
-    deck has lent to a filtered deck still count.
+    Straight from the scheduler's due dates — with FSRS on, the intervals FSRS
+    picked. `odid` is matched too, so cards lent to a filtered deck still count.
     """
     try:
         deck_ids = mw.col.decks.deck_and_child_ids(did)

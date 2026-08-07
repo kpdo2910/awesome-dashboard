@@ -1,8 +1,7 @@
 """Theme picker: a row of accent swatches plus a colour editor dialog.
 
-The swatches choose which built-in theme to use. The editor on top of that
-lets the user replace just the accent family — everything else (backgrounds,
-text, the new/learn/due colours) still comes from the chosen theme.
+The swatches choose the built-in theme; the editor replaces only the accent
+family, leaving backgrounds, text and the new/learn/due colours to the theme.
 """
 
 from aqt.qt import (
@@ -102,9 +101,8 @@ class _Swatch(QAbstractButton):
 class _ColorButton(QPushButton):
     """A small filled rectangle that opens a colour picker.
 
-    Slots that are really a tint (soft, hover) are drawn at their true opacity
-    over the card behind them, so the row shows what the colour will look like
-    rather than four identical blocks.
+    Tint slots (soft, hover) are drawn at their true opacity over the card behind
+    them, so the row shows the real colour instead of four identical blocks.
     """
 
     def __init__(self, color: str, alpha: float = 1.0, backdrop: str = "#2a2a2e",

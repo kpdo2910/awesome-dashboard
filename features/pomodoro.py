@@ -1,10 +1,9 @@
 """Pomodoro timer.
 
-A single QTimer owned by the main window drives the countdown, so the timer
-keeps running while the user reviews or navigates. The dashboard widget is a
-pure view: the timer pushes its state into the deck-browser webview whenever
-something changes, and completed focus sessions are counted per study day in
-the collection config (so they survive restarts and sync with AnkiWeb).
+One QTimer on the main window drives the countdown, so it keeps running while
+the user reviews or navigates. Views are passive: the timer pushes state into
+whichever screen is showing. Finished sessions are counted per study day in the
+collection config, so they survive restarts and sync.
 """
 
 import json
@@ -158,10 +157,8 @@ class Pomodoro:
         }
 
     def push(self) -> None:
-        """Push state into whichever screen is showing.
-
-        The dashboard has the full card; the reviewer has the pinned widget in
-        its header. Any other screen has no view to update.
+        """Push state into whichever screen is showing — the dashboard card or the
+        reviewer's pinned widget. Other screens have no view to update.
         """
         try:
             payload = json.dumps(self.state())

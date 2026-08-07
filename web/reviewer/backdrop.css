@@ -37,7 +37,6 @@ html.awd-reviewer-bar #outer {
   border-top: 1px solid var(--awd-border);
 }
 
-/* every control in the bar becomes a pill */
 html.awd-reviewer-bar button {
   font-family: inherit;
   font-size: 13px;
@@ -84,7 +83,6 @@ html.awd-reviewer-bar .nobold {
   color: var(--awd-faint);
 }
 
-/* remaining-count indicators (new / learn / review) */
 html.awd-reviewer-bar .new-count    { color: var(--awd-new); }
 html.awd-reviewer-bar .learn-count  { color: var(--awd-learn); }
 html.awd-reviewer-bar .review-count { color: var(--awd-due); }

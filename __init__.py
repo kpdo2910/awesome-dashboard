@@ -1,7 +1,6 @@
 """Awesome Dashboard — a modern dashboard and screen redesign for Anki.
 
-This module is wiring only: it installs the screen renderers and registers
-the gui_hooks. The work itself lives in four packages:
+Wiring only: installs the screen renderers and registers the gui_hooks.
 
     core/      config, palettes, strings, collection statistics
     screens/   dashboard, deck overview, reviewer chrome, card skin

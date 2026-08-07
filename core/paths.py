@@ -1,9 +1,7 @@
 """Filesystem locations, resolved from the add-on root.
 
-Modules live in subpackages now, so `os.path.dirname(__file__)` no longer
-points at the add-on folder. Anything that must sit at the root — most
-importantly `user_files`, which is the only directory Anki preserves across
-add-on updates — goes through here.
+Modules live in subpackages, so `dirname(__file__)` is not the add-on folder.
+`user_files` matters most: it is the only directory Anki keeps across updates.
 """
 
 import os

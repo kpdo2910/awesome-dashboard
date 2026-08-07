@@ -1,9 +1,8 @@
 """FSRS integration.
 
-Anki ships the FSRS scheduler natively (23.10+), so nothing here reimplements
-it — this module just exposes the pieces the settings page drives: the global
-on/off switch, each preset's desired retention, and parameter optimisation /
-evaluation, all through Anki's own backend.
+Anki ships the FSRS scheduler natively (23.10+); this only drives it through
+Anki's own backend — global switch, per-preset desired retention, parameter
+optimisation and evaluation.
 
 https://github.com/open-spaced-repetition/fsrs4anki
 """
@@ -37,10 +36,9 @@ def is_enabled() -> bool:
 def set_enabled(enabled: bool) -> None:
     """Flip FSRS the way Deck Options does.
 
-    Going through `update_deck_configs` lets Anki (re)compute memory states for
-    existing cards; poking the raw `fsrs` config key would leave the collection
-    half-migrated. The current deck's limits are passed straight back so this
-    round trip can't clobber them.
+    `update_deck_configs` makes Anki recompute memory states — poking the raw
+    `fsrs` key would leave the collection half-migrated. The deck's limits are
+    passed back so the round trip can't clobber them.
     """
     if is_enabled() == enabled:
         return

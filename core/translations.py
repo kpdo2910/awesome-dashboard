@@ -1,22 +1,9 @@
-"""Localisation.
+"""Localisation — one `i18n/<code>.json` per language, holding `name`, `months`,
+`weekdays`, `weekdaysShort`, `thousandsSeparator` and `strings`.
 
-Every user-facing string lives in `i18n/<code>.json`, one file per language:
-
-    {
-      "name": "English",          # shown in the language picker
-      "months": [...],            # 12, short form
-      "weekdays": [...],          # 7, Monday first
-      "weekdaysShort": [...],     # 7, Monday first
-      "thousandsSeparator": ",",
-      "strings": { "key": "text", ... }
-    }
-
-Adding a language means dropping a new file in that folder — it appears in
-Settings automatically, and any key it omits falls back to English.
-
-The language follows Anki's own UI language unless the user picks one here.
-Note this only covers the add-on's text: Anki's own screens (its toolbar,
-Add, Browse, deck options) follow Anki's language setting, not this one.
+Drop in a new file and it appears in Settings; missing keys fall back to
+English. Follows Anki's UI language unless the user picks one. Covers only the
+add-on's own text — Anki's screens follow Anki's language setting.
 """
 
 import json
@@ -122,9 +109,8 @@ def _setting(field: str, default: str) -> str:
 def anki_language_code(code: str) -> str:
     """The Anki language (e.g. "vi_VN") matching one of our locale codes.
 
-    Locales may state it as `ankiLang`; otherwise the first Anki language
-    whose code starts with ours is used, so a new locale usually needs no
-    extra configuration.
+    Locales may state it as `ankiLang`; otherwise the first Anki language whose
+    code starts with ours wins, so a new locale usually needs no configuration.
     """
     explicit = _locale(code).get("ankiLang")
     if explicit:

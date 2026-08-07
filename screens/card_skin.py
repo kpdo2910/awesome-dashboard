@@ -1,16 +1,11 @@
 """Universal card skin for the review screen (per-deck opt-in).
 
-Instead of hand-customizing every note type, decks with the skin enabled get
-their cards re-dressed at display time via the card_will_show hook:
+Decks with the skin on get their cards re-dressed at display time via
+card_will_show. The question side is only wrapped in the styled shell, so no
+answer can leak; the answer side is rebuilt from the note's fields.
 
-- Question side: the template's rendered content is kept untouched (so no
-  answer is ever leaked) and only wrapped in the styled shell + progress bar.
-- Answer side: the layout is rebuilt from the note's fields — reading over
-  the word, audio button, numbered meanings, image, collapsible example and
-  notes — matching the Awesome Dashboard card design.
-
-Field roles are detected from field names (Vietnamese/English/Japanese
-conventions). Cloze note types fall back to shell-wrapping only.
+Field roles come from field names (Vietnamese/English/Japanese). Cloze notes
+get the shell only.
 """
 
 import html as html_mod
