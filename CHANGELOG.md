@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-08
+
 ### Added
 
 - Pinned Pomodoro timer in the review screen header: countdown while running,
@@ -37,5 +39,6 @@ First public release. Tested on Anki 26.08.
   that also retints Anki's own screens.
 - English, Tiếng Việt and 日本語, following Anki's language by default.
 
-[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.1.0
 [1.0.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.0.0
