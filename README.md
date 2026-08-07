@@ -86,10 +86,11 @@ keeps your current language rather than leaving the two out of step.
 
 ## Install
 
-1. Anki → **Tools → Add-ons → Install from file…** → pick
-   `awesome_dashboard.ankiaddon`.
-2. Restart Anki.
-3. Open **Tools → Awesome Dashboard Settings…** (or the ⚙ button on the
+1. Download the `.ankiaddon` file from the
+   [latest release](https://github.com/kpdo2910/awesome-dashboard/releases/latest).
+2. Anki → **Tools → Add-ons → Install from file…** → pick that file.
+3. Restart Anki.
+4. Open **Tools → Awesome Dashboard Settings…** (or the ⚙ button on the
    dashboard).
 
 ## Licence
