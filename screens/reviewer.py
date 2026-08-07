@@ -14,17 +14,24 @@ from aqt import gui_hooks, mw
 
 from ..core import conf
 from ..core.translations import tr
+from ..features import pomodoro
 
 ICONS = {
     "back": '<path d="M15 5.5 8.5 12l6.5 6.5"/>',
     "edit": '<path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l4 4"/>',
     "more": '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/>'
             '<circle cx="19" cy="12" r="1.6"/>',
+    "skip": '<path d="M6 5.5 14 12l-8 6.5z"/><path d="M18 5.5v13"/>',
 }
 
 
 def enabled() -> bool:
     return bool(conf.get().get("styleReviewer", True))
+
+
+def _pom_enabled() -> bool:
+    """The pinned timer follows the same switch as the dashboard card."""
+    return bool(conf.get().get("showPomodoro", True))
 
 
 def _icon(name: str) -> str:
@@ -33,6 +40,25 @@ def _icon(name: str) -> str:
         ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
         f' aria-hidden="true">{ICONS[name]}</svg>'
     )
+
+
+def _pom_html() -> str:
+    """Pinned Pomodoro in the header's right-hand cluster.
+
+    One button carrying the countdown — click starts, pauses or resumes — plus a
+    skip button that only appears while a phase is running. Labels and state
+    both arrive from AwdRev.pomRender, so the markup here is an empty shell.
+    """
+    return f"""
+    <div class="awd-rev-pom idle" id="awd-rev-pom">
+      <button class="awd-rev-pom-btn" id="awd-rev-pom-toggle"
+              onclick="pycmd('awd:pom:toggle')">
+        <span class="awd-rev-pom-dot">🍅</span>
+        <span id="awd-rev-pom-time">--:--</span>
+      </button>
+      <button class="awd-rev-btn icon awd-rev-pom-skip" id="awd-rev-pom-skip"
+              hidden onclick="pycmd('awd:pom:skip')">{_icon("skip")}</button>
+    </div>"""
 
 
 def chrome_html() -> str:
@@ -45,6 +71,7 @@ def chrome_html() -> str:
   </button>
   <div class="awd-rev-title" id="awd-rev-title"></div>
   <div class="awd-rev-tools">
+    {_pom_html() if _pom_enabled() else ""}
     <button class="awd-rev-btn icon" onclick="pycmd('edit')"
             title="{html.escape(tr("edit_note"))}">{_icon("edit")}</button>
     <button class="awd-rev-btn icon" onclick="pycmd('more')"
@@ -86,13 +113,18 @@ def _state_payload() -> dict:
         deck_name = str(mw.col.decks.current()["name"]).replace("::", " › ")
     except Exception:
         pass
-    return {
+    payload = {
         "deck": deck_name,
         "counts": counts,
         "current": index,
         "showCounts": show_counts,
         "showAnswer": tr("show_answer"),
     }
+    # Carried on every question/answer render so the pinned timer is correct the
+    # moment the reviewer opens; per-second updates come from pomodoro.push().
+    if _pom_enabled():
+        payload["pom"] = pomodoro.get().state()
+    return payload
 
 
 def _answer_buttons() -> list:

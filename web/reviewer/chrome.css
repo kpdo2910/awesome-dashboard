@@ -87,6 +87,54 @@ html.awd-rev-chrome .awd-rev-back:hover { color: var(--awd-accent); }
 .awd-rev-btn svg { width: 16px; height: 16px; }
 .awd-rev-back svg { width: 14px; height: 14px; }
 
+/* ---------- pinned Pomodoro ----------
+   Sits in the header's right-hand cluster. The countdown is monospaced with
+   tabular figures so the header cannot shift sideways once a second. */
+
+.awd-rev-pom { display: inline-flex; align-items: center; gap: 2px; }
+
+html.awd-rev-chrome .awd-rev-pom-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 9px;
+  background: var(--awd-inset);
+  color: var(--awd-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, opacity .15s ease;
+}
+.awd-rev-pom-dot { font-size: 12px; line-height: 1; }
+.awd-rev-pom-skip svg { width: 14px; height: 14px; }
+
+/* Idle: quiet enough to ignore, obvious enough to click. */
+.awd-rev-pom.idle .awd-rev-pom-btn {
+  background: transparent;
+  color: var(--awd-faint);
+}
+.awd-rev-pom.idle .awd-rev-pom-btn:hover {
+  background: var(--awd-inset);
+  color: var(--awd-subtle);
+}
+.awd-rev-pom.idle .awd-rev-pom-dot { opacity: .5; }
+
+/* Running: focus borrows the accent, break the "due" green. */
+.awd-rev-pom.focus .awd-rev-pom-btn {
+  background: var(--awd-accent-soft);
+  color: var(--awd-accent);
+}
+.awd-rev-pom.break .awd-rev-pom-btn {
+  background: var(--awd-due-soft);
+  color: var(--awd-due);
+}
+.awd-rev-pom.paused .awd-rev-pom-btn { opacity: .5; }
+
 /* ---------- footer ---------- */
 .awd-rev-bottom {
   bottom: 0;

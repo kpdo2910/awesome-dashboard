@@ -14,9 +14,52 @@
     return document.getElementById(id);
   }
 
+  function two(value) {
+    return (value < 10 ? "0" : "") + value;
+  }
+
+  /* ---------- pinned Pomodoro ----------
+     Called two ways: inside every question/answer payload (so the widget is
+     right as soon as the reviewer opens) and once per second from
+     pomodoro.push() while a phase is running. */
+
+  AwdRev.pomRender = function (state) {
+    var host = el("awd-rev-pom");
+    if (!host || !state) return;
+
+    var idle = state.phase === "idle";
+    // Idle shows the configured focus length, so the button reads as an offer
+    // to start rather than an empty clock.
+    var seconds = idle ? (state.focusMin || 25) * 60 : state.remaining;
+    var timeEl = el("awd-rev-pom-time");
+    if (timeEl) {
+      timeEl.textContent =
+        two(Math.floor(seconds / 60)) + ":" + two(seconds % 60);
+    }
+
+    host.className =
+      "awd-rev-pom" +
+      (idle ? " idle" : " " + state.phase) +
+      (state.paused ? " paused" : "");
+
+    var toggleEl = el("awd-rev-pom-toggle");
+    if (toggleEl) {
+      toggleEl.title = idle
+        ? state.actionLabel || ""
+        : (state.actionLabel || "") + " · " + (state.phaseLabel || "");
+    }
+    var skipEl = el("awd-rev-pom-skip");
+    if (skipEl) {
+      skipEl.hidden = idle;
+      skipEl.title = state.skipLabel || "";
+    }
+  };
+
   function renderShared(data) {
     var title = el("awd-rev-title");
     if (title) title.textContent = data.deck || "";
+
+    if (data.pom) AwdRev.pomRender(data.pom);
 
     var counts = el("awd-rev-counts");
     if (!counts) return;

@@ -136,6 +136,7 @@ class Pomodoro:
 
     # --- view sync ---------------------------------------------------------
     def state(self) -> dict:
+        idle = self.phase == "idle"
         return {
             "phase": self.phase,
             "paused": self.paused,
@@ -143,15 +144,35 @@ class Pomodoro:
             "total": self.total,
             "sessions": self.sessions_today(),
             "focusMin": self._minutes("pomodoroFocusMinutes", 25),
+            # Pre-translated: the reviewer chrome renders straight from this
+            # payload and has no i18n table of its own like the dashboard does.
+            "phaseLabel": (
+                tr("pomodoro_idle") if idle
+                else tr("focus") if self.phase == "focus"
+                else tr("break_")
+            ),
+            "actionLabel": (
+                tr("start") if idle else tr("resume") if self.paused else tr("pause")
+            ),
+            "skipLabel": tr("skip"),
         }
 
     def push(self) -> None:
+        """Push state into whichever screen is showing.
+
+        The dashboard has the full card; the reviewer has the pinned widget in
+        its header. Any other screen has no view to update.
+        """
         try:
-            if mw.state != "deckBrowser":
-                return
-            web = getattr(mw.deckBrowser, "web", None)
-            if web:
-                web.eval(f"if (window.Awd) Awd.pomRender({json.dumps(self.state())});")
+            payload = json.dumps(self.state())
+            if mw.state == "deckBrowser":
+                web = getattr(mw.deckBrowser, "web", None)
+                if web:
+                    web.eval(f"if (window.Awd) Awd.pomRender({payload});")
+            elif mw.state == "review":
+                web = getattr(mw.reviewer, "web", None)
+                if web:
+                    web.eval(f"if (window.AwdRev) AwdRev.pomRender({payload});")
         except Exception:
             pass
 
