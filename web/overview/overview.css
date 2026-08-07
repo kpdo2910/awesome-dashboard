@@ -270,3 +270,131 @@ html.awd-overview .awd-ov-study:active {
   .awd-ov { animation: none; }
   .awd-ov-bar-track i { transition: none; }
 }
+
+/* ============================================================
+   Deck finished. Anki's own version is a SvelteKit page that
+   ignores our palette, so this replaces it — same variables,
+   plus a short celebration.
+   ============================================================ */
+
+.awd-cg {
+  position: relative;
+  align-items: center;
+  text-align: center;
+  padding-top: 46px;
+}
+
+.awd-cg-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 260px;
+  overflow: hidden;          /* falling pieces must not grow the page */
+  pointer-events: none;
+}
+.awd-cg-confetti i {
+  position: absolute;
+  top: -16px;
+  left: var(--awd-cf-x);
+  width: 7px;
+  height: 12px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: awdCgFall 1.6s var(--awd-cf-d) cubic-bezier(.3, .7, .5, 1) both;
+}
+@keyframes awdCgFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  12%  { opacity: .9; }
+  100% { transform: translateY(250px) rotate(calc(var(--awd-cf-r) * 8)); opacity: 0; }
+}
+
+.awd-cg-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 26px;
+  background: var(--awd-accent-soft);
+  color: var(--awd-accent);
+  /* Overshoots slightly on the way in, so it lands rather than just appears. */
+  animation: awdCgPop .5s cubic-bezier(.2, 1.5, .4, 1) both;
+}
+.awd-cg-badge svg { width: 48px; height: 48px; }
+@keyframes awdCgPop {
+  from { transform: scale(.4); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+
+/* Draws itself once the badge has landed. 40 covers the path's ~36 length. */
+.awd-cg-tick {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: awdCgDraw .42s .3s ease forwards;
+}
+@keyframes awdCgDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+.awd-cg-title {
+  margin: 20px 0 0;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -.4px;
+}
+.awd-cg-deck {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--awd-accent);
+}
+.awd-cg-done {
+  margin: 12px 0 0;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--awd-subtle);
+}
+.awd-cg-note {
+  margin: 7px 0 0;
+  max-width: 420px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--awd-faint);
+}
+
+.awd-cg-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+}
+/* Narrower than the overview's full-width study button, to sit beside a peer. */
+html.awd-overview .awd-cg-primary { min-width: 0; padding: 0 26px; }
+html.awd-overview .awd-cg-secondary {
+  height: 46px;
+  padding: 0 22px;
+  border: 1px solid var(--awd-border);
+  border-radius: 13px;
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+html.awd-overview .awd-cg-secondary:hover {
+  background: var(--awd-inset);
+  color: var(--awd-text);
+}
+
+.awd-cg .awd-ov-footer { margin-top: 30px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-cg-confetti { display: none; }
+  .awd-cg-badge { animation: none; }
+  .awd-cg-tick { animation: none; stroke-dashoffset: 0; }
+}

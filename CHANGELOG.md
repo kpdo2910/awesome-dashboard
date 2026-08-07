@@ -11,6 +11,9 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Pinned Pomodoro timer in the review screen header: countdown while running,
   one click to start, pause or skip.
+- Themed deck-finished screen with a short celebration animation, plus Home and
+  Custom study buttons.
+- Anki's Custom Study dialog now follows the add-on's theme.
 
 ## [1.0.0] - 2026-08-08
 

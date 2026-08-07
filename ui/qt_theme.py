@@ -294,6 +294,32 @@ def _switch_svg(on: bool, accent: str, track_off: str) -> str:
     return file_path.replace(os.sep, "/")
 
 
+def _radio_svg(on: bool, accent: str, border: str, surface: str, dot: str) -> str:
+    """macOS-style radio image for QRadioButton indicators."""
+    slug = re.sub(
+        r"[^0-9a-zA-Z]", "", f"{'on' if on else 'off'}{accent}{border}{surface}"
+    )
+    file_path = os.path.join(_icons_dir(), f"radio_{slug}.svg")
+    if not os.path.exists(file_path):
+        head = (
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"'
+            ' viewBox="0 0 20 20">'
+        )
+        if on:
+            svg = (
+                f'{head}<circle cx="10" cy="10" r="9" fill="{accent}"/>'
+                f'<circle cx="10" cy="10" r="3.2" fill="{dot}"/></svg>'
+            )
+        else:
+            svg = (
+                f'{head}<circle cx="10" cy="10" r="8.5" fill="{surface}"'
+                f' stroke="{border}"/></svg>'
+            )
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(svg)
+    return file_path.replace(os.sep, "/")
+
+
 def nav_icon(kind: str, color: str) -> str:
     """Colored rounded-square nav icon (macOS System Settings style)."""
     glyphs = {
@@ -632,3 +658,92 @@ def settings_dialog_qss() -> str:
         border-color: rgba(255, 59, 48, 0.35);
     }}
     """
+
+
+def custom_study_qss() -> str:
+    """Anki's Custom Study dialog, matched to the add-on's own dialogs.
+
+    Anki builds that dialog from its own .ui form, so this rides on the settings
+    QSS — same palette, same controls — and only adds the radio buttons, which
+    the add-on's own dialogs never use.
+    """
+    try:
+        from aqt.theme import theme_manager
+
+        night = theme_manager.night_mode
+    except Exception:
+        night = False
+    pal = themes.palette(conf.get().get("theme", "terracotta"), night)
+    bg = pal["bg"]
+    text = flatten(pal["text"], bg)
+    accent = flatten(pal["accent"], bg)
+    border = flatten(pal["border"], bg)
+    surface = flatten(pal["surface"], bg)
+    subtle = flatten(pal["subtle"], bg)
+    dot = flatten(pal.get("on-accent", "#ffffff"), accent)
+    radio_on = _radio_svg(True, accent, border, surface, dot)
+    radio_off = _radio_svg(False, accent, border, surface, dot)
+
+    return settings_dialog_qss() + f"""
+    QRadioButton {{
+        color: {text};
+        spacing: 9px;
+        padding: 4px 0;
+        font-size: 13px;
+    }}
+    QRadioButton::indicator {{ width: 20px; height: 20px; }}
+    QRadioButton::indicator:unchecked {{ image: url("{radio_off}"); }}
+    QRadioButton::indicator:checked {{ image: url("{radio_on}"); }}
+
+    /* Qt reserves the top edge of a group box for its title, so the card needs
+       its own padding and the title needs to sit clear of the border. */
+    QGroupBox#awdGroup {{ padding: 12px 14px; margin-top: 6px; }}
+    QGroupBox::title {{
+        subcontrol-origin: margin;
+        left: 12px;
+        padding: 0 4px;
+        color: {subtle};
+        font-size: 12px;
+        font-weight: 600;
+    }}
+    """
+
+
+def _style_custom_study(dialog) -> None:
+    from aqt.qt import QGroupBox
+
+    # Anki's form wraps the spinner row in a QGroupBox; renaming it makes it pick
+    # up the same inset-card styling the add-on's own grouped rows use.
+    for box in dialog.findChildren(QGroupBox):
+        box.setObjectName("awdGroup")
+    dialog.setStyleSheet(custom_study_qss())
+
+
+def install_custom_study_hook() -> None:
+    """Restyle Anki's Custom Study dialog before it is ever shown.
+
+    It is the one native dialog the redesigned overview opens directly, so
+    leaving it unthemed makes the theme look like it stops at the window edge.
+
+    The hook goes on the generated form's setupUi rather than on
+    CustomStudy.__init__: __init__ shows the dialog itself, so styling after it
+    returns means the default look is painted first and the restyle lands as a
+    visible flicker and resize. setupUi runs while the widgets are still being
+    built, so the first frame drawn is already themed.
+    """
+    from aqt.forms import customstudy as custom_study_form
+
+    form_cls = getattr(custom_study_form, "Ui_Dialog", None)
+    if form_cls is None or getattr(form_cls, "_awd_styled", False):
+        return
+    original = form_cls.setupUi
+
+    def wrapped(self, dialog):
+        original(self, dialog)
+        try:
+            _style_custom_study(dialog)
+        except Exception as e:
+            print(f"[Awesome Dashboard] custom study theming failed: {e}")
+
+    form_cls.setupUi = wrapped
+    form_cls._awd_styled = True

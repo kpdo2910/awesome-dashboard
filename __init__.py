@@ -45,6 +45,10 @@ reviewer.install()
 # Sveltekit pages (Stats, Deck Options, ...) need their own injection path.
 qt_theme.install_sveltekit_hook()
 
+# Custom Study is opened straight from the redesigned overview, so it gets the
+# same treatment as the add-on's own dialogs.
+qt_theme.install_custom_study_hook()
+
 # Space on a skinned answer flips the card instead of rating it.
 card_skin.install_space_toggle()
 

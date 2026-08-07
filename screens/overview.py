@@ -150,6 +150,93 @@ def _footer_html(deck) -> str:
     return f'<footer class="awd-ov-footer">{items}</footer>'
 
 
+def _humanised_secs(secs: int) -> str:
+    """"in 5 minutes" for the next learning card, in Anki's own wording.
+
+    Borrowing Anki's string keeps the phrasing and pluralisation right in every
+    language it ships, which our own i18n files would have to redo by hand.
+    """
+    try:
+        from anki.lang import tr as anki_tr
+
+        return anki_tr.scheduling_time_span(seconds=float(secs))
+    except Exception:
+        minutes = max(1, round(secs / 60))
+        return f"{minutes}m" if minutes < 60 else f"{round(minutes / 60)}h"
+
+
+def _congrats_lines() -> str:
+    """The "why is there nothing left" notes, straight from the scheduler."""
+    notes = []
+    try:
+        info = mw.col.sched.congratulations_info()
+    except Exception:
+        info = None
+    if info is not None:
+        if getattr(info, "secs_until_next_learn", 0):
+            notes.append(
+                tr("congrats_next_learn",
+                   time=_humanised_secs(info.secs_until_next_learn))
+            )
+        if getattr(info, "new_remaining", False):
+            notes.append(tr("congrats_new_limit"))
+        if getattr(info, "review_remaining", False):
+            notes.append(tr("congrats_review_limit"))
+    return "".join(f'<p class="awd-cg-note">{html.escape(n)}</p>' for n in notes)
+
+
+def _render_congrats(self: Overview, deck) -> None:
+    """The deck-finished screen, themed and with its own way out.
+
+    Anki's native version is a SvelteKit page, so it ignores this add-on's
+    palette entirely. This one is plain HTML in the overview webview, which
+    already carries the theme variables and overview.css.
+    """
+    name = html.escape(str(deck.get("name", "")).rsplit("::", 1)[-1])
+    # Confetti colours: the palette's own semantic set, so every theme keeps
+    # its character instead of dropping generic party colours on top.
+    confetti = "".join(
+        f'<i style="--awd-cf-x:{x}%;--awd-cf-d:{d}ms;--awd-cf-r:{r}deg;'
+        f'background:var(--awd-{c})"></i>'
+        for x, d, r, c in (
+            (8, 0, -24, "accent"), (20, 260, 18, "new"), (33, 120, -8, "learn"),
+            (47, 420, 30, "due"), (58, 60, -16, "accent"), (70, 340, 12, "new"),
+            (82, 200, -30, "learn"), (93, 480, 22, "due"),
+        )
+    )
+    body = f"""
+    <div class="awd-ov awd-cg">
+      <div class="awd-cg-confetti" aria-hidden="true">{confetti}</div>
+      <div class="awd-cg-badge">
+        <svg viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="4"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path class="awd-cg-tick" d="M14 27.5 22.5 36 38 18"/>
+        </svg>
+      </div>
+      <h1 class="awd-cg-title">{tr("congrats_title")}</h1>
+      <p class="awd-cg-deck">{name}</p>
+      <p class="awd-cg-done">{tr("congrats_done")}</p>
+      {_congrats_lines()}
+      <div class="awd-cg-actions">
+        <button class="awd-ov-study awd-cg-primary" onclick="pycmd('decks')">
+          {tr("home")}
+        </button>
+        <button class="awd-cg-secondary" onclick="pycmd('studymore')">
+          {tr("custom_study")}
+        </button>
+      </div>
+    </div>
+    """
+    self.web.stdHtml(body=body, css=[], js=[], context=self)
+    try:
+        self._renderBottom()
+    except Exception:
+        pass
+    from . import dashboard
+
+    dashboard.apply_bar_visibility("overview")
+
+
 def render_page(self: Overview) -> None:
     if not mw.col:
         return
@@ -164,10 +251,10 @@ def render_page(self: Overview) -> None:
 
     try:
         if mw.col.sched._is_finished():
-            # Anki's congrats page already covers this state well.
-            return self._show_finished_screen()
-    except Exception:
-        pass
+            return _render_congrats(self, deck)
+    except Exception as e:
+        print(f"[Awesome Dashboard] congrats screen failed: {e}")
+        return self._show_finished_screen()
 
     try:
         did = int(deck["id"])
