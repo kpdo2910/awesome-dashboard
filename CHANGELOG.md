@@ -9,8 +9,45 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- Habit tracker. A strip on the dashboard ticks a habit off for today in one
+  click, without reloading the page. Habits are yes/no or counted towards a
+  target, and repeat daily, on chosen weekdays, or a number of times a week.
+- Habit report with week, month and year views: a seven-day grid, a calendar
+  per habit and a year strip, each with completion rate and streaks.
+- Habits are stored in the collection, so they are included in `.colpkg`
+  backups and in sync. Deleting one archives it and keeps its history; removing
+  it permanently is a separate, confirmed action.
+- A habit's colour can be any colour, not just one of the ten presets.
+
+### Changed
+
+- The habit manager is now just the list: add, delete, edit and reorder sit
+  together as one monochrome row, and the streak has moved to the dashboard
+  where habits are ticked. The report opens from the dashboard.
+- Habit chips no longer show a minus control on hover; tapping past the target
+  already wraps back to zero.
+- "Show archived" in the report is a switch, matching the ones in Settings.
 - About now reports the webview version. On builds too old for translucent
   blocks, that section of Appearance is hidden instead of shown doing nothing.
+
+### Fixed
+
+- Reset no longer replays the first-run welcome overlay.
+- The habit editor's icon button no longer clips its emoji, and the icons in
+  the picker no longer overlap each other.
+- The icon picker's buttons are translated instead of showing Qt's own labels.
+- Opening the habit report from the habit manager no longer freezes Anki.
+- Habit history arriving from another computer through sync is no longer
+  overwritten by the next tick on this one.
+- The report no longer opens as a blank page: it is drawn over the dashboard
+  rather than in a window of its own, shows the same loading indicator as the
+  first-run overlay, and says so plainly if it cannot be built.
+- The theme swatches are no longer clipped when selected.
+- "Show archived" in the report works. It was inverted, so it appeared dead.
+- The habit progress track and the unticked circles now take their colour from
+  the theme instead of a fixed neutral grey.
+- The report's year view is now the same continuous grid as the dashboard's
+  activity heatmap, with no gap where a month label falls.
 
 ## [1.2.0] - 2026-08-08
 

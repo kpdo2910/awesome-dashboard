@@ -138,14 +138,6 @@
 
   /* ---------- heatmap ---------- */
 
-  function isoKey(date) {
-    var m = date.getMonth() + 1;
-    var d = date.getDate();
-    return (
-      date.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d)
-    );
-  }
-
   /* The shade is relative to what a normal day looked like at the time, not to
      a fixed number of reviews — see core/heatmap_scale.py. Change points are
      sorted, so the day's scale is the last one at or before it. */
@@ -214,76 +206,43 @@
     });
   }
 
+  /* Days are "YYYY-MM-DD" in the calendar bundle but YYYYMMDD integers in the
+     shared grid builder, which is the add-on's convention everywhere else. */
+
+  function dayKey(day) {
+    var text = String(day);
+    return text.slice(0, 4) + "-" + text.slice(4, 6) + "-" + text.slice(6, 8);
+  }
+
   function buildHeatmap() {
     var host = document.getElementById("awd-heatmap");
-    if (!host || !data().showHeatmap) return;
+    if (!host || !data().showHeatmap || !window.AwdHeatmap) return;
     if (hmYear === null) hmYear = todayYearNum();
 
     var calendar = data().calendar || {};
-    var todayKey = data().todayKey;
-    var jan1 = new Date(hmYear, 0, 1, 12);
-    var dec31 = new Date(hmYear, 11, 31, 12);
-    // Back to the Monday on or before Jan 1.
-    var start = new Date(jan1);
-    start.setDate(jan1.getDate() - ((jan1.getDay() + 6) % 7));
+    var todayKey = data().todayKey || "";
+    var todayDay = parseInt(todayKey.replace(/-/g, ""), 10) || 0;
 
-    var grid = document.createElement("div");
-    grid.className = "awd-hm-grid";
-
-    var labels = document.createElement("div");
-    labels.className = "awd-hm-labels";
-    var labelText = ["", i18n("mon"), "", i18n("wed"), "", i18n("fri"), ""];
-    // First row aligns with the month-label lane, so pad one extra slot.
-    var pad = document.createElement("span");
-    pad.className = "awd-hm-pad";
-    labels.appendChild(pad);
-    for (var r = 0; r < 7; r++) {
-      var lab = document.createElement("span");
-      lab.textContent = labelText[r] ? labelText[r] : "";
-      labels.appendChild(lab);
-    }
-    grid.appendChild(labels);
-
-    var months = data().months || [];
-    var cursor = new Date(start);
-    var lastMonth = -1;
-
-    while (cursor <= dec31) {
-      var col = document.createElement("div");
-      col.className = "awd-hm-col";
-
-      if (cursor.getFullYear() === hmYear && cursor.getMonth() !== lastMonth) {
-        var monthCell = document.createElement("div");
-        monthCell.className = "awd-hm-month";
-        monthCell.textContent = months[cursor.getMonth()] || "";
-        lastMonth = cursor.getMonth();
-        col.appendChild(monthCell);
-      }
-
-      for (var day = 0; day < 7; day++) {
-        var cell = document.createElement("div");
-        var key = isoKey(cursor);
-        if (cursor.getFullYear() !== hmYear) {
-          // Leading/trailing days that belong to the neighbour year.
-          cell.className = "awd-hm-cell pad";
-        } else if (key > todayKey) {
-          cell.className = "awd-hm-cell future";
-        } else {
-          var count = calendar[key] || 0;
-          cell.className = "awd-hm-cell l" + levelFor(count, key);
-          if (key === todayKey) cell.className += " today";
-          cell.dataset.count = count;
-          cell.dataset.date = key;
-        }
-        col.appendChild(cell);
-        cursor.setDate(cursor.getDate() + 1);
-      }
-      grid.appendChild(col);
-    }
+    // The grid itself comes from web/shared/heatmap.js — the habit report's
+    // year view draws from the same builder. Only the shading is ours.
+    var grid = AwdHeatmap.grid({
+      first: hmYear * 10000 + 101,
+      last: hmYear * 10000 + 1231,
+      firstDay: 1,
+      months: data().months || [],
+      weekdayLabels: ["", i18n("mon"), "", i18n("wed"), "", i18n("fri"), ""],
+      classFor: function (day) {
+        if (day > todayDay) return "future";
+        var key = dayKey(day);
+        return (
+          "l" + levelFor(calendar[key] || 0, key) + (day === todayDay ? " today" : "")
+        );
+      },
+    });
 
     host.innerHTML = "";
     host.appendChild(grid);
-    // Current year: keep "today" in view; past years: start at January.
+    // Current year: the most recent weeks; past years: start at January.
     host.scrollLeft = hmYear === todayYearNum() ? host.scrollWidth : 0;
     bindTooltip(host);
     renderYearPills();
@@ -291,12 +250,13 @@
 
   /* ---------- tooltip ---------- */
 
-  function formatTooltip(count, key) {
-    var parts = key.split("-");
+  function formatTooltip(day) {
+    var key = dayKey(day);
+    var count = (data().calendar || {})[key] || 0;
     var months = data().months || [];
     var dayLabel = (data().dayMonthFormat || "{month} {day}")
-      .replace("{month}", months[parseInt(parts[1], 10) - 1] || "")
-      .replace("{day}", parseInt(parts[2], 10));
+      .replace("{month}", months[(Math.floor(day / 100) % 100) - 1] || "")
+      .replace("{day}", day % 100);
     return count + " " + i18n("cards") + " · " + dayLabel;
   }
 
@@ -305,11 +265,12 @@
     if (!tip) return;
     host.addEventListener("mousemove", function (event) {
       var cell = event.target.closest(".awd-hm-cell");
-      if (!cell || cell.dataset.count === undefined) {
+      // Padding cells carry no day at all; future ones have nothing to report.
+      if (!cell || !cell.dataset.day || cell.classList.contains("future")) {
         tip.hidden = true;
         return;
       }
-      tip.textContent = formatTooltip(cell.dataset.count, cell.dataset.date);
+      tip.textContent = formatTooltip(parseInt(cell.dataset.day, 10));
       tip.hidden = false;
       var x = event.clientX + 12;
       var y = event.clientY - 30;

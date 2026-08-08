@@ -117,6 +117,26 @@ def _deck_action(action: str) -> None:
     _run_deck_action(action, did)
 
 
+def _habit_command(command: str) -> None:
+    """Everything under `awd:habit:` — quick ticks and the two dialogs.
+
+    A tick never re-renders the page: the strip already updated itself, and
+    `screens.habits` pushes the stored value back so the two agree.
+    """
+    from ..screens import habits
+
+    if command == "manage":
+        habits.open_manager()
+    elif command == "report":
+        habits.open_report()
+    elif command.startswith("toggle:"):
+        habits.toggle(command[len("toggle:"):])
+    elif command.startswith("report:"):
+        from ..screens.habit_report import command as report_command
+
+        report_command(command[len("report:"):])
+
+
 def _open_settings() -> None:
     from .settings import AwdSettingsDialog
 
@@ -218,6 +238,8 @@ def handle_message(handled, message: str, context):
         mw.deckBrowser.refresh()
     elif command == "welcome_done":
         conf.set_value("shownWelcome", True)
+    elif command.startswith("habit:"):
+        _habit_command(command[len("habit:"):])
     elif command.startswith("collapse:"):
         parts = command.split(":")
         if len(parts) == 3:

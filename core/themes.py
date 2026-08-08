@@ -305,6 +305,19 @@ def _rgb(value: str):
         return None
 
 
+def rgba(color: str, alpha: float) -> str:
+    """`rgba(r, g, b, a)` from a hex colour.
+
+    Qt reads an 8-digit hex as **#AARRGGBB**, so appending an alpha pair to a
+    CSS-style `#RRGGBB` silently paints a different colour there; QSS needs the
+    functional form.
+    """
+    parsed = _rgb(color)
+    if parsed is None:
+        return color
+    return f"rgba({parsed[0]}, {parsed[1]}, {parsed[2]}, {max(0.0, min(1.0, alpha))})"
+
+
 def derive_accents(accent: str) -> dict:
     """The full accent family implied by one colour.
 

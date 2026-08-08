@@ -1,0 +1,116 @@
+/* ============================================================
+   heatmap.css — the calendar grid shared by the dashboard's
+   activity heatmap and the habit report's year view.
+
+   Structure only. The cell *colours* belong to whoever built the
+   grid: dashboard.css paints l1–l4 from the accent, habits.css
+   paints done/partial/missed from the habit's own colour.
+
+   Size is a variable so the same grid can be a comfortable 12px
+   on a card of its own and a denser 10px when several are stacked.
+   ============================================================ */
+
+.awd-hm {
+  --awd-hm-cell: 12px;
+  --awd-hm-gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+/* Chromium's default bar is a thick grey slab that reads as chrome rather than
+   part of the card. This is a thin themed rail that only darkens once the
+   pointer is inside, so it stays quiet while you are reading the grid.
+   Deliberately no `scrollbar-width`/`scrollbar-color`: recent Chromium supports
+   the standard properties and, when they are set, ignores ::-webkit-scrollbar
+   altogether — which would silently throw away the rounded thumb and the hover
+   states below. Anki's webview is always Chromium. */
+.awd-hm::-webkit-scrollbar { height: 7px; }
+.awd-hm::-webkit-scrollbar-track { background: transparent; }
+.awd-hm::-webkit-scrollbar-thumb {
+  background: var(--awd-border);
+  border-radius: 99px;
+}
+.awd-hm:hover::-webkit-scrollbar-thumb { background: var(--awd-faint); }
+.awd-hm::-webkit-scrollbar-thumb:hover { background: var(--awd-subtle); }
+
+.awd-hm-grid {
+  display: flex;
+  gap: var(--awd-hm-gap);
+  align-items: flex-end;
+  padding-right: 26px; /* room for the last month label to overflow */
+  width: max-content;
+}
+
+/* The weekday column would cost a permanent strip of width to label three of
+   seven rows, so it claims none: zero-width and sticky, it overlays the first
+   columns and only fades in while the grid is hovered. */
+.awd-hm-labels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--awd-hm-gap);
+  font-size: 9px;
+  color: var(--awd-subtle);
+  font-family: ui-monospace, Menlo, monospace;
+  position: sticky;
+  left: 0;
+  width: 0;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .16s ease;
+}
+.awd-hm:hover .awd-hm-labels,
+.awd-hm:focus-within .awd-hm-labels { opacity: 1; }
+.awd-hm-labels span {
+  height: var(--awd-hm-cell);
+  line-height: var(--awd-hm-cell);
+  width: max-content;
+  white-space: nowrap;
+}
+/* Only the labelled rows get a chip; the empty ones would show as floating
+   blocks over the cells. */
+.awd-hm-labels span:not(:empty) {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--awd-surface);
+  box-shadow: 0 0 0 1px var(--awd-border);
+}
+.awd-hm-pad { height: 12px; }
+
+.awd-hm-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--awd-hm-gap);
+  position: relative;
+  padding-top: 15px; /* reserved lane for the floating month labels */
+}
+
+/* Month labels float above the grid so their text never widens a column. A
+   label in the flow makes its own column as wide as the word, which puts a gap
+   at every month boundary — the columns have to stay perfectly even for the
+   year to read as one continuous grid. */
+.awd-hm-month {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 12px;
+  line-height: 12px;
+  font-size: 9px;
+  color: var(--awd-faint);
+  font-family: ui-monospace, Menlo, monospace;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.awd-hm-cell {
+  width: var(--awd-hm-cell);
+  height: var(--awd-hm-cell);
+  border-radius: 4px;
+  background: var(--awd-inset);
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+.awd-hm-cell.today { outline: 2px solid var(--awd-accent); outline-offset: 1px; }
+.awd-hm-cell.future { background: transparent; border: 1px dashed var(--awd-border); }
+/* Days of the neighbouring period, kept so the edge weeks stay row-aligned. */
+.awd-hm-cell.pad { background: transparent; border: none; }

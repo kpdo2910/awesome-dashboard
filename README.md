@@ -4,9 +4,9 @@
 
 Awesome Dashboard replaces Anki's deck screen, deck overview and review chrome
 with a single, consistent interface: stat cards, a GitHub-style activity
-heatmap, a Pomodoro timer, exam countdowns and an optional sidebar — across six
-colour themes with matching light and dark palettes, in English, Vietnamese and
-Japanese.
+heatmap, a Pomodoro timer, a habit tracker, exam countdowns and an optional
+sidebar — across six colour themes with matching light and dark palettes, in
+English, Vietnamese and Japanese.
 
 ![Awesome Dashboard](docs/images/feature-en.png)
 
@@ -21,6 +21,22 @@ Exam countdowns sit under the greeting and turn orange inside 14 days.
 The sidebar is optional and comes in two widths — full, or a compact icon rail.
 While it is shown, the deck list and the header card move into it, with deck
 search and a tinted icon per deck.
+
+## Habits
+
+A strip of habits under the stat cards: one click ticks today off, and the
+click does not reload the page. Habits can be yes/no or counted towards a
+target (2500 of 3000 ml, 25 of 30 minutes), and can repeat every day, on chosen
+weekdays, or a number of times a week — that last one is scored by the week, so
+skipping Tuesday costs nothing as long as the week adds up.
+
+**Report** opens week, month and year views: a seven-day grid with per-day
+totals, a calendar per habit, and a GitHub-style year strip, each with
+completion rate, full days and best streak.
+
+Habits live in your collection, so they ride along in `.colpkg` backups and in
+sync between desktops. Deleting a habit archives it and keeps the history;
+removing it for good is a separate, confirmed action.
 
 ## Deck overview
 
@@ -47,7 +63,7 @@ Five pages, laid out like macOS System Settings:
 
 | Page | What's in it |
 | --- | --- |
-| General | Name, greeting, language, sidebar mode, dashboard sections, Pomodoro lengths |
+| General | Name, greeting, language, sidebar mode, dashboard sections, habits, Pomodoro lengths |
 | Appearance | Theme, light/dark mode, which screens to theme, hiding Anki's native bars |
 | Decks | Per-deck card skin, and rename / options / export / delete |
 | FSRS | Enable FSRS, desired retention, optimise and evaluate parameters |

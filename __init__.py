@@ -3,9 +3,9 @@
 Wiring only: installs the screen renderers and registers the gui_hooks.
 
     core/      config, palettes, strings, collection statistics
-    screens/   dashboard, deck overview, reviewer chrome, card skin
-    features/  Pomodoro timer, FSRS controls
-    ui/        settings dialog, Qt/app theming, pycmd router
+    screens/   dashboard, deck overview, reviewer chrome, card skin, habits
+    features/  Pomodoro timer, FSRS controls, habit tracker
+    ui/        settings dialog, Qt/app theming, pycmd router, habit dialogs
 """
 
 import os
@@ -24,6 +24,7 @@ except ImportError:
     TopToolbar = BottomToolbar = None
 
 from .core import background, conf, stats, themes
+from .features.habits import store as habit_store
 from .screens import card_skin, dashboard, overview, reviewer
 from .ui import bridge, qt_theme
 
@@ -54,6 +55,10 @@ qt_theme.install_custom_study_hook()
 
 # Space on a skinned answer flips the card instead of rating it.
 card_skin.install_space_toggle()
+
+# Habit ticks are written behind a debounce, so every way out of a profile has
+# to flush. Registering the hooks is safe here; nothing reads mw.col yet.
+habit_store.install_hooks()
 
 
 def _asset(*parts: str) -> str:
@@ -140,10 +145,23 @@ def on_webview_will_set_content(web_content, context) -> None:
 
     if isinstance(context, DeckBrowser):
         web_content.head += _theme_shell(theme_vars)
+        web_content.head += _css("shared", "heatmap.css")
         web_content.head += _css("dashboard", "dashboard.css")
+        if config.get("showHabits", True):
+            web_content.head += _css("shared", "loading.css")
+            web_content.head += _css("shared", "switch.css")
+            web_content.head += _css("habits", "habits.css")
         web_content.head += _background_layer(config)
+        # heatmap.js before dashboard.js: the activity grid is built from it.
+        web_content.head += _js("shared", "heatmap.js")
         web_content.head += _js("dashboard", "dashboard.js")
+        if config.get("showHabits", True):
+            web_content.head += _js("habits", "habits.js")
+            # The report is an overlay in this same page, not a webview of its
+            # own — see screens/habit_report.py.
+            web_content.head += _js("habits", "report.js")
         if not config.get("shownWelcome", False):
+            web_content.head += _css("shared", "loading.css")
             web_content.head += _css("dashboard", "onboarding.css")
             web_content.head += _js("dashboard", "onboarding.js")
     elif isinstance(context, Overview):
@@ -219,6 +237,7 @@ def setup_menu() -> None:
     action = QAction(tr("awd_settings"), mw)
     action.triggered.connect(lambda _: AwdSettingsDialog(mw).exec())
     mw.form.menuTools.addAction(action)
+
 
 
 def install_bar_guards() -> None:

@@ -8,6 +8,7 @@
     "showStats": true,
     "showHeatmap": true,
     "showPomodoro": true,
+    "showHabits": true,
     "pomodoroFocusMinutes": 25,
     "pomodoroBreakMinutes": 5,
     "hideNativeBottomBar": true,

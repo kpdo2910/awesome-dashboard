@@ -1,0 +1,480 @@
+/* ============================================================
+   habits.css — the habit strip on the dashboard and the
+   report webview. Palette comes from the --awd-* variables,
+   habit colour arrives per chip as --awd-tint.
+   ============================================================ */
+
+/* ---------- the dashboard block ---------- */
+
+.awd-hb-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.awd-hb-count {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--awd-subtle);
+  white-space: nowrap;
+}
+.awd-hb-count b { color: var(--awd-accent); }
+.awd-hb-count.all-done { color: var(--awd-due, var(--awd-accent)); }
+
+/* The track is accent-soft, not inset. `--awd-inset` is a neutral — a grey in
+   Glass, a warm grey elsewhere — and a full-card-width 4px line of it reads as
+   a stray divider rather than the empty half of a progress bar. The fill is
+   `--awd-accent-grad`, so the track belongs to the same family; every theme
+   then gets a track in its own colour without a per-theme rule. */
+.awd-hb-bar {
+  height: 4px;
+  border-radius: 99px;
+  background: var(--awd-accent-soft);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.awd-hb-bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--awd-accent-grad);
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.awd-hb-card[data-empty="1"] .awd-hb-bar { display: none; }
+
+.awd-hb-grid {
+  display: grid;
+  gap: 8px;
+  /* Wide enough that a two-word habit name and its streak both fit; below
+     this the name is the first thing to lose, and the name is the point. */
+  grid-template-columns: repeat(auto-fill, minmax(214px, 1fr));
+}
+
+/* Anki's base CSS paints every <button> on hover at (0,1,1), so each rule
+   below is reached through .awd-hb-grid and every :hover restates both
+   background and border — a bare class loses and the chip flashes grey. */
+.awd-hb-grid .awd-hb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  /* Plain value first for engines with no color-mix(), the blend second. */
+  background: var(--awd-inset);
+  background: color-mix(in srgb, var(--awd-tint) 13%, var(--awd-surface));
+  color: var(--awd-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform .12s ease, background .2s ease;
+}
+.awd-hb-grid .awd-hb:hover {
+  background: var(--awd-border);
+  background: color-mix(in srgb, var(--awd-tint) 22%, var(--awd-surface));
+  border: 1px solid transparent;
+}
+.awd-hb-grid .awd-hb:active { transform: scale(.98); }
+
+/* How far through a count habit's target the day is. Sits behind the row
+   rather than beside it, so a chip stays one object at a glance. */
+.awd-hb-grid .awd-hb::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--awd-fill, 0%);
+  background: var(--awd-tint);
+  opacity: .16;
+  transition: width .35s ease;
+  pointer-events: none;
+}
+.awd-hb-grid .awd-hb > * { position: relative; }
+
+.awd-hb-ic {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--awd-surface);
+  background: color-mix(in srgb, var(--awd-tint) 22%, var(--awd-surface));
+  font-size: 14px;
+  line-height: 1;
+}
+.awd-hb-text { min-width: 0; flex: 1 1 auto; }
+.awd-hb-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.awd-hb-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--awd-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.awd-hb-streak {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--awd-subtle);
+  white-space: nowrap;
+}
+
+/* The tick target. A ring while there is work left, filled once there is not.
+   The empty ring is a wash of the habit's own colour rather than `--awd-border`:
+   a neutral ring sat there looking unrelated to the chip it belongs to, and
+   went grey against a warm theme. */
+.awd-hb-check {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--awd-border);
+  border: 2px solid color-mix(in srgb, var(--awd-tint) 42%, transparent);
+  color: transparent;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.awd-hb.done .awd-hb-check {
+  background: var(--awd-tint);
+  border-color: var(--awd-tint);
+  color: #fff;
+}
+.awd-hb.done .awd-hb-name { text-decoration: line-through; opacity: .72; }
+.awd-hb.partial .awd-hb-check { border-color: var(--awd-tint); }
+
+/* A weekly habit that has already made its week. The ring stays open because
+   it still reflects *today* — the week being finished is the chip's tint. */
+.awd-hb-grid .awd-hb.satisfied {
+  background: var(--awd-inset);
+  background: color-mix(in srgb, var(--awd-tint) 24%, var(--awd-surface));
+}
+.awd-hb.satisfied .awd-hb-check { border-color: var(--awd-tint); color: var(--awd-tint); }
+
+/* Not scheduled today: still tickable, but it must not look like a task. */
+.awd-hb.off { opacity: .5; }
+.awd-hb.off .awd-hb-sub { font-style: italic; }
+
+.awd-hb-empty { text-align: center; padding: 22px 10px 8px; }
+.awd-hb-empty .awd-pill { margin-top: 12px; }
+.awd-hb-empty[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-hb-bar i, .awd-hb-grid .awd-hb::before { transition: none; }
+}
+
+/* ---------- the report overlay ----------
+   The report lives in the dashboard's own page now, so it needs no page rules
+   of its own — just a layer over the top. It is appended outside `.awd`
+   deliberately: cards in there animate with `transform`, and a transformed
+   ancestor becomes the containing block for `position: fixed`, which would trap
+   this inside the card grid. */
+
+.awd-rep-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--awd-bg-grad);
+  /* No `both`: the end state is the natural one, and a fill mode would leave a
+     transform applied for good — which silently disables backdrop-filter on
+     everything inside. */
+  animation: awdRepIn .18s ease;
+}
+.awd-rep-overlay[hidden] { display: none; }
+@keyframes awdRepIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* The dashboard behind must not scroll while the report is up. */
+html.awd-rep-open, html.awd-rep-open body { overflow: hidden; }
+
+.awd-rep-overlay .awd-rep-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--awd-border);
+  border-radius: 50%;
+  background: var(--awd-surface);
+  color: var(--awd-subtle);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.awd-rep-overlay .awd-rep-close:hover {
+  background: var(--awd-inset);
+  border: 1px solid var(--awd-border);
+  color: var(--awd-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-rep-overlay { animation: none; }
+}
+
+.awd-rep {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 18px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+.awd-rep-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.awd-rep-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 auto 0 0;
+}
+.awd-rep-nav { display: flex; align-items: center; gap: 4px; }
+
+.awd-rep .awd-rep-arrow {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--awd-border);
+  border-radius: 50%;
+  background: var(--awd-surface);
+  color: var(--awd-subtle);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.awd-rep .awd-rep-arrow:hover {
+  background: var(--awd-inset);
+  border: 1px solid var(--awd-border);
+  color: var(--awd-text);
+}
+.awd-rep .awd-rep-arrow:disabled { opacity: .35; cursor: default; }
+
+.awd-rep-seg {
+  display: inline-flex;
+  padding: 2px;
+  gap: 0;
+  border-radius: 99px;
+  background: var(--awd-inset);
+}
+.awd-rep .awd-rep-tab {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 99px;
+  background: transparent;
+  color: var(--awd-subtle);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.awd-rep .awd-rep-tab:hover { background: transparent; border: none; color: var(--awd-text); }
+.awd-rep .awd-rep-tab.active {
+  background: var(--awd-surface);
+  color: var(--awd-text);
+}
+
+/* summary tiles */
+.awd-rep-tiles {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+.awd-rep-tile {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+.awd-rep-tile .v { font-size: 22px; font-weight: 800; line-height: 1.15; }
+.awd-rep-tile .v small { font-size: 12px; font-weight: 700; color: var(--awd-subtle); }
+.awd-rep-tile .k {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  color: var(--awd-subtle);
+  margin-top: 2px;
+}
+
+/* the week grid */
+.awd-rep-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.awd-rep-table th {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--awd-subtle);
+  padding: 4px 2px;
+  text-align: center;
+}
+.awd-rep-table th.name { text-align: left; width: 36%; }
+.awd-rep-table td { padding: 3px 2px; text-align: center; }
+.awd-rep-table td.name {
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+.awd-rep-table td.name .ic { margin-right: 6px; }
+.awd-rep-table tr.archived td.name { opacity: .6; }
+.awd-rep-table td.rate { text-align: right; font-weight: 700; white-space: nowrap; }
+.awd-rep-table tfoot td {
+  border-top: 1px solid var(--awd-border);
+  padding-top: 7px;
+  font-weight: 700;
+  color: var(--awd-subtle);
+}
+
+/* One day's cell. `.awd-cell` is the week and month grids, which draw their own
+   layout; `.awd-hm-cell` is the year strip, built by the shared heatmap
+   component (web/shared/heatmap.js). Same four states, same colours — the size,
+   radius and the today/future/pad states come from web/shared/heatmap.css. */
+.awd-cell {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--awd-inset);
+  vertical-align: middle;
+}
+.awd-cell.due, .awd-hm-cell.due {
+  background: var(--awd-inset);
+  background: color-mix(in srgb, var(--awd-tint) 12%, var(--awd-inset));
+}
+.awd-cell.part, .awd-hm-cell.part {
+  background: var(--awd-tint);
+  background: color-mix(in srgb, var(--awd-tint) 45%, var(--awd-surface));
+}
+.awd-cell.full, .awd-hm-cell.full { background: var(--awd-tint); }
+/* Days that have not happened yet. Three weeks of them fill a month grid, so
+   the outline is kept faint — it marks the shape of the month, not a to-do. */
+.awd-cell.future {
+  background: transparent;
+  border: 1px dashed var(--awd-border);
+  opacity: .55;
+}
+/* Not scheduled, or before the habit existed. Faint rather than transparent:
+   a genuinely empty slot in the middle of a month grid reads as a hole in the
+   rendering, not as a day off. */
+.awd-cell.off, .awd-hm-cell.off { background: var(--awd-inset); opacity: .35; }
+.awd-cell.today { outline: 2px solid var(--awd-accent); outline-offset: 1px; }
+/* Padding before the first weekday of the period — keeps the column aligned
+   without leaving a cell that looks like a missed day. */
+.awd-cell.blank { visibility: hidden; }
+
+/* month view: one calendar per habit */
+.awd-rep-months {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.awd-rep-month {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+}
+.awd-rep-month h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.awd-rep-month h4 .pct { margin-left: auto; font-size: 12px; color: var(--awd-subtle); }
+.awd-rep-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  justify-items: center;
+}
+.awd-rep-cal .dow {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--awd-faint);
+  padding-bottom: 2px;
+}
+.awd-rep-cal .awd-cell { width: 100%; max-width: 26px; height: 20px; border-radius: 6px; }
+
+/* year view: one contribution row per habit */
+.awd-rep-year {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+}
+.awd-rep-year + .awd-rep-year { margin-top: 10px; }
+.awd-rep-year h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.awd-rep-year h4 .meta {
+  margin-left: auto;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--awd-subtle);
+}
+/* The strip is a shared heatmap container (`.awd-hm`), so it inherits the grid,
+   the floating month labels and the thin scrollbar. Only the density is its
+   own: several of these are stacked, where the dashboard has one card to
+   itself. `position: relative` makes a cell's offsetLeft measurable against the
+   strip, which is how AwdHeatmap.scrollTo finds today. */
+.awd-rep-strip {
+  position: relative;
+  --awd-hm-cell: 10px;
+  --awd-hm-gap: 2px;
+}
+.awd-rep-strip .awd-hm-cell { border-radius: 3px; }
+.awd-rep-strip .awd-hm-cell.today { outline-width: 1px; }
+
+.awd-rep-empty {
+  text-align: center;
+  padding: 40px 10px;
+  color: var(--awd-subtle);
+}
+.awd-rep-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--awd-subtle);
+}
+.awd-rep-foot label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }

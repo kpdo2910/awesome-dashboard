@@ -259,103 +259,13 @@ body {
   color: var(--awd-accent);
 }
 
-.awd-heatmap { overflow-x: auto; padding-bottom: 6px; }
-
-/* Chromium's default bar is a thick grey slab that reads as chrome rather than
-   part of the card. This is a thin themed rail that only darkens once the
-   pointer is in the card, so it stays quiet while you are reading the grid. */
-.awd-heatmap::-webkit-scrollbar { height: 7px; }
-.awd-heatmap::-webkit-scrollbar-track {
-  background: transparent;
-}
-.awd-heatmap::-webkit-scrollbar-thumb {
-  background: var(--awd-border);
-  border-radius: 99px;
-}
-.awd-heatmap:hover::-webkit-scrollbar-thumb { background: var(--awd-faint); }
-.awd-heatmap::-webkit-scrollbar-thumb:hover { background: var(--awd-subtle); }
-/* Deliberately no `scrollbar-width`/`scrollbar-color`: recent Chromium supports
-   the standard properties and, when they are set, ignores ::-webkit-scrollbar
-   altogether — which would silently throw away the rounded thumb and the hover
-   states above. Anki's webview is always Chromium, so the pseudo-elements are
-   the ones worth keeping. */
-.awd-hm-grid {
-  display: flex;
-  gap: 3px;
-  align-items: flex-end;
-  padding-right: 26px; /* room for the last month label to overflow */
-  width: max-content;
-}
-/* The weekday column costs a permanent strip of width to label three of seven
-   rows, so it claims none: zero-width and sticky, it overlays the first columns
-   and only fades in while the heatmap is hovered. */
-.awd-hm-labels {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 9px;
-  color: var(--awd-subtle);
-  font-family: ui-monospace, Menlo, monospace;
-  position: sticky;
-  left: 0;
-  width: 0;
-  z-index: 2;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .16s ease;
-}
-.awd-heatmap:hover .awd-hm-labels,
-.awd-heatmap:focus-within .awd-hm-labels { opacity: 1; }
-.awd-hm-labels span {
-  height: 12px;
-  line-height: 12px;
-  width: max-content;
-  white-space: nowrap;
-}
-/* Only the three labelled rows get a chip; the empty ones would show as
-   floating blocks over the cells. */
-.awd-hm-labels span:not(:empty) {
-  padding: 0 4px;
-  border-radius: 3px;
-  background: var(--awd-surface);
-  box-shadow: 0 0 0 1px var(--awd-border);
-}
-.awd-hm-pad { height: 12px; }
-.awd-hm-col {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  position: relative;
-  padding-top: 15px; /* reserved lane for the floating month labels */
-}
-/* Month labels float above the grid so their text never widens a column —
-   the cell columns stay perfectly even, GitHub-style. */
-.awd-hm-month {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 12px;
-  line-height: 12px;
-  font-size: 9px;
-  color: var(--awd-faint);
-  font-family: ui-monospace, Menlo, monospace;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.awd-hm-cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  background: var(--awd-inset);
-  box-sizing: border-box;
-}
+/* The grid itself now lives in web/shared/heatmap.css, which the habit
+   report's year view uses too — only the accent shading is the dashboard's
+   own. The container keeps the `awd-hm` class for the shared rules. */
 .awd-hm-cell.l1 { background: color-mix(in srgb, var(--awd-accent) 25%, var(--awd-inset)); }
 .awd-hm-cell.l2 { background: color-mix(in srgb, var(--awd-accent) 50%, var(--awd-inset)); }
 .awd-hm-cell.l3 { background: color-mix(in srgb, var(--awd-accent) 75%, var(--awd-inset)); }
 .awd-hm-cell.l4 { background: var(--awd-accent); }
-.awd-hm-cell.today { outline: 2px solid var(--awd-accent); outline-offset: 1px; }
-.awd-hm-cell.future { background: transparent; border: 1px dashed var(--awd-border); }
-.awd-hm-cell.pad { background: transparent; border: none; }
 
 .awd-heatmap-legend {
   display: flex;

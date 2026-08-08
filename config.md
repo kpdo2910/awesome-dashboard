@@ -14,7 +14,8 @@ what each feature does.
 
 - `sidebarMode` — `full`, `compact` or `hidden`. While the sidebar is shown,
   the deck list and header card move into it.
-- `showStats` / `showHeatmap` / `showPomodoro` — toggle dashboard sections.
+- `showStats` / `showHeatmap` / `showPomodoro` / `showHabits` — toggle dashboard
+  sections.
 - `pomodoroFocusMinutes` / `pomodoroBreakMinutes` — session lengths in minutes.
 - `events` — exam countdowns, each `{"name": "JLPT N2", "date": "2026-12-06"}`.
 

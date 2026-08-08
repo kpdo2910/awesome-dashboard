@@ -4,9 +4,9 @@
 
 Awesome Dashboard thay màn hình bộ thẻ, màn hình tổng quan và khung màn ôn thẻ
 của Anki bằng một giao diện thống nhất: thẻ thống kê, heatmap hoạt động kiểu
-GitHub, đồng hồ Pomodoro, đếm ngược kỳ thi và thanh bên tuỳ chọn — với sáu chủ
-đề màu, mỗi chủ đề có bảng màu sáng và tối riêng, hỗ trợ tiếng Việt, tiếng Anh
-và tiếng Nhật.
+GitHub, đồng hồ Pomodoro, theo dõi thói quen, đếm ngược kỳ thi và thanh bên tuỳ
+chọn — với sáu chủ đề màu, mỗi chủ đề có bảng màu sáng và tối riêng, hỗ trợ
+tiếng Việt, tiếng Anh và tiếng Nhật.
 
 ![Awesome Dashboard](docs/images/feature-vi.png)
 
@@ -21,6 +21,22 @@ nằm ngay dưới lời chào và chuyển màu cam khi còn dưới 14 ngày.
 Thanh bên là tuỳ chọn và có hai dạng — đầy đủ hoặc rail icon thu gọn. Khi thanh
 bên hiện, danh sách bộ thẻ và phần header chuyển hẳn vào đó, kèm ô tìm bộ thẻ
 và icon màu riêng cho từng bộ.
+
+## Thói quen
+
+Một dải thói quen nằm dưới các thẻ thống kê: một cú nhấp là đánh dấu xong cho
+hôm nay, và cú nhấp đó không tải lại trang. Thói quen có thể là dạng có/chưa
+hoặc đếm theo mục tiêu (2500 trên 3000 ml, 25 trên 30 phút), và lặp mỗi ngày,
+theo thứ đã chọn, hoặc một số lần mỗi tuần — dạng cuối tính theo tuần nên bỏ
+thứ Ba cũng không sao miễn là cả tuần đủ số lần.
+
+**Báo cáo** mở ba mức tuần, tháng và năm: lưới bảy ngày kèm tổng theo từng
+ngày, một lịch cho mỗi thói quen, và dải cả năm kiểu GitHub, mỗi mức đều có tỉ
+lệ hoàn thành, số ngày trọn vẹn và chuỗi dài nhất.
+
+Thói quen được lưu trong collection nên đi kèm bản sao lưu `.colpkg` và đồng bộ
+giữa các máy. Xoá một thói quen là lưu trữ nó và giữ nguyên lịch sử; muốn xoá
+hẳn thì phải xác nhận riêng.
 
 ## Màn hình bộ thẻ
 
@@ -47,7 +63,7 @@ Năm trang, bố cục theo kiểu macOS System Settings:
 
 | Trang | Nội dung |
 | --- | --- |
-| Chung | Tên, lời chào, ngôn ngữ, chế độ thanh bên, các khối trên dashboard, độ dài Pomodoro |
+| Chung | Tên, lời chào, ngôn ngữ, chế độ thanh bên, các khối trên dashboard, thói quen, độ dài Pomodoro |
 | Giao diện | Chủ đề, chế độ sáng/tối, chọn màn hình được áp theme, ẩn thanh gốc của Anki |
 | Bộ thẻ | Giao diện thẻ theo từng bộ, và đổi tên / tuỳ chọn / xuất / xoá |
 | FSRS | Bật FSRS, mức ghi nhớ mong muốn, tối ưu và đánh giá tham số |

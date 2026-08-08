@@ -108,6 +108,10 @@ class _Swatch(QAbstractButton):
     DIAMETER = 34
     RING_GAP = 4
     RING_WIDTH = 3
+    # The selection ring's outer edge used to land exactly on the widget's own
+    # boundary, so antialiasing had nowhere to put its softened pixel and the
+    # ring came out visibly nibbled. One pixel of margin is the whole fix.
+    MARGIN = 1
 
     def __init__(self, color: str, gradient=None, parent=None):
         super().__init__(parent)
@@ -115,14 +119,16 @@ class _Swatch(QAbstractButton):
         self.gradient = gradient
         self.setCheckable(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        size = self.DIAMETER + 2 * (self.RING_GAP + self.RING_WIDTH)
+        size = self.DIAMETER + 2 * (self.RING_GAP + self.RING_WIDTH + self.MARGIN)
         self.setFixedSize(QSize(size, size))
 
     def paintEvent(self, _event) -> None:
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        # QPointF, so the float radii below pick the right drawEllipse overload.
-        center = QPointF(self.rect().center())
+        # The true centre, not `rect().center()`: that divides the integer rect
+        # and lands half a pixel up and left, which clipped the ring's bottom
+        # and right edges on top of everything else.
+        center = QPointF(self.width() / 2, self.height() / 2)
         fill = QColor(self.color)
         radius = self.DIAMETER / 2
 
@@ -136,10 +142,11 @@ class _Swatch(QAbstractButton):
 
         painter.setPen(Qt.PenStyle.NoPen)
         if self.gradient:
-            disc = self.rect().adjusted(
-                self.RING_GAP + self.RING_WIDTH, self.RING_GAP + self.RING_WIDTH,
-                -(self.RING_GAP + self.RING_WIDTH), -(self.RING_GAP + self.RING_WIDTH),
-            )
+            # The gradient's box has to be the disc itself, so it stays in step
+            # with drawEllipse(center, radius, radius) below rather than with
+            # the ring's inset.
+            inset = self.RING_GAP + self.RING_WIDTH + self.MARGIN
+            disc = self.rect().adjusted(inset, inset, -inset, -inset)
             painter.setBrush(_linear_gradient(disc, self.gradient))
         else:
             painter.setBrush(fill)

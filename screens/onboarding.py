@@ -207,8 +207,8 @@ def overlay_html() -> str:
     </section>
 
     <section class="awd-ob-step awd-ob-center" data-step="5" hidden>
-      <div class="awd-ob-spinner" aria-hidden="true"><i></i><i></i><i></i></div>
-      <p class="awd-ob-loading" id="awd-ob-loading">{html.escape(tr("ob_applying"))}</p>
+      <div class="awd-spinner" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="awd-loading">{html.escape(tr("ob_applying"))}</p>
     </section>
 
     <section class="awd-ob-step awd-ob-center" data-step="6" hidden>

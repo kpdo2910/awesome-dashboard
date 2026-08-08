@@ -1,0 +1,65 @@
+/* ============================================================
+   switch.css — the web side's toggle switch.
+
+   Matches the macOS-style switches the Qt dialogs draw through
+   `qt_theme._switch_svg`, so a setting looks the same whether it
+   is in a dialog or in a page.
+
+   The real <input> stays in the DOM and keeps focus and keyboard
+   handling; it is only made invisible. `appearance: none` alone
+   would leave Anki's own form styling to fight with.
+   ============================================================ */
+
+.awd-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  user-select: none;
+}
+.awd-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.awd-switch-track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 21px;
+  border-radius: 99px;
+  background: var(--awd-inset);
+  box-shadow: inset 0 0 0 1px var(--awd-border);
+  transition: background .18s ease, box-shadow .18s ease;
+}
+.awd-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .28);
+  transition: transform .18s ease;
+}
+.awd-switch input:checked + .awd-switch-track {
+  background: var(--awd-accent);
+  box-shadow: inset 0 0 0 1px transparent;
+}
+.awd-switch input:checked + .awd-switch-track .awd-switch-knob {
+  transform: translateX(13px);
+}
+/* Focus has to land on the track, since the input itself is invisible. */
+.awd-switch input:focus-visible + .awd-switch-track {
+  outline: 2px solid var(--awd-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-switch-track, .awd-switch-knob { transition: none; }
+}

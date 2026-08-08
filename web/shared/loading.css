@@ -1,0 +1,50 @@
+/* ============================================================
+   loading.css — the add-on's one "working on it" indicator.
+
+   Three pulsing accent dots and an optional caption. Started life
+   inside the onboarding overlay; the habit report needs the same
+   thing, and two spinners that pulse at different rates read as
+   two different products.
+   ============================================================ */
+
+.awd-spinner {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+}
+.awd-spinner i {
+  width: 10px;
+  height: 10px;
+  border-radius: 99px;
+  background: var(--awd-accent);
+  animation: awdSpinnerPulse 1s ease-in-out infinite;
+}
+.awd-spinner i:nth-child(2) { animation-delay: .15s; }
+.awd-spinner i:nth-child(3) { animation-delay: .3s; }
+@keyframes awdSpinnerPulse {
+  0%, 100% { opacity: .25; transform: scale(.8); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+
+.awd-loading {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--awd-subtle);
+  text-align: center;
+}
+
+/* A block that stands in for content while it is being worked out. Tall enough
+   that the surrounding layout does not jump when the content replaces it. */
+.awd-loading-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 30px 10px;
+}
+.awd-loading-pane .awd-loading { margin-top: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-spinner i { animation: none; opacity: .7; }
+}

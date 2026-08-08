@@ -237,7 +237,7 @@ def _heatmap_card_html(bundle: dict) -> str:
         </div>
       </div>
       <div id="awd-hm-years" class="awd-hm-years"></div>
-      <div id="awd-heatmap" class="awd-heatmap"></div>
+      <div id="awd-heatmap" class="awd-heatmap awd-hm"></div>
       <div class="awd-heatmap-legend">
         <span>{tr("less")}</span>
         <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i>
@@ -747,6 +747,19 @@ def _fake_calendar(real: dict) -> dict:
     return fake
 
 
+def _habit_report_html(config: dict) -> str:
+    """The report overlay's shell, outside `.awd` so `position: fixed` works."""
+    if not config.get("showHabits", True):
+        return ""
+    try:
+        from . import habit_report
+
+        return habit_report.overlay_html()
+    except Exception as e:
+        print(f"[Awesome Dashboard] habit report shell failed: {e}")
+        return ""
+
+
 def _onboarding_html(config: dict) -> str:
     """The first-run overlay, or nothing once it has been through."""
     if config.get("shownWelcome", False):
@@ -854,6 +867,19 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
     sections = [_greet_bare_html(config), _header_html(config)]
     if config.get("showStats", True):
         sections.append(_stats_row_html(bundle, due_total))
+    # Above the heatmap: this is the one block on the page you act on rather
+    # than read, so it sits where the eye lands after the day's numbers.
+    habits_data = {}
+    if config.get("showHabits", True):
+        try:
+            from . import habits
+
+            sections.append(habits.card_html())
+            habits_data = habits.data_for_web()
+        except Exception as e:
+            # The block degrades to its empty state rather than taking the
+            # whole dashboard down with it.
+            print(f"[Awesome Dashboard] habits block failed: {e}")
     show_heatmap = config.get("showHeatmap", True)
     show_pomodoro = config.get("showPomodoro", True)
     if show_heatmap or show_pomodoro:
@@ -876,6 +902,7 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
         "todayKey": bundle.get("today_key", ""),
         "showHeatmap": show_heatmap,
         "showPomodoro": show_pomodoro,
+        "habits": habits_data,
         "pom": pomodoro.get().state(),
         "lang": current_lang(),
         "i18n": {
@@ -905,6 +932,7 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
         + "".join(sections)
         + "</div></div></div>"
         + '<div id="awd-tooltip" class="awd-tooltip" hidden></div>'
+        + _habit_report_html(config)
         + _onboarding_html(config)
         + f'<script>window.AWD_DATA = {json.dumps(js_data)};</script>'
     )

@@ -12,6 +12,9 @@ DEFAULTS = {
     "showStats": True,
     "showHeatmap": True,
     "showPomodoro": True,
+    # The habits themselves live in collection config, not here — this is only
+    # whether the dashboard shows the block. See features/habits/store.py.
+    "showHabits": True,
     "pomodoroFocusMinutes": 25,
     "pomodoroBreakMinutes": 5,
     "hideNativeBottomBar": True,

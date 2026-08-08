@@ -692,6 +692,96 @@ def settings_dialog_qss() -> str:
     """
 
 
+def habit_dialog_qss() -> str:
+    """The habit dialogs, riding on the settings QSS for palette and controls.
+
+    Only the two emoji buttons need their own rules, and both were broken by
+    borrowing someone else's:
+
+    * the picker cells were `#awdMini`, whose `max-height: 20px` silently beat
+      `setFixedSize` and left every glyph overflowing into its neighbours;
+    * the editor's icon button had no object name at all, so the generic
+      `QPushButton { padding: 6px 18px }` ate 36 of its 40px and clipped the
+      emoji to a sliver.
+
+    Geometry lives here and *only* here — a `setFixedSize` in the widget code
+    as well is what caused the first bug.
+    """
+    try:
+        from aqt.theme import theme_manager
+
+        night = theme_manager.night_mode
+    except Exception:
+        night = False
+    pal = themes.palette(conf.get().get("theme", "glass"), night)
+    bg = pal["bg"]
+    inset = flatten(pal["inset"], bg)
+    border = flatten(pal["border"], bg)
+    text = flatten(pal["text"], bg)
+
+    return settings_dialog_qss() + f"""
+    /* The habit's icon, next to its name in the editor. */
+    QPushButton#awdIconBtn {{
+        background: {inset};
+        border: 1px solid {border};
+        border-radius: 10px;
+        padding: 0;
+        min-width: 42px; max-width: 42px;
+        min-height: 34px; max-height: 34px;
+        font-size: 19px;
+        color: {text};
+    }}
+    QPushButton#awdIconBtn:hover {{
+        background: {border};
+        border: 1px solid {border};
+    }}
+
+    /* One cell of the emoji grid. Roomy enough that a colour emoji, which
+       renders taller than its nominal point size, still has air around it. */
+    QPushButton#awdIconCell {{
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        padding: 0;
+        min-width: 40px; max-width: 40px;
+        min-height: 36px; max-height: 36px;
+        font-size: 20px;
+        color: {text};
+    }}
+    QPushButton#awdIconCell:hover {{
+        background: {inset};
+        border: 1px solid {border};
+    }}
+    QPushButton#awdIconCell:pressed {{
+        background: {border};
+        border: 1px solid {border};
+    }}
+
+    /* The manager's footer buttons. `#awdMini` would do for the text glyphs,
+       but its 20px ceiling clips a colour emoji, and a row of buttons at two
+       different heights is worse than one that is 6px taller. */
+    QPushButton#awdMiniEmoji {{
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        padding: 0;
+        min-width: 30px; max-width: 30px;
+        min-height: 26px; max-height: 26px;
+        font-size: 14px;
+        font-weight: 600;
+        color: {text};
+    }}
+    QPushButton#awdMiniEmoji:hover {{
+        background: {inset};
+        border: 1px solid transparent;
+    }}
+    QPushButton#awdMiniEmoji:pressed {{
+        background: {border};
+        border: 1px solid transparent;
+    }}
+    """
+
+
 def custom_study_qss() -> str:
     """Anki's Custom Study dialog, matched to the add-on's own dialogs.
 

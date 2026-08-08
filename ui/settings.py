@@ -580,6 +580,9 @@ class AwdSettingsDialog(QDialog):
         self.show_stats = self._switch(bool(config.get("showStats", True)))
         self.show_heatmap = self._switch(bool(config.get("showHeatmap", True)))
         self.show_pomodoro = self._switch(bool(config.get("showPomodoro", True)))
+        self.show_habits = self._switch(bool(config.get("showHabits", True)))
+        manage_habits = QPushButton(tr("habit_manage"))
+        manage_habits.clicked.connect(self._manage_habits)
         self._block(
             box,
             tr("dashboard"),
@@ -587,6 +590,8 @@ class AwdSettingsDialog(QDialog):
             self._row(tr("show_stats"), self.show_stats),
             self._row(tr("show_heatmap"), self.show_heatmap),
             self._row(tr("show_pomodoro"), self.show_pomodoro),
+            self._row(tr("show_habits"), self.show_habits),
+            self._actions_row(manage_habits),
         )
 
         self.focus_minutes = QSpinBox()
@@ -606,6 +611,16 @@ class AwdSettingsDialog(QDialog):
 
         box.addStretch(1)
         return self._wrap_page(page)
+
+    def _manage_habits(self) -> None:
+        """Open the habit manager over this dialog.
+
+        Habits are collection data with their own immediate saves, so this does
+        not wait for Save here and Cancel cannot roll it back.
+        """
+        from .habits import open_manager
+
+        open_manager(self)
 
     def _build_look_page(self, config: dict) -> QScrollArea:
         page, box = self._page()
@@ -1197,7 +1212,13 @@ class AwdSettingsDialog(QDialog):
             tr("reset_settings_confirm"), parent=self, title="Awesome Dashboard"
         ):
             return False
-        conf.save(dict(conf.DEFAULTS))
+        defaults = dict(conf.DEFAULTS)
+        # `shownWelcome` records something that happened, not something the user
+        # chose. Restoring it to False replays the first-run overlay over a
+        # collection that is plainly not new — and worse, the reset's own
+        # re-render then races the overlay's, which tears it off the page.
+        defaults["shownWelcome"] = conf.get().get("shownWelcome", False)
+        conf.save(defaults)
         try:
             # The defaults clear the filename, so the file itself has to go too
             # or it would sit in user_files with nothing left to delete it.
@@ -1329,6 +1350,7 @@ class AwdSettingsDialog(QDialog):
         "showStats",
         "showHeatmap",
         "showPomodoro",
+        "showHabits",
         "hideNativeBottomBar",
         "hideNativeToolbar",
         "styleOverview",
@@ -1367,6 +1389,7 @@ class AwdSettingsDialog(QDialog):
                 "showStats": self.show_stats.isChecked(),
                 "showHeatmap": self.show_heatmap.isChecked(),
                 "showPomodoro": self.show_pomodoro.isChecked(),
+                "showHabits": self.show_habits.isChecked(),
                 "pomodoroFocusMinutes": self.focus_minutes.value(),
                 "pomodoroBreakMinutes": self.break_minutes.value(),
                 "hideNativeBottomBar": self.hide_bottom.isChecked(),

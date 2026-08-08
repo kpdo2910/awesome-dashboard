@@ -380,22 +380,10 @@
   opacity: 1;
 }
 
-/* ---------- applying ---------- */
-.awd-ob-spinner { display: flex; gap: 7px; }
-.awd-ob-spinner i {
-  width: 10px;
-  height: 10px;
-  border-radius: 99px;
-  background: var(--awd-accent);
-  animation: awdObPulse 1s ease-in-out infinite;
-}
-.awd-ob-spinner i:nth-child(2) { animation-delay: .15s; }
-.awd-ob-spinner i:nth-child(3) { animation-delay: .3s; }
-@keyframes awdObPulse {
-  0%, 100% { opacity: .25; transform: scale(.8); }
-  50%      { opacity: 1;   transform: scale(1); }
-}
-.awd-ob-loading { margin-top: 20px; font-size: 14px; color: var(--awd-subtle); }
+/* ---------- applying ----------
+   The spinner and its caption live in web/shared/loading.css — the habit
+   report shows the same one, and two spinners pulsing at different rates
+   read as two different products. */
 
 /* ---------- the closing flourish ----------
    Written rather than faded in: a soft-edged mask sweeps left to right, so the
@@ -436,5 +424,4 @@
   .awd-ob-step { animation: none; }
   .awd-ob-opt:hover, .awd-ob-opt.picked { transform: none; }
   .awd-ob-script span { animation: none; -webkit-mask-image: none; mask-image: none; }
-  .awd-ob-spinner i { animation: none; opacity: .7; }
 }
