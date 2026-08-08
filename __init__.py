@@ -91,13 +91,13 @@ def _night_mode() -> bool:
 def on_webview_will_set_content(web_content, context) -> None:
     config = conf.get()
     night = _night_mode()
-    theme_vars = themes.css_variables(config.get("theme", "terracotta"), night)
+    theme_vars = themes.css_variables(config.get("theme", "glass"), night)
 
     # Recolor Anki's own variables everywhere except the reviewer card
     # webview, so editor/stats/dialog pages follow the theme while note
     # templates keep rendering untouched.
     if config.get("styleSystemScreens", True) and not isinstance(context, Reviewer):
-        web_content.head += qt_theme.anki_vars_css(config.get("theme", "terracotta"), night)
+        web_content.head += qt_theme.anki_vars_css(config.get("theme", "glass"), night)
 
     if isinstance(context, DeckBrowser):
         web_content.head += _theme_shell(theme_vars)

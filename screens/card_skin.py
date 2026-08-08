@@ -79,14 +79,16 @@ def _deck_chain_ids(did: int):
 
 
 def skin_enabled_for_deck(did: int) -> bool:
-    mapping = conf.get().get("cardSkinDecks") or {}
-    if not isinstance(mapping, dict) or not mapping:
-        return False
-    for deck_id in _deck_chain_ids(did):
-        value = mapping.get(str(deck_id))
-        if value is not None:
-            return bool(value)
-    return False
+    config = conf.get()
+    mapping = config.get("cardSkinDecks") or {}
+    if isinstance(mapping, dict):
+        for deck_id in _deck_chain_ids(did):
+            value = mapping.get(str(deck_id))
+            if value is not None:
+                return bool(value)
+    # Nothing set anywhere up the tree, so the deck has never been touched —
+    # new decks land here and follow the default.
+    return bool(config.get("cardSkinDefault", True))
 
 
 def toggle_deck(did: int) -> bool:

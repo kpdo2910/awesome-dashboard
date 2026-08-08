@@ -1,6 +1,6 @@
 """Theme palettes: each ships light and dark sets of the same CSS variables.
 
-The default "terracotta" follows the warm-paper design language of the user's
+The "terracotta" palette follows the warm-paper design language of the user's
 card templates.
 """
 
@@ -312,7 +312,7 @@ def custom_accent() -> dict:
 
 def palette(theme_name: str, night: bool) -> dict:
     theme_name = ALIASES.get(theme_name, theme_name)
-    theme = THEMES.get(theme_name) or THEMES["terracotta"]
+    theme = THEMES.get(theme_name) or THEMES["glass"]
     pal = dict(theme["dark" if night else "light"])
     pal.setdefault("on-accent", "#ffffff")
     pal.update(custom_accent())
@@ -322,7 +322,7 @@ def palette(theme_name: str, night: bool) -> dict:
 def theme_accent(theme_name: str, night: bool = False) -> str:
     """A theme's own accent, ignoring any custom override — for swatches."""
     theme_name = ALIASES.get(theme_name, theme_name)
-    theme = THEMES.get(theme_name) or THEMES["terracotta"]
+    theme = THEMES.get(theme_name) or THEMES["glass"]
     return theme["dark" if night else "light"]["accent"]
 
 

@@ -51,6 +51,8 @@ preset. **Settings → FSRS** edits them through Anki's own API.
 
 ## Internal
 
+- `cardSkinDefault` — whether decks with no entry of their own use the card
+  skin. `true` means every newly added deck starts with it on.
 - `shownWelcome` — whether the first-run toast has been shown.
 - `debugFakeYears` — development only: synthesises several years of heatmap
   activity so the year picker can be tested. Display-only; the collection is

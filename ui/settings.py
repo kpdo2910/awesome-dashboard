@@ -35,8 +35,111 @@ from ..core.translations import (
     anki_language_code,
     available_languages,
     date_input_format,
+    fmt_int,
     tr,
 )
+
+HOMEPAGE = "https://github.com/kpdo2910/awesome-dashboard"
+ANKIWEB_CODE = "1243176816"
+ANKIWEB_PAGE = f"https://ankiweb.net/shared/info/{ANKIWEB_CODE}"
+
+
+def _addon_meta() -> dict:
+    """Version and package read from manifest.json, plus Anki's own version.
+
+    Reading the manifest keeps the About page honest: it shows what actually
+    shipped rather than a constant someone has to remember to bump twice.
+    """
+    meta = {"version": "—", "package": "—", "anki": "—"}
+    try:
+        import json
+        import os
+
+        from ..core import paths
+
+        path = os.path.join(paths.addon_root(), "manifest.json")
+        with open(path, encoding="utf-8") as handle:
+            manifest = json.load(handle)
+        meta["version"] = str(manifest.get("human_version") or "—")
+        meta["package"] = str(manifest.get("package") or "—")
+    except Exception:
+        pass
+    try:
+        import anki.buildinfo
+
+        meta["anki"] = str(anki.buildinfo.version)
+    except Exception:
+        pass
+    return meta
+
+
+class _DeckResetDialog(QDialog):
+    """Deck picker for the progress reset, with each deck's card count."""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowTitle(tr("reset_pick_title"))
+        self.setModal(True)
+        self.setMinimumWidth(430)
+        try:
+            from . import qt_theme
+
+            self.setStyleSheet(qt_theme.settings_dialog_qss())
+        except Exception:
+            pass
+
+        self._decks = []
+        self.deck_list = QListWidget()
+        self.deck_list.setObjectName("awdEventsList")
+        try:
+            nodes = list(mw.col.sched.deck_due_tree().children)
+        except Exception:
+            nodes = []
+        for node in nodes:
+            did = int(node.deck_id)
+            try:
+                count = len(mw.col.decks.cids(did, children=True))
+            except Exception:
+                count = 0
+            self._decks.append(did)
+            self.deck_list.addItem(f"{node.name} — {fmt_int(count)} {tr('cards_unit')}")
+            item = self.deck_list.item(self.deck_list.count() - 1)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Unchecked)
+
+        hint = QLabel(tr("reset_pick_hint"))
+        hint.setObjectName("awdRowSub")
+        hint.setWordWrap(True)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText(tr("reset"))
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText(tr("cancel"))
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 16, 18, 14)
+        layout.setSpacing(10)
+        layout.addWidget(self.deck_list, 1)
+        layout.addWidget(hint)
+        layout.addWidget(buttons)
+
+    def picked(self) -> list:
+        """Deck ids the user ticked — empty if they cancelled or ticked none."""
+        if not self.exec():
+            return []
+        chosen = [
+            self._decks[i]
+            for i in range(self.deck_list.count())
+            if self.deck_list.item(i).checkState() == Qt.CheckState.Checked
+        ]
+        if not chosen:
+            from aqt.utils import showInfo
+
+            showInfo(tr("reset_pick_none"), parent=self, title="Awesome Dashboard")
+        return chosen
 
 
 def _make_date_edit(initial_days_ahead: int = 30) -> QDateEdit:
@@ -188,7 +291,7 @@ def _offer_anki_language(code: str, previous: str) -> None:
     _reload_current_screen()
 
 
-THEME_ORDER = ["terracotta", "glass", "matcha", "ajisai", "sakura", "sumi"]
+THEME_ORDER = ["glass", "terracotta", "matcha", "ajisai", "sakura", "sumi"]
 SIDEBAR_ORDER = ["full", "compact", "hidden"]
 
 
@@ -243,6 +346,7 @@ class AwdSettingsDialog(QDialog):
             ("decks", tr("page_decks"), "#34C759"),
             ("fsrs", "FSRS", "#AF52DE"),
             ("events", tr("page_events"), "#FF9500"),
+            ("about", tr("page_about"), "#5856D6"),
         ]
         self._page_labels = [label for _, label, _ in pages]
         self._nav_buttons = []
@@ -280,6 +384,7 @@ class AwdSettingsDialog(QDialog):
         self._stack.addWidget(self._build_decks_page(config))
         self._stack.addWidget(self._build_fsrs_page())
         self._stack.addWidget(self._build_events_page(config))
+        self._stack.addWidget(self._build_about_page())
         right.addWidget(self._stack, 1)
 
         foot = QWidget()
@@ -495,7 +600,7 @@ class AwdSettingsDialog(QDialog):
         from ..core.themes import ALIASES
         from .theme_editor import ThemePicker
 
-        current_theme = ALIASES.get(config.get("theme", "terracotta"), config.get("theme"))
+        current_theme = ALIASES.get(config.get("theme", "glass"), config.get("theme"))
         self.theme_picker = ThemePicker(current_theme, config.get("customAccent"))
         picker_row = QWidget()
         picker_layout = QVBoxLayout(picker_row)
@@ -794,6 +899,17 @@ class AwdSettingsDialog(QDialog):
             empty.setObjectName("awdRowSub")
             box.addWidget(empty)
 
+        # A policy rather than a deck, so it sits in its own card below the list.
+        self.card_skin_default = self._switch(
+            bool(config.get("cardSkinDefault", True))
+        )
+        self._block(
+            box,
+            "",
+            self._row(tr("card_skin_default"), self.card_skin_default),
+            hint=tr("card_skin_default_hint"),
+        )
+
         # --- deck management (moved off the dashboard's ⋮ menu) ---
         self.deck_combo = QComboBox()
         self.deck_combo.setMinimumWidth(240)
@@ -880,6 +996,176 @@ class AwdSettingsDialog(QDialog):
 
     # Everything except the palette changes what the page is made of, so a
     # re-render is unavoidable; a palette-only change can just cross-fade.
+    # --- about + reset -------------------------------------------------------
+
+    def _build_about_page(self) -> QScrollArea:
+        page, box = self._page()
+
+        def value_row(label: str, value: str) -> QWidget:
+            text = QLabel(value)
+            text.setObjectName("awdRowSub")
+            text.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+            text.setOpenExternalLinks(True)
+            return self._row(label, text)
+
+        meta = _addon_meta()
+        self._block(
+            box,
+            "Awesome Dashboard",
+            value_row(tr("about_version"), meta["version"]),
+            value_row(tr("about_package"), meta["package"]),
+            value_row(tr("about_anki"), meta["anki"]),
+            value_row(tr("about_licence"), "MIT"),
+        )
+        self._block(
+            box,
+            tr("about_source"),
+            value_row("GitHub", f'<a href="{HOMEPAGE}">{HOMEPAGE}</a>'),
+            value_row(tr("about_ankiweb"), f'<a href="{ANKIWEB_PAGE}">{ANKIWEB_CODE}</a>'),
+        )
+
+        settings_button = QPushButton(tr("reset"))
+        settings_button.clicked.connect(lambda: self._reset_settings())
+        progress_button = QPushButton(tr("reset"))
+        progress_button.setObjectName("awdDanger")
+        progress_button.clicked.connect(lambda: self._reset_progress())
+        all_button = QPushButton(tr("reset"))
+        all_button.setObjectName("awdDanger")
+        all_button.clicked.connect(lambda: self._reset_all())
+        self._block(
+            box,
+            tr("reset_section"),
+            self._row(tr("reset_settings"), settings_button, tr("reset_settings_hint")),
+            self._row(tr("reset_progress"), progress_button, tr("reset_progress_hint")),
+            self._row(tr("reset_all"), all_button, tr("reset_all_hint")),
+        )
+
+        box.addStretch(1)
+        return self._wrap_page(page)
+
+    def _reset_settings(self, *, ask: bool = True) -> bool:
+        from aqt.utils import askUser, tooltip
+
+        if ask and not askUser(
+            tr("reset_settings_confirm"), parent=self, title="Awesome Dashboard"
+        ):
+            return False
+        conf.save(dict(conf.DEFAULTS))
+        try:
+            # The Pomodoro tally is add-on state too, but it lives in the
+            # collection rather than the add-on config, so it needs clearing
+            # by hand.
+            from ..features.pomodoro import SESSIONS_KEY
+
+            mw.col.set_config(SESSIONS_KEY, None)
+        except Exception:
+            pass
+        try:
+            from . import qt_theme
+
+            qt_theme.apply_app_palette()
+            qt_theme.animate_theme_change()
+        except Exception:
+            pass
+        _reload_current_screen()
+        if ask:
+            tooltip(tr("reset_done"), parent=mw)
+        # The open dialog still holds the pre-reset values, so saving on the way
+        # out would write them straight back.
+        self.reject()
+        return True
+
+    def _reset_progress(
+        self, card_ids=None, *, ask: bool = True, everything: bool = False
+    ) -> bool:
+        """Send cards back to new and drop the review history behind them.
+
+        Rescheduling alone is not "as if freshly added": the revlog rows stay,
+        so the streak, heatmap and retention all still show the work. Those
+        rows go too, which is why this also forces a full sync.
+        """
+        deck_count = 0
+        if card_ids is None:
+            picked = _DeckResetDialog(self).picked()
+            if not picked:
+                return False
+            deck_count = len(picked)
+            card_ids = []
+            for did in picked:
+                try:
+                    card_ids.extend(mw.col.decks.cids(did, children=True))
+                except Exception:
+                    pass
+        if not card_ids:
+            return False
+
+        if ask:
+            from aqt.utils import askUser
+
+            if not askUser(
+                tr("reset_pick_confirm", n=len(card_ids), decks=deck_count),
+                parent=self,
+                title="Awesome Dashboard",
+            ):
+                return False
+
+        from aqt.operations import CollectionOp
+        from aqt.utils import tooltip
+
+        ids = list(card_ids)
+
+        def op(col):
+            # restore_position + reset_counts is exactly "as if freshly added":
+            # back to the original new-card slot with reps and lapses cleared.
+            changes = col.sched.schedule_cards_as_new(
+                ids, restore_position=True, reset_counts=True
+            )
+            # Rewriting history cannot be merged by a normal sync, and the raw
+            # delete is outside the undo entry above — so flag the full sync.
+            col.mod_schema(check=False)
+            if everything:
+                col.db.execute("delete from revlog")
+            else:
+                for start in range(0, len(ids), 500):
+                    chunk = ",".join(str(int(cid)) for cid in ids[start:start + 500])
+                    col.db.execute(f"delete from revlog where cid in ({chunk})")
+            return changes
+
+        def done(_out) -> None:
+            from ..core import heatmap_scale, stats
+
+            # The stored scale describes a review log that no longer exists.
+            heatmap_scale.clear()
+            stats.invalidate_cache()
+            _reload_current_screen()
+            tooltip(tr("reset_done"), parent=mw)
+
+        CollectionOp(parent=mw, op=op).success(done).run_in_background()
+        return True
+
+    def _reset_all(self) -> None:
+        """Factory reset — every card, every review, every setting."""
+        try:
+            # Straight from the table rather than a search string, so "every
+            # card" cannot be narrowed by how a search happens to be parsed.
+            card_ids = mw.col.db.list("select id from cards")
+        except Exception:
+            card_ids = []
+
+        from aqt.utils import askUser
+
+        # One prompt, spelling out each consequence — this is the only action
+        # here that undo cannot walk back.
+        if not askUser(
+            tr("reset_all_confirm", n=len(card_ids)),
+            parent=self,
+            title="Awesome Dashboard",
+            defaultno=True,
+        ):
+            return
+        self._reset_progress(card_ids, ask=False, everything=True)
+        self._reset_settings(ask=False)
+
     LAYOUT_KEYS = (
         "userName",
         "customGreeting",
@@ -930,6 +1216,7 @@ class AwdSettingsDialog(QDialog):
                 "styleSystemScreens": self.style_system.isChecked(),
                 "events": self._events,
                 "cardSkinDecks": skin_map,
+                "cardSkinDefault": self.card_skin_default.isChecked(),
             }
         )
         conf.save(config)

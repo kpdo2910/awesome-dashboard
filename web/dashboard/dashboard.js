@@ -146,12 +146,28 @@
     );
   }
 
-  function levelFor(count) {
+  /* The shade is relative to what a normal day looked like at the time, not to
+     a fixed number of reviews — see core/heatmap_scale.py. Change points are
+     sorted, so the day's scale is the last one at or before it. */
+
+  function scaleFor(key) {
+    var points = data().heatmapScale || [];
+    var value = 0;
+    for (var i = 0; i < points.length; i++) {
+      if (points[i][0] > key) break;
+      value = points[i][1];
+    }
+    return value;
+  }
+
+  function levelFor(count, key) {
     if (!count) return 0;
-    if (count < 10) return 1;
-    if (count < 25) return 2;
-    if (count < 50) return 3;
-    return 4;
+    var scale = scaleFor(key);
+    if (!scale) return 1;
+    if (count >= scale * 1.3) return 4;
+    if (count >= scale * 0.8) return 3;
+    if (count >= scale * 0.4) return 2;
+    return 1;
   }
 
   /* GitHub-style: one full year at a time, with a year picker. */
@@ -254,7 +270,7 @@
           cell.className = "awd-hm-cell future";
         } else {
           var count = calendar[key] || 0;
-          cell.className = "awd-hm-cell l" + levelFor(count);
+          cell.className = "awd-hm-cell l" + levelFor(count, key);
           if (key === todayKey) cell.className += " today";
           cell.dataset.count = count;
           cell.dataset.date = key;

@@ -29,7 +29,7 @@ from ..core import themes
 from ..core.translations import tr
 
 # Order shown in the picker and the editor's preset grid.
-THEME_ORDER = ["terracotta", "glass", "matcha", "ajisai", "sakura", "sumi"]
+THEME_ORDER = ["glass", "terracotta", "matcha", "ajisai", "sakura", "sumi"]
 
 # Editable slots, in the order they appear in the editor.
 COLOR_ROWS = [
@@ -345,7 +345,7 @@ class ThemePicker(QWidget):
 
     def __init__(self, theme: str, accent: dict, parent=None):
         super().__init__(parent)
-        self._theme = theme if theme in THEME_ORDER else "terracotta"
+        self._theme = theme if theme in THEME_ORDER else "glass"
         self._accent = dict(accent or {})
 
         box = QVBoxLayout(self)

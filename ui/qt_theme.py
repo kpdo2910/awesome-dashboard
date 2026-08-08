@@ -138,7 +138,7 @@ def install_sveltekit_hook() -> None:
                 from aqt.theme import theme_manager
 
                 mapping = vars_mapping(
-                    config.get("theme", "terracotta"), theme_manager.night_mode
+                    config.get("theme", "glass"), theme_manager.night_mode
                 )
                 js = (
                     "(function(){var vars=" + json.dumps(mapping) + ";"
@@ -193,7 +193,7 @@ def animate_theme_change() -> None:
         night = False
 
     config = conf.get()
-    theme_name = config.get("theme", "terracotta")
+    theme_name = config.get("theme", "glass")
     variables = dict(themes.variables(theme_name, night))
     if config.get("styleSystemScreens", True):
         # Anki's own variables ride along so editor chrome fades in step.
@@ -219,7 +219,7 @@ def apply_app_palette() -> None:
         from aqt.qt import QColor, QPalette
         from aqt.theme import theme_manager
 
-        pal = themes.palette(config.get("theme", "terracotta"), theme_manager.night_mode)
+        pal = themes.palette(config.get("theme", "glass"), theme_manager.night_mode)
         bg = pal["bg"]
 
         def qc(value, behind=bg):
@@ -332,6 +332,13 @@ def nav_icon(kind: str, color: str) -> str:
             ' stroke-width="1.5"/>'
             '<path d="M11.5 6.1a5.4 5.4 0 0 1 0 10.8z" fill="#fff"/>'
         ),
+        "about": (
+            '<circle cx="11.5" cy="11.5" r="6.4" fill="none" stroke="#fff"'
+            ' stroke-width="1.5"/>'
+            '<path d="M11.5 10.3v4.6" stroke="#fff" stroke-width="1.7"'
+            ' stroke-linecap="round"/>'
+            '<circle cx="11.5" cy="8.1" r="1" fill="#fff"/>'
+        ),
         "events": (
             '<rect x="5.2" y="6.4" width="12.6" height="10.8" rx="2.2"'
             ' fill="none" stroke="#fff" stroke-width="1.5"/>'
@@ -384,7 +391,7 @@ def settings_dialog_qss() -> str:
     except Exception:
         night = False
     config = conf.get()
-    pal = themes.palette(config.get("theme", "terracotta"), night)
+    pal = themes.palette(config.get("theme", "glass"), night)
     bg = pal["bg"]
     surface = flatten(pal["surface"], bg)
     inset = flatten(pal["inset"], bg)
@@ -673,7 +680,7 @@ def custom_study_qss() -> str:
         night = theme_manager.night_mode
     except Exception:
         night = False
-    pal = themes.palette(conf.get().get("theme", "terracotta"), night)
+    pal = themes.palette(conf.get().get("theme", "glass"), night)
     bg = pal["bg"]
     text = flatten(pal["text"], bg)
     accent = flatten(pal["accent"], bg)

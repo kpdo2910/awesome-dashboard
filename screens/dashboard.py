@@ -747,6 +747,26 @@ def _fake_calendar(real: dict) -> dict:
     return fake
 
 
+def _heatmap_scale(bundle: dict, due_total: int) -> list:
+    """Change points the heatmap shades against, recording today's on the way.
+
+    Today's workload is `studied + still due` rather than the raw due count,
+    which shrinks as the day is worked through and would record a smaller
+    target the later the dashboard is opened.
+    """
+    try:
+        from ..core import heatmap_scale
+
+        cards = int(bundle.get("cards_today", 0)) + int(due_total)
+        target = cards * heatmap_scale.reviews_per_card()
+        points = heatmap_scale.points_for_web(bundle.get("calendar") or {}, target)
+        heatmap_scale.record(target)
+        return points
+    except Exception as e:
+        print(f"[Awesome Dashboard] heatmap scale failed: {e}")
+        return []
+
+
 # --- page assembly ----------------------------------------------------------------
 
 def _render_data_for(tree):
@@ -836,6 +856,7 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
         },
         "months": [month_name(m) for m in range(1, 13)],
         "dayMonthFormat": day_month_format(),
+        "heatmapScale": _heatmap_scale(bundle, due_total),
     }
 
     body = (

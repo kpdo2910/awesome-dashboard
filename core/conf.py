@@ -5,7 +5,7 @@ from aqt import mw
 DEFAULTS = {
     "userName": "",
     "customGreeting": "",
-    "theme": "terracotta",
+    "theme": "glass",
     "customAccent": None,
     "language": "auto",
     "sidebarMode": "hidden",  # "full" | "compact" | "hidden"
@@ -15,11 +15,14 @@ DEFAULTS = {
     "pomodoroFocusMinutes": 25,
     "pomodoroBreakMinutes": 5,
     "hideNativeBottomBar": True,
-    "hideNativeToolbar": False,
+    "hideNativeToolbar": True,
     "styleOverview": True,
     "styleReviewer": True,
     "events": [],
     "cardSkinDecks": {},
+    # The fallback for decks with no entry of their own, which is every deck
+    # added after the add-on was installed.
+    "cardSkinDefault": True,
     "styleToolbar": True,
     "styleSystemScreens": True,
     "shownWelcome": False,

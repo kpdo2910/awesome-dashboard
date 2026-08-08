@@ -7,6 +7,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- About page in Settings, with version, package and Anki version.
+- Reset in Settings: settings, study progress for chosen decks, or both.
+
+### Changed
+
+- Glass is the default theme and leads the picker.
+- Anki's top toolbar is hidden by default.
+- Card skin is on by default for any deck you have not set explicitly,
+  which includes every deck added from now on.
+- Heatmap shades now scale to what a normal day looks like for you at that
+  point in time, instead of fixed thresholds tuned for 20 new cards a day.
+- Resetting everything now explains what it will erase before doing it.
+
 ## [1.1.0] - 2026-08-08
 
 ### Added
