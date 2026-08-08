@@ -6,6 +6,7 @@ is excluded so note templates render untouched. Qt chrome (window backgrounds,
 inputs, selections) gets a rebuilt QPalette, which needs a restart to revert.
 """
 
+import math
 import os
 import re
 
@@ -45,6 +46,27 @@ def flatten(color: str, behind: str) -> str:
         round(r * a + br * (1 - a)),
         round(g * a + bgc * (1 - a)),
         round(b * a + bb * (1 - a)),
+    )
+
+
+def qss_accent(pal: dict, bg: str) -> str:
+    """The accent as a QSS brush — a gradient when the theme has one.
+
+    Qt has no `linear-gradient`, so the CSS value is re-expressed as
+    `qlineargradient`, whose control points are fractions of the widget box
+    rather than an angle.
+    """
+    parsed = themes.parse_gradient(pal.get("accent-grad", ""))
+    if not parsed:
+        return flatten(pal["accent"], bg)
+    start, end, angle = parsed
+    # CSS angles run clockwise from "to top"; y grows downward on screen.
+    radians = math.radians(angle)
+    dx, dy = math.sin(radians), -math.cos(radians)
+    return (
+        f"qlineargradient(x1:{0.5 - dx / 2:.3f}, y1:{0.5 - dy / 2:.3f},"
+        f" x2:{0.5 + dx / 2:.3f}, y2:{0.5 + dy / 2:.3f},"
+        f" stop:0 {flatten(start, bg)}, stop:1 {flatten(end, bg)})"
     )
 
 
@@ -398,6 +420,9 @@ def settings_dialog_qss() -> str:
     border = flatten(pal["border"], bg)
     text = flatten(pal["text"], bg)
     accent = flatten(pal["accent"], bg)
+    # Solid for switches and SVG fills, which take a colour; the brush is only
+    # for the QSS surfaces big enough to show a gradient.
+    accent_brush = qss_accent(pal, bg)
     soft = flatten(pal["accent-soft"], bg)
     on_accent = flatten(pal.get("on-accent", "#ffffff"), accent)
     subtle = flatten(pal["subtle"], bg)
@@ -441,7 +466,7 @@ def settings_dialog_qss() -> str:
     /* No hover state: only the selected page is tinted, so the nav reads as
        one clear indicator instead of two competing highlights. */
     QPushButton#awdNavBtn:checked {{
-        background: {accent};
+        background: {accent_brush};
         color: {on_accent};
     }}
     QLabel#awdPageTitle {{
@@ -649,16 +674,16 @@ def settings_dialog_qss() -> str:
     }}
     QPushButton:hover {{ background: {border}; }}
     QPushButton:default {{
-        background: {accent};
+        background: {accent_brush};
         color: {on_accent};
         border: none;
     }}
     QPushButton#awdPrimary {{
-        background: {accent};
+        background: {accent_brush};
         color: {on_accent};
         border: none;
     }}
-    QPushButton#awdPrimary:hover {{ background: {accent}; }}
+    QPushButton#awdPrimary:hover {{ background: {accent_brush}; }}
     QPushButton#awdDanger {{ color: #FF3B30; }}
     QPushButton#awdDanger:hover {{
         background: rgba(255, 59, 48, 0.16);

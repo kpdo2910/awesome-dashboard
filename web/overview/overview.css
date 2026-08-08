@@ -7,7 +7,7 @@ html.awd-overview,
 html.awd-overview body {
   margin: 0;
   padding: 0;
-  background: var(--awd-bg) !important;
+  background: var(--awd-bg-grad) !important;
   color: var(--awd-text);
   /* Stop Chromium's scroll anchoring from nudging the page when the
      forecast bars or subdeck rows settle into place. */
@@ -128,7 +128,7 @@ html.awd-overview .awd-ov-study {
   padding: 0 28px;
   border: none;
   border-radius: 13px;
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   color: var(--awd-on-accent, #ffffff);
   font: inherit;
   font-size: 15px;
@@ -138,12 +138,12 @@ html.awd-overview .awd-ov-study {
   transition: filter .15s ease, transform .1s ease;
 }
 html.awd-overview .awd-ov-study:hover {
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   color: var(--awd-on-accent, #ffffff);
   filter: brightness(1.08);
 }
 html.awd-overview .awd-ov-study:active {
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   transform: scale(.985);
 }
 .awd-ov-study-hint {
@@ -200,7 +200,7 @@ html.awd-overview .awd-ov-study:active {
 .awd-ov-bar-track i {
   display: block;
   width: 100%;
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   border-radius: 6px 6px 3px 3px;
   transition: height .35s ease;
 }

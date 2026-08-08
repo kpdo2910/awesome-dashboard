@@ -4,8 +4,11 @@ The swatches choose the built-in theme; the editor replaces only the accent
 family, leaving backgrounds, text and the new/learn/due colours to the theme.
 """
 
+import math
+
 from aqt.qt import (
     QAbstractButton,
+    QCheckBox,
     QColor,
     QColorDialog,
     QDialog,
@@ -14,12 +17,14 @@ from aqt.qt import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
+    QLinearGradient,
     QPainter,
     QPainterPath,
     QPen,
     QPointF,
     QPushButton,
     QSize,
+    QSpinBox,
     Qt,
     QVBoxLayout,
     QWidget,
@@ -29,15 +34,19 @@ from ..core import themes
 from ..core.translations import tr
 
 # Order shown in the picker and the editor's preset grid.
-THEME_ORDER = ["glass", "terracotta", "matcha", "ajisai", "sakura", "sumi"]
+THEME_ORDER = ["glass", "terracotta", "matcha", "aurora", "sunset", "sakura"]
 
-# Editable slots, in the order they appear in the editor.
+# Editable slots, in the order they appear in the editor. "accent" is hidden
+# while a gradient is on, because it is then the midpoint of the two stops.
 COLOR_ROWS = [
     ("accent", "color_accent"),
     ("accent-soft", "color_soft"),
     ("accent-hover", "color_hover"),
     ("on-accent", "color_on_accent"),
 ]
+
+# Hue distance to the second stop when a solid accent is first made a gradient.
+DEFAULT_HUE_SHIFT = 40
 
 
 def theme_label(key: str) -> str:
@@ -49,16 +58,61 @@ def _readable_on(color: str) -> str:
     return themes.derive_accents(color).get("on-accent", "#ffffff")
 
 
+def theme_family(key: str) -> dict:
+    """A theme's accent family as the editor models it.
+
+    Derived rather than read off the palette so that opening the editor and
+    applying without touching anything compares equal, and so saves no override.
+    """
+    gradient = themes.theme_gradient(key)
+    if gradient:
+        return themes.derive_gradient(*gradient)
+    return themes.derive_accents(themes.theme_accent(key))
+
+
+def _gradient_points(angle: int) -> tuple:
+    """CSS angle to (x1, y1, x2, y2) as fractions of the box, y growing down."""
+    radians = math.radians(angle)
+    dx, dy = math.sin(radians), -math.cos(radians)
+    return (0.5 - dx / 2, 0.5 - dy / 2, 0.5 + dx / 2, 0.5 + dy / 2)
+
+
+def _linear_gradient(rect, gradient: tuple) -> QLinearGradient:
+    start, end, angle = gradient
+    x1, y1, x2, y2 = _gradient_points(angle)
+    brush = QLinearGradient(
+        QPointF(rect.x() + x1 * rect.width(), rect.y() + y1 * rect.height()),
+        QPointF(rect.x() + x2 * rect.width(), rect.y() + y2 * rect.height()),
+    )
+    brush.setColorAt(0.0, QColor(start))
+    brush.setColorAt(1.0, QColor(end))
+    return brush
+
+
+def _qss_gradient(gradient: tuple) -> str:
+    start, end, angle = gradient
+    x1, y1, x2, y2 = _gradient_points(angle)
+    return (
+        f"qlineargradient(x1:{x1:.3f}, y1:{y1:.3f}, x2:{x2:.3f}, y2:{y2:.3f},"
+        f" stop:0 {start}, stop:1 {end})"
+    )
+
+
 class _Swatch(QAbstractButton):
-    """A filled circle; the selected one gains a ring and a checkmark."""
+    """A filled circle; the selected one gains a ring and a checkmark.
+
+    `gradient` is an optional (start, end, angle); `color` stays the solid
+    stand-in used for the ring and the tick, which need one colour each.
+    """
 
     DIAMETER = 34
     RING_GAP = 4
     RING_WIDTH = 3
 
-    def __init__(self, color: str, parent=None):
+    def __init__(self, color: str, gradient=None, parent=None):
         super().__init__(parent)
         self.color = color
+        self.gradient = gradient
         self.setCheckable(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         size = self.DIAMETER + 2 * (self.RING_GAP + self.RING_WIDTH)
@@ -81,7 +135,14 @@ class _Swatch(QAbstractButton):
             painter.drawEllipse(center, outer, outer)
 
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(fill)
+        if self.gradient:
+            disc = self.rect().adjusted(
+                self.RING_GAP + self.RING_WIDTH, self.RING_GAP + self.RING_WIDTH,
+                -(self.RING_GAP + self.RING_WIDTH), -(self.RING_GAP + self.RING_WIDTH),
+            )
+            painter.setBrush(_linear_gradient(disc, self.gradient))
+        else:
+            painter.setBrush(fill)
         painter.drawEllipse(center, radius, radius)
 
         if self.isChecked():
@@ -166,16 +227,21 @@ class ThemeEditorDialog(QDialog):
             pass
 
         self._theme_for_backdrop = theme
-        values = dict(themes.derive_accents(themes.theme_accent(theme)))
+        values = dict(theme_family(theme))
         values.update({k: v for k, v in (accent or {}).items() if v})
         self._values = values
+        # The gradient is stored as a CSS string; the editor works in its parts.
+        self._gradient = themes.parse_gradient(values.get("accent-grad", ""))
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(18, 18, 18, 16)
         layout.setSpacing(16)
 
+        self._grad_rows = []
         layout.addWidget(self._presets_group())
+        layout.addWidget(self._gradient_group())
         layout.addWidget(self._colors_group())
+        self._sync_gradient_ui()
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Reset
@@ -220,42 +286,103 @@ class ThemeEditorDialog(QDialog):
         grid.setSpacing(8)
         for index, key in enumerate(THEME_ORDER):
             accent = themes.theme_accent(key)
+            gradient = themes.theme_gradient(key)
+            brush = _qss_gradient(gradient) if gradient else accent
             button = QPushButton(theme_label(key))
             button.setCursor(Qt.CursorShape.PointingHandCursor)
             button.setFixedHeight(38)
             button.setStyleSheet(
-                f"QPushButton {{ background: {accent}; color: {_readable_on(accent)};"
+                f"QPushButton {{ background: {brush}; color: {_readable_on(accent)};"
                 " border: none; border-radius: 8px; font-weight: 700; }"
-                f"QPushButton:hover {{ background: {accent}; }}"
+                f"QPushButton:hover {{ background: {brush}; }}"
             )
             button.clicked.connect(lambda _c, k=key: self._use_preset(k))
             grid.addWidget(button, index // 3, index % 3)
         box.addLayout(grid)
         return card
 
+    def _labelled_row(self, text: str, *widgets) -> QWidget:
+        """A row as a widget rather than a layout, so it can be hidden.
+
+        Takes translated text, not a key, so tools/check_locales.py can still
+        see every literal tr() call at the call site.
+        """
+        row = QWidget()
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(10)
+        label = QLabel(text)
+        label.setObjectName("awdRowTitle")
+        layout.addWidget(label, 1)
+        for widget in widgets:
+            layout.addWidget(widget)
+        return row
+
+    def _gradient_group(self) -> QWidget:
+        card, box = self._card(tr("gradient"))
+
+        self._grad_switch = QCheckBox()
+        self._grad_switch.setChecked(self._gradient is not None)
+        self._grad_switch.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._grad_switch.toggled.connect(self._gradient_toggled)
+        box.addWidget(self._labelled_row(tr("gradient_use"), self._grad_switch))
+
+        start, end, angle = self._gradient_parts()
+        self._grad_chips = {}
+        for key, label, value in (
+            ("start", tr("gradient_from"), start),
+            ("end", tr("gradient_to"), end),
+        ):
+            chip = _ColorButton(value, 1.0, self._backdrop())
+            chip.clicked_color = lambda k=key: self._gradient_chip_changed(k)
+            self._grad_chips[key] = chip
+            hex_label = QLabel(chip.color_hex())
+            hex_label.setObjectName("awdRowSub")
+            hex_label.setMinimumWidth(74)
+            self._grad_chips[key + "_hex"] = hex_label
+            self._grad_rows.append(self._labelled_row(label, chip, hex_label))
+            box.addWidget(self._grad_rows[-1])
+
+        self._angle_box = QSpinBox()
+        self._angle_box.setRange(0, 359)
+        self._angle_box.setSingleStep(15)
+        self._angle_box.setSuffix("°")
+        self._angle_box.setValue(angle)
+        self._angle_box.valueChanged.connect(self._gradient_changed)
+        angle_row = self._labelled_row(tr("gradient_angle"), self._angle_box)
+        self._grad_rows.append(angle_row)
+        box.addWidget(angle_row)
+
+        self._preview = QFrame()
+        self._preview.setFixedHeight(38)
+        self._grad_rows.append(self._preview)
+        box.addWidget(self._preview)
+
+        hint = QLabel(tr("gradient_hint"))
+        hint.setObjectName("awdRowSub")
+        hint.setWordWrap(True)
+        box.addWidget(hint)
+        return card
+
     def _colors_group(self) -> QWidget:
         card, box = self._card(tr("custom_colors"))
         self._chips = {}
         self._hex_labels = {}
+        self._color_rows = {}
         for key, label_key in COLOR_ROWS:
-            row = QHBoxLayout()
-            row.setSpacing(10)
-            label = QLabel(tr(label_key))
-            label.setObjectName("awdRowTitle")
-            row.addWidget(label, 1)
-
             alpha = {"accent-soft": 0.14, "accent-hover": 0.24}.get(key, 1.0)
             chip = _ColorButton(self._solid(key), alpha, self._backdrop())
             chip.clicked_color = lambda k=key: self._chip_changed(k)
             self._chips[key] = chip
-            row.addWidget(chip)
 
             hex_label = QLabel(self._hex_text(key, chip.color_hex()))
             hex_label.setObjectName("awdRowSub")
             hex_label.setMinimumWidth(74)
             self._hex_labels[key] = hex_label
-            row.addWidget(hex_label)
-            box.addLayout(row)
+
+            row = self._labelled_row(tr(label_key), chip, hex_label)
+            self._color_rows[key] = row
+            box.addWidget(row)
 
         note = QLabel(tr("colors_apply_both"))
         note.setObjectName("awdRowSub")
@@ -298,10 +425,75 @@ class ThemeEditorDialog(QDialog):
             chip.set_color(self._solid(key))
             self._hex_labels[key].setText(self._hex_text(key, chip.color_hex()))
 
-    def _use_preset(self, key: str) -> None:
-        self._values = dict(themes.derive_accents(themes.theme_accent(key)))
-        self._theme = key
+    # --- gradient ---
+
+    def _gradient_parts(self) -> tuple:
+        """(start, end, angle) to show — invented from the accent when off."""
+        if self._gradient:
+            return self._gradient
+        accent = self._solid("accent")
+        return (accent, themes.shift_hue(accent, DEFAULT_HUE_SHIFT),
+                themes.GRADIENT_ANGLE)
+
+    def _sync_gradient_ui(self) -> None:
+        on = self._gradient is not None
+        for row in self._grad_rows:
+            row.setVisible(on)
+        # With a gradient the accent is the midpoint of the two stops, so an
+        # editable accent row would offer a value the gradient overrules.
+        self._color_rows["accent"].setVisible(not on)
+
+        start, end, angle = self._gradient_parts()
+        self._grad_chips["start"].set_color(start)
+        self._grad_chips["end"].set_color(end)
+        self._grad_chips["start_hex"].setText(self._grad_chips["start"].color_hex())
+        self._grad_chips["end_hex"].setText(self._grad_chips["end"].color_hex())
+        if self._angle_box.value() != angle:
+            self._angle_box.blockSignals(True)
+            self._angle_box.setValue(angle)
+            self._angle_box.blockSignals(False)
+        self._preview.setStyleSheet(
+            f"background: {_qss_gradient((start, end, angle))};"
+            " border-radius: 9px;"
+        )
+        self.adjustSize()
+
+    def _gradient_toggled(self, on: bool) -> None:
+        if on:
+            self._gradient = self._gradient_parts()
+            self._values = dict(themes.derive_gradient(*self._gradient))
+        else:
+            self._gradient = None
+            # Keep the midpoint as the solid accent, so turning the gradient off
+            # lands on the colour the user was already looking at.
+            self._values = dict(themes.derive_accents(self._solid("accent")))
         self._sync_chips()
+        self._sync_gradient_ui()
+
+    def _gradient_chip_changed(self, which: str) -> None:
+        start, end, angle = self._gradient_parts()
+        color = self._grad_chips[which].color_hex()
+        self._gradient = (
+            (color, end, angle) if which == "start" else (start, color, angle)
+        )
+        self._gradient_changed()
+
+    def _gradient_changed(self, *_args) -> None:
+        start, end, _ = self._gradient_parts()
+        self._gradient = (start, end, self._angle_box.value())
+        self._values = dict(themes.derive_gradient(*self._gradient))
+        self._sync_chips()
+        self._sync_gradient_ui()
+
+    def _use_preset(self, key: str) -> None:
+        self._values = dict(theme_family(key))
+        self._gradient = themes.parse_gradient(self._values.get("accent-grad", ""))
+        self._theme = key
+        self._grad_switch.blockSignals(True)
+        self._grad_switch.setChecked(self._gradient is not None)
+        self._grad_switch.blockSignals(False)
+        self._sync_chips()
+        self._sync_gradient_ui()
 
     def _chip_changed(self, key: str) -> None:
         color = self._chips[key].color_hex()
@@ -334,8 +526,7 @@ class ThemeEditorDialog(QDialog):
         """The accent override, or None when the theme's own colours are fine."""
         if self._was_reset:
             return None
-        default = themes.derive_accents(themes.theme_accent(self._theme))
-        if self._values == default:
+        if self._values == theme_family(self._theme):
             return None
         return dict(self._values)
 
@@ -363,7 +554,7 @@ class ThemePicker(QWidget):
         for key in THEME_ORDER:
             column = QVBoxLayout()
             column.setSpacing(2)
-            swatch = _Swatch(self._swatch_color(key))
+            swatch = _Swatch(self._swatch_color(key), self._swatch_gradient(key))
             swatch.setChecked(key == self._theme)
             swatch.clicked.connect(lambda _c, k=key: self._select(k))
             self._swatches[key] = swatch
@@ -390,6 +581,13 @@ class ThemePicker(QWidget):
             return self._accent["accent"]
         return themes.theme_accent(key)
 
+    def _swatch_gradient(self, key: str):
+        if key == self._theme and self._accent:
+            # A custom accent replaces the family whole, so a solid override
+            # must show as solid even on a theme that ships a gradient.
+            return themes.parse_gradient(self._accent.get("accent-grad", ""))
+        return themes.theme_gradient(key)
+
     def _select(self, key: str) -> None:
         self._theme = key
         # A custom accent belongs to the theme it was made for.
@@ -399,6 +597,7 @@ class ThemePicker(QWidget):
     def _refresh(self) -> None:
         for key, swatch in self._swatches.items():
             swatch.color = self._swatch_color(key)
+            swatch.gradient = self._swatch_gradient(key)
             swatch.setChecked(key == self._theme)
             swatch.update()
 

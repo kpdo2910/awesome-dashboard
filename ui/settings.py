@@ -291,7 +291,7 @@ def _offer_anki_language(code: str, previous: str) -> None:
     _reload_current_screen()
 
 
-THEME_ORDER = ["glass", "terracotta", "matcha", "ajisai", "sakura", "sumi"]
+THEME_ORDER = ["glass", "terracotta", "matcha", "aurora", "sunset", "sakura"]
 SIDEBAR_ORDER = ["full", "compact", "hidden"]
 
 

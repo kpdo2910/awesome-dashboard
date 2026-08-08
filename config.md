@@ -20,14 +20,26 @@ what each feature does.
 
 ## Appearance
 
-- `theme` — `terracotta`, `glass`, `matcha`, `ajisai`, `sakura` or `sumi`.
-  (`aizome` from older versions maps to `glass`.)
+- `theme` — `terracotta`, `glass`, `matcha`, `aurora`, `sunset` or `sakura`.
+  `aurora` and `sunset` paint their accent as a gradient. Retired keys still
+  work: `aizome` and `sumi` map to `glass`, `washi` to `terracotta`, and
+  `ajisai` to `aurora`.
 - `customAccent` — `null`, or an accent override for the chosen theme:
   `{"accent": "#0071D3", "accent-soft": "rgba(0,113,211,0.14)",
   "accent-hover": "rgba(0,113,211,0.24)", "on-accent": "#ffffff"}`. Only the
   accent family is replaced; backgrounds, text and the new/learn/due colours
   still come from the theme. Edit it from **Settings → Appearance → Edit
   theme**.
+
+  Add `"accent-grad": "linear-gradient(135deg, #6247E5 0%, #1FA9C4 100%)"` for a
+  gradient. It is painted on buttons, pills and progress bars; `accent` stays the
+  solid colour used for text, borders and the heatmap, and is best set to the
+  midpoint of the two stops. An override without `accent-grad` clears the theme's
+  own gradient, so a solid custom accent stays solid.
+
+  The page background follows automatically: it is pulled toward each stop's hue
+  at the background's own lightness, so it shifts colour without moving the text
+  contrast. Nothing to configure.
 - `styleOverview` — replace the deck overview with the redesigned screen. Also
   hides Anki's top and bottom bars there, since the page has its own back link
   and footer actions.

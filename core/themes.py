@@ -2,6 +2,11 @@
 
 The "terracotta" palette follows the warm-paper design language of the user's
 card templates.
+
+A theme may add "accent-grad", a CSS gradient painted on large accent surfaces
+(buttons, pills, progress bars). "accent" stays a solid colour regardless: it is
+what text, borders, SVG fills and the whole Qt side are drawn with, none of which
+accept a gradient. See `palette()` for why the key is always emitted.
 """
 
 THEMES = {
@@ -131,45 +136,94 @@ THEMES = {
             "on-accent": "#1a1f14",
         },
     },
-    "ajisai": {
+    "aurora": {
+        # Violet to cyan. "accent" is the midpoint of the two stops, so text and
+        # borders read as part of the same colour rather than as one end of it.
         "light": {
-            "bg": "#e4e7ef",
+            "bg": "#eceef6",
             "surface": "#ffffff",
-            "inset": "#edeff5",
-            "border": "#dde1eb",
-            "text": "#1d2027",
-            "subtle": "#5e6473",
-            "faint": "#959cad",
-            "accent": "#5a6fb4",
-            "accent-soft": "#e7eaf7",
-            "accent-hover": "#d8ddf2",
-            "shadow": "rgba(40, 50, 90, 0.12)",
-            "new": "#5a6fb4",
-            "new-soft": "#e7eaf7",
+            "inset": "#f2f4fa",
+            "border": "#e0e4f0",
+            "text": "#1b1e28",
+            "subtle": "#5d6474",
+            "faint": "#959cae",
+            "accent": "#4078d4",
+            "accent-grad": "linear-gradient(135deg, #6247e5 0%, #1fa9c4 100%)",
+            "accent-soft": "rgba(64, 120, 212, 0.13)",
+            "accent-hover": "rgba(64, 120, 212, 0.22)",
+            "shadow": "rgba(35, 45, 85, 0.12)",
+            "new": "#4078d4",
+            "new-soft": "rgba(64, 120, 212, 0.13)",
             "learn": "#a06a2c",
             "learn-soft": "#f5ecdd",
-            "due": "#5f7f4e",
-            "due-soft": "#e9efe2",
+            "due": "#1f9aa8",
+            "due-soft": "rgba(31, 154, 168, 0.14)",
+            "on-accent": "#ffffff",
         },
         "dark": {
-            "bg": "#14161d",
-            "surface": "#1f222c",
-            "inset": "#2a2e3b",
-            "border": "#333849",
-            "text": "#e9ecf4",
-            "subtle": "#9aa1b5",
-            "faint": "#767d92",
-            "accent": "#8fa3e3",
-            "accent-soft": "rgba(143, 163, 227, 0.14)",
-            "accent-hover": "rgba(143, 163, 227, 0.26)",
+            "bg": "#14161f",
+            "surface": "#1f2230",
+            "inset": "#2a2e3e",
+            "border": "#33384b",
+            "text": "#e9ecf6",
+            "subtle": "#9aa1b7",
+            "faint": "#767d94",
+            "accent": "#64abf5",
+            "accent-grad": "linear-gradient(135deg, #8a7bff 0%, #3edceb 100%)",
+            "accent-soft": "rgba(100, 171, 245, 0.15)",
+            "accent-hover": "rgba(100, 171, 245, 0.26)",
             "shadow": "rgba(0, 0, 0, 0.5)",
-            "new": "#8fa3e3",
-            "new-soft": "rgba(143, 163, 227, 0.16)",
+            "new": "#64abf5",
+            "new-soft": "rgba(100, 171, 245, 0.16)",
             "learn": "#d9a05b",
             "learn-soft": "rgba(217, 160, 91, 0.16)",
-            "due": "#93b478",
-            "due-soft": "rgba(147, 180, 120, 0.16)",
-            "on-accent": "#14161d",
+            "due": "#3edceb",
+            "due-soft": "rgba(62, 220, 235, 0.16)",
+            "on-accent": "#14161f",
+        },
+    },
+    "sunset": {
+        "light": {
+            "bg": "#f4eae6",
+            "surface": "#ffffff",
+            "inset": "#faf1ee",
+            "border": "#f0e0da",
+            "text": "#261c1a",
+            "subtle": "#6f5d58",
+            "faint": "#a89690",
+            "accent": "#e44c5b",
+            "accent-grad": "linear-gradient(135deg, #f2643c 0%, #d6357a 100%)",
+            "accent-soft": "rgba(228, 76, 91, 0.13)",
+            "accent-hover": "rgba(228, 76, 91, 0.22)",
+            "shadow": "rgba(95, 45, 35, 0.13)",
+            "new": "#e44c5b",
+            "new-soft": "rgba(228, 76, 91, 0.13)",
+            "learn": "#d18327",
+            "learn-soft": "rgba(209, 131, 39, 0.15)",
+            "due": "#a34a86",
+            "due-soft": "rgba(163, 74, 134, 0.14)",
+            "on-accent": "#ffffff",
+        },
+        "dark": {
+            "bg": "#1c1416",
+            "surface": "#281e21",
+            "inset": "#34282b",
+            "border": "#3d2f33",
+            "text": "#f5ebe9",
+            "subtle": "#ac9995",
+            "faint": "#88746f",
+            "accent": "#f87371",
+            "accent-grad": "linear-gradient(135deg, #ff9153 0%, #f2568f 100%)",
+            "accent-soft": "rgba(248, 115, 113, 0.15)",
+            "accent-hover": "rgba(248, 115, 113, 0.26)",
+            "shadow": "rgba(0, 0, 0, 0.5)",
+            "new": "#f87371",
+            "new-soft": "rgba(248, 115, 113, 0.16)",
+            "learn": "#ff9153",
+            "learn-soft": "rgba(255, 145, 83, 0.16)",
+            "due": "#f2568f",
+            "due-soft": "rgba(242, 86, 143, 0.16)",
+            "on-accent": "#1c1416",
         },
     },
     "sakura": {
@@ -213,56 +267,30 @@ THEMES = {
             "on-accent": "#1c1517",
         },
     },
-    "sumi": {
-        "light": {
-            "bg": "#eae8e4",
-            "surface": "#ffffff",
-            "inset": "#f0eeea",
-            "border": "#e2dfd9",
-            "text": "#1f1e1c",
-            "subtle": "#605d58",
-            "faint": "#9b9791",
-            "accent": "#41403c",
-            "accent-soft": "#eceae5",
-            "accent-hover": "#e0ddd6",
-            "shadow": "rgba(40, 38, 34, 0.12)",
-            "new": "#41403c",
-            "new-soft": "#eceae5",
-            "learn": "#a06a2c",
-            "learn-soft": "#f5ecdd",
-            "due": "#5f7f4e",
-            "due-soft": "#e9efe2",
-        },
-        "dark": {
-            "bg": "#161514",
-            "surface": "#211f1e",
-            "inset": "#2c2a28",
-            "border": "#353230",
-            "text": "#efedeb",
-            "subtle": "#a5a09a",
-            "faint": "#807b75",
-            "accent": "#d8d2ca",
-            "accent-soft": "rgba(216, 210, 202, 0.12)",
-            "accent-hover": "rgba(216, 210, 202, 0.22)",
-            "shadow": "rgba(0, 0, 0, 0.5)",
-            "new": "#d8d2ca",
-            "new-soft": "rgba(216, 210, 202, 0.14)",
-            "learn": "#d9a05b",
-            "learn-soft": "rgba(217, 160, 91, 0.16)",
-            "due": "#93b478",
-            "due-soft": "rgba(147, 180, 120, 0.16)",
-            "on-accent": "#211f1e",
-        },
-    },
 }
 
 
-# Renamed themes keep working for configs saved under the old key.
-ALIASES = {"aizome": "glass", "washi": "terracotta"}
+# Renamed and retired themes keep working for configs saved under the old key.
+# Ajisai was the blue one, so it lands on Aurora; Sumi was neutral ink, and the
+# nearest remaining neutral is Glass.
+ALIASES = {
+    "aizome": "glass",
+    "washi": "terracotta",
+    "ajisai": "aurora",
+    "sumi": "glass",
+}
 
 # The slots a custom accent may replace. Everything else — backgrounds, text,
 # the new/learn/due colours — still comes from the chosen theme.
-ACCENT_KEYS = ("accent", "accent-soft", "accent-hover", "on-accent")
+ACCENT_KEYS = ("accent", "accent-grad", "accent-soft", "accent-hover", "on-accent")
+
+# Default gradient angle, in CSS degrees (0 = upward, 90 = rightward).
+GRADIENT_ANGLE = 135
+
+# How far the page background is pulled toward each accent stop's hue. It can be
+# this strong only because `tint()` keeps the background's own lightness — mixing
+# the raw stop in at even 0.16 cost Aurora's dark mode 3 points of text contrast.
+PAGE_TINT = 0.5
 
 
 def _rgb(value: str):
@@ -297,6 +325,95 @@ def derive_accents(accent: str) -> dict:
     }
 
 
+def gradient_css(start: str, end: str, angle: int = GRADIENT_ANGLE) -> str:
+    return f"linear-gradient({int(angle)}deg, {start} 0%, {end} 100%)"
+
+
+def parse_gradient(value: str):
+    """(start, end, angle) out of a gradient string, or None if it isn't one."""
+    if not isinstance(value, str) or not value.strip().startswith("linear-gradient"):
+        return None
+    inner = value[value.index("(") + 1:value.rindex(")")]
+    parts = [p.strip() for p in inner.split(",")]
+    if len(parts) < 3:
+        return None
+    try:
+        angle = int(float(parts[0].replace("deg", "").strip()))
+    except ValueError:
+        angle = GRADIENT_ANGLE
+    stops = [p.split()[0] for p in parts[1:] if p.split()]
+    if len(stops) < 2:
+        return None
+    return stops[0], stops[-1], angle
+
+
+def shift_hue(color: str, degrees: int) -> str:
+    """Rotate a colour's hue, keeping its lightness and saturation.
+
+    Used for the second stop when a solid theme is first turned into a gradient:
+    a hue neighbour blends smoothly, where an arbitrary colour rarely does.
+    """
+    import colorsys
+
+    rgb = _rgb(color)
+    if rgb is None:
+        return color
+    h, l, s = colorsys.rgb_to_hls(*(c / 255 for c in rgb))
+    r, g, b = colorsys.hls_to_rgb((h + degrees / 360.0) % 1.0, l, s)
+    return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def blend(base: str, tint: str, ratio: float) -> str:
+    """`base` with `ratio` of `tint` mixed into it."""
+    a, b = _rgb(base), _rgb(tint)
+    if a is None or b is None:
+        return base
+    return "#%02x%02x%02x" % tuple(
+        round(a[i] * (1 - ratio) + b[i] * ratio) for i in range(3)
+    )
+
+
+def tint(base: str, toward: str, ratio: float) -> str:
+    """`base` pulled toward `toward`'s hue, keeping `base`'s own lightness.
+
+    Blending a colour in raw also drags the brightness with it, which is fatal
+    behind text: a bright dark-mode accent mixed into a dark page lightens it
+    until the body copy stops being readable. Taking only the hue and saturation
+    shifts the colour without moving the contrast ratio.
+    """
+    import colorsys
+
+    a, b = _rgb(base), _rgb(toward)
+    if a is None or b is None:
+        return base
+    lightness = colorsys.rgb_to_hls(*(c / 255 for c in a))[1]
+    hue, _, saturation = colorsys.rgb_to_hls(*(c / 255 for c in b))
+    shifted = colorsys.hls_to_rgb(hue, lightness, saturation)
+    return blend(base, "#%02x%02x%02x" % tuple(round(c * 255) for c in shifted), ratio)
+
+
+def mix(first: str, second: str) -> str:
+    """The midpoint of two colours — the solid stand-in for a gradient."""
+    a, b = _rgb(first), _rgb(second)
+    if a is None or b is None:
+        return first or second or "#000000"
+    return "#%02x%02x%02x" % tuple((a[i] + b[i]) // 2 for i in range(3))
+
+
+def derive_gradient(start: str, end: str, angle: int = GRADIENT_ANGLE) -> dict:
+    """The accent family for a two-stop gradient.
+
+    Everything except the gradient itself is derived from the midpoint, so the
+    solid slots (text on links, tints, the heatmap) sit in the middle of the
+    gradient instead of matching one end and clashing with the other.
+    """
+    family = derive_accents(mix(start, end))
+    if not family:
+        return {}
+    family["accent-grad"] = gradient_css(start, end, angle)
+    return family
+
+
 def custom_accent() -> dict:
     """The user's accent override, or {} when they haven't set one."""
     try:
@@ -315,8 +432,38 @@ def palette(theme_name: str, night: bool) -> dict:
     theme = THEMES.get(theme_name) or THEMES["glass"]
     pal = dict(theme["dark" if night else "light"])
     pal.setdefault("on-accent", "#ffffff")
-    pal.update(custom_accent())
+
+    override = custom_accent()
+    if override:
+        # A custom accent replaces the whole family. Dropping the theme's own
+        # gradient first stops a solid override from leaving the old gradient
+        # painted on every button.
+        pal.pop("accent-grad", None)
+        pal.update(override)
+
+    # Always emit the key, using the solid accent when there is no gradient: a
+    # plain colour is a valid `background` value, so CSS needs no fallback, and
+    # AwdTheme.apply cannot leave a stale gradient behind when the next theme
+    # has none of its own.
+    pal.setdefault("accent-grad", pal["accent"])
+    pal["bg-grad"] = _page_gradient(pal)
     return pal
+
+
+def _page_gradient(pal: dict) -> str:
+    """The page background, tinted by the accent gradient when there is one.
+
+    Follows the same always-emit rule as `accent-grad`, and falls back to the
+    flat `bg`. This sits behind every word on the screen, so it shifts hue only
+    — see `tint()`.
+    """
+    parsed = parse_gradient(pal.get("accent-grad", ""))
+    if not parsed:
+        return pal["bg"]
+    start, end, angle = parsed
+    return gradient_css(
+        tint(pal["bg"], start, PAGE_TINT), tint(pal["bg"], end, PAGE_TINT), angle
+    )
 
 
 def theme_accent(theme_name: str, night: bool = False) -> str:
@@ -324,6 +471,13 @@ def theme_accent(theme_name: str, night: bool = False) -> str:
     theme_name = ALIASES.get(theme_name, theme_name)
     theme = THEMES.get(theme_name) or THEMES["glass"]
     return theme["dark" if night else "light"]["accent"]
+
+
+def theme_gradient(theme_name: str, night: bool = False):
+    """(start, end, angle) for a theme's own gradient, or None if it has none."""
+    theme_name = ALIASES.get(theme_name, theme_name)
+    theme = THEMES.get(theme_name) or THEMES["glass"]
+    return parse_gradient(theme["dark" if night else "light"].get("accent-grad", ""))
 
 
 def variables(theme_name: str, night: bool) -> dict:

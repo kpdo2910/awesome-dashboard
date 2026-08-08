@@ -13,7 +13,7 @@
 
 html.awd-reviewer body,
 html.awd-reviewer body.card {
-  background: var(--awd-bg) !important;
+  background: var(--awd-bg-grad) !important;
 }
 
 html.awd-reviewer #qa {
@@ -70,10 +70,10 @@ html.awd-reviewer-bar button[data-ease="4"] { color: var(--awd-subtle); backgrou
 /* the "Show answer" button gets the accent treatment */
 html.awd-reviewer-bar button#ansbut {
   color: var(--awd-on-accent, #ffffff);
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   padding: 9px 30px;
 }
-html.awd-reviewer-bar button#ansbut:hover { background: var(--awd-accent); filter: brightness(1.08); }
+html.awd-reviewer-bar button#ansbut:hover { background: var(--awd-accent-grad); filter: brightness(1.08); }
 
 /* interval times above the answer buttons */
 html.awd-reviewer-bar .stattxt,

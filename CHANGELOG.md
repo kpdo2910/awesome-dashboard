@@ -13,10 +13,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   skin, then a short welcome once everything is applied.
 - About page in Settings, with version, package and Anki version.
 - Settings reopens on the page you saved from; cancelling leaves it unchanged.
+- Two gradient themes, Aurora and Sunset.
+- The theme editor can build a gradient accent: two colours, an angle and a
+  live preview.
 - Reset in Settings: settings, study progress for chosen decks, or both.
 
 ### Changed
 
+- A gradient accent now also tints the page behind it, not just the buttons.
 - Glass is the default theme and leads the picker.
 - Anki's top toolbar is hidden by default.
 - Card skin is on by default for any deck you have not set explicitly,
@@ -24,6 +28,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Heatmap shades now scale to what a normal day looks like for you at that
   point in time, instead of fixed thresholds tuned for 20 new cards a day.
 - Resetting everything now explains what it will erase before doing it.
+
+### Removed
+
+- The Ajisai and Sumi themes. Collections set to them move to Aurora and Glass.
 
 ## [1.1.0] - 2026-08-08
 

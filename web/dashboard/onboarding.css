@@ -13,7 +13,7 @@
   padding: 24px;
   box-sizing: border-box;
   overflow: hidden;
-  background: var(--awd-bg);
+  background: var(--awd-bg-grad);
   font-family: "Poppins", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
                "Segoe UI", "Hiragino Sans", sans-serif;
   color: var(--awd-text);
@@ -269,7 +269,7 @@
   padding: 0 24px;
   border: none;
   border-radius: 13px;
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   color: var(--awd-on-accent, #ffffff);
   font: inherit;
   font-size: 14.5px;
@@ -280,7 +280,7 @@
 }
 .awd-ob .awd-ob-go:hover {
   border: none;
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   color: var(--awd-on-accent, #ffffff);
   filter: brightness(1.08);
   transform: translateY(-1px);

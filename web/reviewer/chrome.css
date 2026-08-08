@@ -167,7 +167,7 @@ html.awd-rev-chrome .awd-rev-show {
   padding: 0 26px;
   border: none;
   border-radius: 12px;
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   color: var(--awd-on-accent, #ffffff);
   font: inherit;
   font-size: 14.5px;
@@ -176,7 +176,7 @@ html.awd-rev-chrome .awd-rev-show {
   transition: filter .15s ease, transform .1s ease;
 }
 html.awd-rev-chrome .awd-rev-show:hover {
-  background: var(--awd-accent);
+  background: var(--awd-accent-grad);
   color: var(--awd-on-accent, #ffffff);
   filter: brightness(1.08);
 }

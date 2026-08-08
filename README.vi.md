@@ -64,8 +64,9 @@ số, cùng số ngày kể từ lần tối ưu gần nhất.
 
 ### Chủ đề
 
-Sáu chủ đề (Terracotta, Glass — Apple HIG, Matcha, Ajisai, Sakura, Sumi),
-mỗi chủ đề có bảng màu sáng và tối, kèm công tắc **Theo hệ thống / Sáng / Tối**
+Sáu chủ đề (Terracotta, Glass — Apple HIG, Matcha, Aurora, Sunset, Sakura),
+mỗi chủ đề có bảng màu sáng và tối — Aurora và Sunset tô màu nhấn bằng chuyển
+màu — kèm công tắc **Theo hệ thống / Sáng / Tối**
 đổi luôn giao diện của Anki. Khi đổi, trang đang mở sẽ chuyển màu mượt thay vì
 vẽ lại. Có thể đồng bộ chủ đề cho các màn hình khác của Anki (Thêm thẻ, Duyệt,
 Thống kê, hộp thoại) qua biến CSS và bảng màu Qt.

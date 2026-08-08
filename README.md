@@ -64,8 +64,9 @@ evaluation, and days since the last optimisation.
 
 ### Themes
 
-Six themes (Terracotta, Glass — Apple HIG, Matcha, Ajisai, Sakura, Sumi),
-each with light and dark palettes, plus a **System / Light / Dark** switch that
+Six themes (Terracotta, Glass — Apple HIG, Matcha, Aurora, Sunset, Sakura),
+each with light and dark palettes — Aurora and Sunset paint their accent as a
+gradient — plus a **System / Light / Dark** switch that
 changes Anki's own appearance. Switching cross-fades the open page instead of
 re-rendering it. Optionally themes Anki's other screens (Add, Browse, Stats,
 dialogs) through its CSS variables and the Qt palette.

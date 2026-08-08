@@ -18,10 +18,13 @@ from ..core.translations import tr
 
 def _theme_card(key: str, palette: dict) -> str:
     """A theme swatch drawn from that theme's own colours, not the active one."""
+    # The first dot carries the gradient when the theme has one, so the two
+    # gradient themes are recognisable before they are picked.
+    accent = palette.get("accent-grad") or palette["accent"]
     return f"""
     <button class="awd-ob-opt awd-ob-theme" data-choice="theme" data-value="{key}">
       <span class="awd-ob-swatch" style="background:{palette['bg']}">
-        <i style="background:{palette['accent']}"></i>
+        <i style="background:{accent}"></i>
         <i style="background:{palette['new']}"></i>
         <i style="background:{palette['due']}"></i>
       </span>
@@ -123,7 +126,7 @@ def _option(choice: str, value: str, art: str, name: str, sub: str = "") -> str:
 def overlay_html() -> str:
     theme_cards = "".join(
         _theme_card(key, themes.THEMES[key]["light"])
-        for key in ("glass", "terracotta", "matcha", "ajisai", "sakura", "sumi")
+        for key in ("glass", "terracotta", "matcha", "aurora", "sunset", "sakura")
         if key in themes.THEMES
     )
     sidebar_options = "".join(
