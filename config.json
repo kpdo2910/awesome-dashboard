@@ -19,5 +19,6 @@
     "cardSkinDefault": true,
     "styleToolbar": true,
     "styleSystemScreens": true,
-    "shownWelcome": false
+    "shownWelcome": false,
+    "settingsPage": "general"
 }

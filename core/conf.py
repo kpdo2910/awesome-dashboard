@@ -26,6 +26,9 @@ DEFAULTS = {
     "styleToolbar": True,
     "styleSystemScreens": True,
     "shownWelcome": False,
+    # Nav page the settings dialog reopens on. A page id, not an index, so
+    # adding or reordering a nav entry cannot land the user somewhere else.
+    "settingsPage": "general",
 }
 
 _ADDON = None

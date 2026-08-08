@@ -349,6 +349,7 @@ class AwdSettingsDialog(QDialog):
             ("about", tr("page_about"), "#5856D6"),
         ]
         self._page_labels = [label for _, label, _ in pages]
+        self._page_keys = [key for key, _, _ in pages]
         self._nav_buttons = []
         for index, (kind, label, color) in enumerate(pages):
             button = QPushButton(label)
@@ -403,7 +404,7 @@ class AwdSettingsDialog(QDialog):
         right.addWidget(foot)
 
         root.addLayout(right, 1)
-        self._show_page(0)
+        self._show_page(self._saved_page_index(config.get("settingsPage")))
 
     # --- building blocks (design: grouped inset cards with hairline rows) ---
 
@@ -964,6 +965,13 @@ class AwdSettingsDialog(QDialog):
 
     # --- behaviour ---
 
+    def _saved_page_index(self, key) -> int:
+        """Page to reopen on, falling back to the first if the id is unknown."""
+        try:
+            return self._page_keys.index(str(key))
+        except ValueError:
+            return 0
+
     def _show_page(self, index: int) -> None:
         self._stack.setCurrentIndex(index)
         self._page_title.setText(self._page_labels[index])
@@ -1217,6 +1225,9 @@ class AwdSettingsDialog(QDialog):
                 "events": self._events,
                 "cardSkinDecks": skin_map,
                 "cardSkinDefault": self.card_skin_default.isChecked(),
+                # Rides along with Save so Cancel leaves the reopen page alone,
+                # like every other field in this dialog.
+                "settingsPage": self._page_keys[self._stack.currentIndex()],
             }
         )
         conf.save(config)
