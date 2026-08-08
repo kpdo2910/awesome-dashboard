@@ -1,7 +1,7 @@
 {
     "name": "Awesome Dashboard",
     "package": "awesome_dashboard",
-    "human_version": "1.1.0",
+    "human_version": "1.2.0",
     "min_point_version": 231000,
     "homepage": "https://github.com/kpdo2910/awesome-dashboard",
     "conflicts": []
