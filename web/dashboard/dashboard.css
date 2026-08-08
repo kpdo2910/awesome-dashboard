@@ -259,7 +259,26 @@ body {
   color: var(--awd-accent);
 }
 
-.awd-heatmap { overflow-x: auto; padding-bottom: 4px; }
+.awd-heatmap { overflow-x: auto; padding-bottom: 6px; }
+
+/* Chromium's default bar is a thick grey slab that reads as chrome rather than
+   part of the card. This is a thin themed rail that only darkens once the
+   pointer is in the card, so it stays quiet while you are reading the grid. */
+.awd-heatmap::-webkit-scrollbar { height: 7px; }
+.awd-heatmap::-webkit-scrollbar-track {
+  background: transparent;
+}
+.awd-heatmap::-webkit-scrollbar-thumb {
+  background: var(--awd-border);
+  border-radius: 99px;
+}
+.awd-heatmap:hover::-webkit-scrollbar-thumb { background: var(--awd-faint); }
+.awd-heatmap::-webkit-scrollbar-thumb:hover { background: var(--awd-subtle); }
+/* Deliberately no `scrollbar-width`/`scrollbar-color`: recent Chromium supports
+   the standard properties and, when they are set, ignores ::-webkit-scrollbar
+   altogether — which would silently throw away the rounded thumb and the hover
+   states above. Anki's webview is always Chromium, so the pseudo-elements are
+   the ones worth keeping. */
 .awd-hm-grid {
   display: flex;
   gap: 3px;
@@ -267,20 +286,40 @@ body {
   padding-right: 26px; /* room for the last month label to overflow */
   width: max-content;
 }
+/* The weekday column costs a permanent strip of width to label three of seven
+   rows, so it claims none: zero-width and sticky, it overlays the first columns
+   and only fades in while the heatmap is hovered. */
 .awd-hm-labels {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding-right: 5px;
   font-size: 9px;
-  color: var(--awd-faint);
+  color: var(--awd-subtle);
   font-family: ui-monospace, Menlo, monospace;
   position: sticky;
   left: 0;
-  background: var(--awd-surface);
-  z-index: 1;
+  width: 0;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .16s ease;
 }
-.awd-hm-labels span { height: 12px; line-height: 12px; }
+.awd-heatmap:hover .awd-hm-labels,
+.awd-heatmap:focus-within .awd-hm-labels { opacity: 1; }
+.awd-hm-labels span {
+  height: 12px;
+  line-height: 12px;
+  width: max-content;
+  white-space: nowrap;
+}
+/* Only the three labelled rows get a chip; the empty ones would show as
+   floating blocks over the cells. */
+.awd-hm-labels span:not(:empty) {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--awd-surface);
+  box-shadow: 0 0 0 1px var(--awd-border);
+}
 .awd-hm-pad { height: 12px; }
 .awd-hm-col {
   display: flex;
@@ -756,6 +795,8 @@ body {
   font-size: 12px;
   font-weight: 700;
   flex: 0 0 auto;
+  background: var(--awd-inset);
+  background: color-mix(in srgb, var(--awd-tint) 13%, var(--awd-surface));
 }
 .awd-sd-name {
   flex: 1;
@@ -844,6 +885,8 @@ body {
   font-weight: 700;
   cursor: pointer;
   flex: 0 0 auto;
+  background: var(--awd-inset);
+  background: color-mix(in srgb, var(--awd-tint) 13%, var(--awd-surface));
 }
 .awd-mini-deck:hover { filter: brightness(1.06); }
 .awd-mini-dot {

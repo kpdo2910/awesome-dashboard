@@ -113,7 +113,7 @@ def _children_html(did: int) -> str:
         total = child.new_count + child.learn_count + child.review_count
         rows.append(
             f'<div class="awd-ov-sub" onclick="pycmd(\'awd:opendeck:{child_id}\')">'
-            f'<span class="awd-ov-sub-ic" style="background:{tint}21;color:{tint}">'
+            f'<span class="awd-ov-sub-ic" style="--awd-tint:{tint};color:{tint}">'
             f"{_glyph(child.name)}</span>"
             f'<span class="awd-ov-sub-name">{html.escape(child.name)}</span>'
             f'<span class="awd-ov-sub-n">{total} {tr("cards_unit")}</span>'
@@ -306,7 +306,7 @@ def render_page(self: Overview) -> None:
         </span>
       </div>
       <header class="awd-ov-head">
-        <span class="awd-ov-icon" style="background:{tint}21;color:{tint}">{_glyph(str(deck.get("name", "")))}</span>
+        <span class="awd-ov-icon" style="--awd-tint:{tint};color:{tint}">{_glyph(str(deck.get("name", "")))}</span>
         <div class="awd-ov-headtext">
           <h1 class="awd-ov-name">{name}</h1>
           {desc_html}

@@ -45,6 +45,20 @@ what each feature does.
   and footer actions.
 - `styleReviewer` — replace the review chrome with the in-page header and
   answer bar, and hide Anki's native bars during review.
+- `backgroundImage` — filename of a background image inside the add-on's
+  `user_files/` folder, or `""`. Set it from **Settings → Appearance**, which
+  copies the file in; `user_files/` is the one directory Anki restores after an
+  add-on update. Shown behind the dashboard and the deck screen only — the
+  review screen keeps a plain background so answers stay legible.
+- `backgroundDim` — 0–95. How much of the theme background is laid over the
+  image. Higher is more readable, lower shows more of the photo.
+- `cardOpacity` — 0–100. How solid the cards and sidebar are, with or without a
+  background image. 100 is the plain opaque look. Below that they turn
+  translucent, which is what makes an image visible through the page rather than
+  only around its edges. A webview without `color-mix` keeps them solid.
+- `cardBlur` — 0–40 px. Blur applied to whatever shows through a translucent
+  card. Higher smears the background into colour; **0 leaves it sharp**, which is
+  the only setting where a picture can actually be made out through a card.
 - `styleToolbar` — theme Anki's top toolbar.
 - `styleSystemScreens` — theme Anki's other screens (webview CSS variables plus
   the Qt palette). Turning this off needs a restart to fully revert.

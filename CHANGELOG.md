@@ -14,6 +14,9 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - About page in Settings, with version, package and Anki version.
 - Settings reopens on the page you saved from; cancelling leaves it unchanged.
 - Two gradient themes, Aurora and Sunset.
+- Your own image as the background, with a dim setting.
+- Blocks section in Appearance: make cards and the sidebar translucent, with an
+  adjustable blur behind them. Works with or without a background image.
 - The theme editor can build a gradient accent: two colours, an angle and a
   live preview.
 - Reset in Settings: settings, study progress for chosen decks, or both.
@@ -21,6 +24,11 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - A gradient accent now also tints the page behind it, not just the buttons.
+- Translucent blocks now blur correctly on the deck screen too.
+- Deck letter badges stay legible over a background image instead of
+  dissolving into it.
+- The heatmap's weekday labels no longer take a permanent column; they fade
+  in over the grid on hover. Its scrollbar is now a thin themed rail.
 - Glass is the default theme and leads the picker.
 - Anki's top toolbar is hidden by default.
 - Card skin is on by default for any deck you have not set explicitly,

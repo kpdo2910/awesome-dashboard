@@ -23,7 +23,7 @@ try:
 except ImportError:
     TopToolbar = BottomToolbar = None
 
-from .core import conf, stats, themes
+from .core import background, conf, stats, themes
 from .screens import card_skin, dashboard, overview, reviewer
 from .ui import bridge, qt_theme
 
@@ -33,9 +33,12 @@ TOOLBAR_CONTEXTS = tuple(
 
 addon_path = os.path.dirname(__file__)
 addon_package = mw.addonManager.addonFromModule(__name__)
-web_root = f"/_addons/{addon_package}/web"
+addon_root = f"/_addons/{addon_package}"
+web_root = f"{addon_root}/web"
 
-mw.addonManager.setWebExports(__name__, r"web/.*")
+# Anki fullmatches this against the path below the add-on folder. user_files is
+# exported too, so a background image the user picked can be served from there.
+mw.addonManager.setWebExports(__name__, r"(web|user_files)/.*")
 
 # Install our renderers before the first deck browser / overview render.
 DeckBrowser._renderPage = dashboard.render_page
@@ -80,6 +83,42 @@ def _theme_shell(theme_vars: str) -> str:
     return theme_vars + _css("shared", "theme.css") + _js("shared", "theme.js")
 
 
+def _background_layer(config: dict) -> str:
+    """The image layer and the translucent blocks — either, both, or neither.
+
+    They are independent: an image can sit behind opaque cards, and cards can be
+    translucent over the plain theme background with no image at all.
+    """
+    url = background.css_url(addon_root)
+    opacity = max(0, min(100, int(config.get("cardOpacity", 100))))
+    has_image = url != "none"
+    soft_cards = opacity < 100
+    if not has_image and not soft_cards:
+        return ""
+
+    variables = []
+    classes = []
+    if has_image:
+        variables.append(f"--awd-bg-image: {url};")
+        classes.append("awd-bgimg")
+    if soft_cards:
+        blur = max(0, min(40, int(config.get("cardBlur", 18))))
+        # `none` rather than blur(0px): a zero blur still costs a compositing
+        # layer, and the point of turning it off is to leave what is behind
+        # sharp enough to actually make out.
+        filter_value = f"blur({blur}px) saturate(160%)" if blur else "none"
+        variables.append(
+            f"--awd-card-mix: {opacity}%; --awd-card-filter: {filter_value};"
+        )
+        classes.append("awd-softcards")
+
+    return (
+        f'<style id="awd-bg-vars">:root {{ {" ".join(variables)} }}</style>'
+        + _css("shared", "background.css")
+        + _add_classes(*classes)
+    )
+
+
 def _night_mode() -> bool:
     try:
         from aqt.theme import theme_manager
@@ -102,6 +141,7 @@ def on_webview_will_set_content(web_content, context) -> None:
     if isinstance(context, DeckBrowser):
         web_content.head += _theme_shell(theme_vars)
         web_content.head += _css("dashboard", "dashboard.css")
+        web_content.head += _background_layer(config)
         web_content.head += _js("dashboard", "dashboard.js")
         if not config.get("shownWelcome", False):
             web_content.head += _css("dashboard", "onboarding.css")
@@ -111,6 +151,7 @@ def on_webview_will_set_content(web_content, context) -> None:
             web_content.head += _theme_shell(theme_vars)
             web_content.head += _add_classes("awd-overview")
             web_content.head += _css("overview", "overview.css")
+            web_content.head += _background_layer(config)
     elif isinstance(context, Reviewer):
         # Theme vars + the per-deck card-skin stylesheet are always available;
         # the skin only activates for decks the user opted in (card_skin.py).

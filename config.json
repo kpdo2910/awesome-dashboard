@@ -19,6 +19,10 @@
     "cardSkinDefault": true,
     "styleToolbar": true,
     "styleSystemScreens": true,
+    "backgroundImage": "",
+    "backgroundDim": 25,
+    "cardOpacity": 100,
+    "cardBlur": 18,
     "shownWelcome": false,
     "settingsPage": "general"
 }

@@ -427,7 +427,7 @@ def _side_deck_group(node, depth: int) -> str:
     <div class="awd-sd-row" data-did="{did}" style="--sd:{depth}"
          onclick="pycmd('open:{did}')">
       {caret}
-      <span class="awd-sd-ic" style="background:{tint}21;color:{tint}">{_deck_glyph(node.name)}</span>
+      <span class="awd-sd-ic" style="--awd-tint:{tint};color:{tint}">{_deck_glyph(node.name)}</span>
       <span class="awd-sd-name">{name}</span>
       <span class="awd-sd-counts">{_side_counts(node)}</span>
     </div>
@@ -527,7 +527,7 @@ def _sidebar_mini_html(config: dict, tree) -> str:
         dot = '<span class="awd-mini-dot"></span>' if due else ""
         decks += (
             f'<button class="awd-mini-deck" title="{html.escape(child.name)}"'
-            f' style="background:{tint}21;color:{tint}"'
+            f' style="--awd-tint:{tint};color:{tint}"'
             f' onclick="pycmd(\'open:{did}\')">{_deck_glyph(child.name)}{dot}</button>'
         )
     return f"""

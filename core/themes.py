@@ -447,7 +447,28 @@ def palette(theme_name: str, night: bool) -> dict:
     # has none of its own.
     pal.setdefault("accent-grad", pal["accent"])
     pal["bg-grad"] = _page_gradient(pal)
+    pal["bg-scrim"] = _scrim(pal["bg"])
     return pal
+
+
+def _scrim(bg: str) -> str:
+    """The theme background at the configured opacity, laid over the image.
+
+    It lives in the palette rather than in the one-off style block so that a
+    light/dark switch carries it too — `AwdTheme.apply` only re-sends what
+    `variables()` produces, and a scrim left at the old mode's colour would
+    wash the page the wrong way until the next full render.
+    """
+    rgb = _rgb(bg)
+    if rgb is None:
+        return bg
+    try:
+        from . import conf
+
+        dim = int(conf.get().get("backgroundDim", 25))
+    except Exception:
+        dim = 25
+    return f"rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, {max(0, min(100, dim)) / 100})"
 
 
 def _page_gradient(pal: dict) -> str:

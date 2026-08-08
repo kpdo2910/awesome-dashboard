@@ -25,6 +25,19 @@ DEFAULTS = {
     "cardSkinDefault": True,
     "styleToolbar": True,
     "styleSystemScreens": True,
+    # Filename inside user_files/, not a path — see core/background.py.
+    "backgroundImage": "",
+    # How much of the theme background is laid over the image, as a percentage.
+    # Light by default: the point of setting an image is to see it.
+    "backgroundDim": 25,
+    # How opaque the cards and sidebar are, as a percentage. Applies with or
+    # without an image; 100 is the plain opaque look, so nothing changes until
+    # the user asks for it.
+    "cardOpacity": 100,
+    # Blur applied to whatever shows through a translucent card, in pixels.
+    # 0 leaves it sharp, which is the only way to actually read the image
+    # through a card rather than see a smear of its colours.
+    "cardBlur": 18,
     "shownWelcome": False,
     # Nav page the settings dialog reopens on. A page id, not an index, so
     # adding or reordering a nav entry cannot land the user somewhere else.

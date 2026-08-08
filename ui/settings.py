@@ -4,6 +4,8 @@ macOS System Settings layout: a left nav with colored icon squares, and pages
 built from grouped inset cards.
 """
 
+import os
+
 from aqt import mw
 from aqt.qt import (
     QButtonGroup,
@@ -635,6 +637,8 @@ class AwdSettingsDialog(QDialog):
         if rows:
             self._block(box, "", *rows)
 
+        self._build_background_block(box, config)
+
         self.style_overview = self._switch(bool(config.get("styleOverview", True)))
         self.style_reviewer = self._switch(bool(config.get("styleReviewer", True)))
         self.style_toolbar = self._switch(bool(config.get("styleToolbar", True)))
@@ -659,6 +663,117 @@ class AwdSettingsDialog(QDialog):
 
         box.addStretch(1)
         return self._wrap_page(page)
+
+    def _build_background_block(self, box: QVBoxLayout, config: dict) -> None:
+        """Pick an image for the dashboard and overview, and dim it to taste."""
+        # None = leave the stored image alone, "" = remove it, path = use that.
+        self._bg_pending = None
+
+        self.bg_name = QLabel()
+        self.bg_name.setObjectName("awdRowSub")
+
+        choose = QPushButton(tr("bg_choose"))
+        choose.setCursor(Qt.CursorShape.PointingHandCursor)
+        choose.clicked.connect(self._pick_background)
+        self.bg_clear = QPushButton(tr("bg_clear"))
+        self.bg_clear.setObjectName("awdDanger")
+        self.bg_clear.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.bg_clear.clicked.connect(self._clear_background)
+
+        self.bg_dim = QSpinBox()
+        self.bg_dim.setRange(0, 95)
+        self.bg_dim.setSingleStep(5)
+        self.bg_dim.setSuffix("%")
+        self.bg_dim.setValue(int(config.get("backgroundDim", 25)))
+
+        self._block(
+            box,
+            tr("bg_section"),
+            self._row(tr("bg_image"), self.bg_name, tr("bg_image_hint")),
+            self._actions_row(choose, self.bg_clear),
+            self._row(tr("bg_dim"), self.bg_dim, tr("bg_dim_hint")),
+            hint=tr("bg_hint"),
+        )
+
+        # Its own block, and never disabled: translucent blocks are just as
+        # useful over a plain theme background as over an image.
+        self.card_opacity = QSpinBox()
+        self.card_opacity.setRange(0, 100)
+        self.card_opacity.setSingleStep(5)
+        self.card_opacity.setSuffix("%")
+        self.card_opacity.setValue(int(config.get("cardOpacity", 100)))
+
+        self.card_blur = QSpinBox()
+        self.card_blur.setRange(0, 40)
+        self.card_blur.setSingleStep(2)
+        self.card_blur.setSuffix(" px")
+        self.card_blur.setValue(int(config.get("cardBlur", 18)))
+
+        self._block(
+            box,
+            tr("cards_section"),
+            self._row(tr("card_opacity"), self.card_opacity, tr("card_opacity_hint")),
+            self._row(tr("card_blur"), self.card_blur, tr("card_blur_hint")),
+            hint=tr("cards_hint"),
+        )
+        self._refresh_background_row()
+
+    def _refresh_background_row(self) -> None:
+        """Show the pending choice if there is one, else what is stored."""
+        from ..core import background
+
+        if self._bg_pending is None:
+            name = background.current()
+        else:
+            name = os.path.basename(self._bg_pending) if self._bg_pending else ""
+        self.bg_name.setText(name or tr("bg_none"))
+        # Dimming and clearing mean nothing without an image behind them.
+        self.bg_clear.setEnabled(bool(name))
+        # Dimming is the one control that means nothing without an image; the
+        # block controls in the next section stay live either way.
+        self.bg_dim.setEnabled(bool(name))
+
+    def _pick_background(self) -> None:
+        from aqt.qt import QFileDialog
+
+        from ..core import background
+
+        patterns = " ".join(f"*{ext}" for ext in background.EXTENSIONS)
+        path, _ = QFileDialog.getOpenFileName(
+            self, tr("bg_choose"), "", f"{tr('bg_images')} ({patterns})"
+        )
+        if not path:
+            return
+        try:
+            background.check(path)
+        except ValueError as e:
+            from aqt.utils import showWarning
+
+            showWarning(str(e), parent=self, title="Awesome Dashboard")
+            return
+        # Held, not copied: the file only moves when the dialog is saved, so
+        # Cancel leaves the current background alone like every other field.
+        self._bg_pending = path
+        self._refresh_background_row()
+
+    def _clear_background(self) -> None:
+        self._bg_pending = ""
+        self._refresh_background_row()
+
+    def _commit_background(self, config: dict) -> None:
+        """Apply the pending image choice, if any, into `config`."""
+        from ..core import background
+
+        if self._bg_pending is None:
+            return
+        try:
+            if self._bg_pending:
+                config["backgroundImage"] = background.save(self._bg_pending)
+            else:
+                background.remove()
+                config["backgroundImage"] = ""
+        except Exception as e:
+            print(f"[Awesome Dashboard] background save failed: {e}")
 
     def _build_fsrs_page(self) -> QScrollArea:
         """FSRS lives in Anki's scheduler; this page drives it from one place."""
@@ -1060,6 +1175,14 @@ class AwdSettingsDialog(QDialog):
             return False
         conf.save(dict(conf.DEFAULTS))
         try:
+            # The defaults clear the filename, so the file itself has to go too
+            # or it would sit in user_files with nothing left to delete it.
+            from ..core import background
+
+            background.remove()
+        except Exception as e:
+            print(f"[Awesome Dashboard] background reset failed: {e}")
+        try:
             # The Pomodoro tally is add-on state too, but it lives in the
             # collection rather than the add-on config, so it needs clearing
             # by hand.
@@ -1188,6 +1311,12 @@ class AwdSettingsDialog(QDialog):
         "styleReviewer",
         "styleToolbar",
         "styleSystemScreens",
+        # Adding or dropping an image changes which stylesheets load, so
+        # pushing variables into the open page is not enough.
+        "backgroundImage",
+        "backgroundDim",
+        "cardOpacity",
+        "cardBlur",
         "events",
     )
 
@@ -1222,6 +1351,9 @@ class AwdSettingsDialog(QDialog):
                 "styleReviewer": self.style_reviewer.isChecked(),
                 "styleToolbar": self.style_toolbar.isChecked(),
                 "styleSystemScreens": self.style_system.isChecked(),
+                "backgroundDim": self.bg_dim.value(),
+                "cardOpacity": self.card_opacity.value(),
+                "cardBlur": self.card_blur.value(),
                 "events": self._events,
                 "cardSkinDecks": skin_map,
                 "cardSkinDefault": self.card_skin_default.isChecked(),
@@ -1230,6 +1362,9 @@ class AwdSettingsDialog(QDialog):
                 "settingsPage": self._page_keys[self._stack.currentIndex()],
             }
         )
+        # Copies or deletes the file, then writes the filename into `config` so
+        # it lands in the same conf.save as everything else.
+        self._commit_background(config)
         conf.save(config)
         layout_changed = any(config.get(key) != before[key] for key in self.LAYOUT_KEYS)
 

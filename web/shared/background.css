@@ -1,0 +1,79 @@
+/* ============================================================
+   background.css — what sits behind the content.
+
+   Two independent features, so two classes. Either can be on without the other:
+
+     html.awd-bgimg     the user's image behind the page
+     html.awd-softcards translucent cards, over the image or over the theme
+
+   Loaded for the dashboard and the deck overview only. The reviewer is left out
+   deliberately: anything behind answer text costs legibility on the one screen
+   that exists to be read.
+   ============================================================ */
+
+/* ---------- the image layer ---------- */
+
+html.awd-bgimg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  /* Two layers in one property: the scrim is a flat colour expressed as a
+     gradient, because `background-image` stacks but `background-color` does
+     not — a colour would paint under the photo instead of over it. */
+  background-image:
+    linear-gradient(var(--awd-bg-scrim), var(--awd-bg-scrim)),
+    var(--awd-bg-image);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+/* The page itself must stop painting its own background, or it would cover the
+   layer behind it.
+
+   The class is repeated to raise specificity to (0,2,2). The screen stylesheets
+   set this with !important too — the dashboard at `html, body`, but the overview
+   at `html.awd-overview body`, which ties with a single class and then wins on
+   load order, repainting the page over the image. Since <body> is only as tall
+   as its content, that showed as the image appearing below the content and
+   nowhere else. */
+html.awd-bgimg.awd-bgimg,
+html.awd-bgimg.awd-bgimg body {
+  background: transparent !important;
+}
+
+/* ---------- translucent blocks ----------
+   --awd-card-mix is a percentage and --awd-card-filter a backdrop-filter value,
+   both set per render from the user's settings. color-mix against `transparent`
+   is how a percentage becomes alpha without having to know the theme's surface
+   colour here.
+
+   The filter is `none` when the blur is set to 0. That matters: a blurred
+   backdrop shows the colours of what is behind a card but not its shape, so
+   reading the picture through a card is only possible with the blur off. */
+html.awd-softcards .awd-card,
+html.awd-softcards .awd-side,
+html.awd-softcards .awd-side-mini,
+html.awd-softcards .awd-ov-card,
+html.awd-softcards .awd-ov-count {
+  background: color-mix(in srgb, var(--awd-surface) var(--awd-card-mix), transparent);
+  -webkit-backdrop-filter: var(--awd-card-filter);
+  backdrop-filter: var(--awd-card-filter);
+}
+
+/* ---------- graceful degradation ----------
+   Without color-mix there is no way to express the opacity at all, so those
+   webviews keep solid blocks. An image still shows around them. Missing
+   backdrop-filter is fine on its own — it only means no blur. */
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  html.awd-softcards .awd-card,
+  html.awd-softcards .awd-side,
+  html.awd-softcards .awd-side-mini,
+  html.awd-softcards .awd-ov-card,
+  html.awd-softcards .awd-ov-count {
+    background: var(--awd-surface);
+  }
+}

@@ -34,7 +34,13 @@ html.awd-overview center { width: auto; text-align: left; }
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  animation: awdOvIn .32s ease both;
+  /* No `both`, deliberately. A filled animation keeps its final `transform`
+     applied for good, and a transformed ancestor forms a new backdrop root —
+     which silently neutralises `backdrop-filter` on every card inside, so
+     translucent blocks showed the background sharp instead of blurred. The
+     `to` state here matches the natural one, so nothing is lost by letting the
+     animation stop filling. */
+  animation: awdOvIn .32s ease;
 }
 
 @keyframes awdOvIn {
@@ -71,6 +77,13 @@ html.awd-overview center { width: auto; text-align: left; }
   font-size: 26px;
   font-weight: 800;
   flex: 0 0 auto;
+  /* The deck tint arrives as --awd-tint on the element. Mixing it into an
+     opaque colour here, rather than laying a 13%-alpha tint over whatever
+     happens to be behind, is what stops the badge dissolving into a background
+     image. The plain declaration first is the fallback for engines without
+     color-mix. */
+  background: var(--awd-inset);
+  background: color-mix(in srgb, var(--awd-tint) 13%, var(--awd-bg));
 }
 .awd-ov-headtext { min-width: 0; }
 .awd-ov-name {
@@ -229,6 +242,8 @@ html.awd-overview .awd-ov-study:active {
   font-size: 12px;
   font-weight: 700;
   flex: 0 0 auto;
+  background: var(--awd-inset);
+  background: color-mix(in srgb, var(--awd-tint) 13%, var(--awd-surface));
 }
 .awd-ov-sub-name {
   flex: 1;
