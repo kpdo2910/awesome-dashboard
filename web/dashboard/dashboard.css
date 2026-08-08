@@ -490,25 +490,6 @@ body {
 }
 
 /* ---------- welcome toast ---------- */
-.awd-toast {
-  position: fixed;
-  left: 50%;
-  bottom: 26px;
-  transform: translateX(-50%) translateY(8px);
-  z-index: 9998;
-  background: var(--awd-surface);
-  color: var(--awd-text);
-  border: 1px solid var(--awd-border);
-  border-radius: 99px;
-  padding: 12px 22px;
-  font-size: 13.5px;
-  font-weight: 600;
-  box-shadow: 0 10px 30px var(--awd-shadow);
-  opacity: 0;
-  transition: opacity .4s ease, transform .4s ease;
-  cursor: pointer;
-}
-.awd-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 950px) {

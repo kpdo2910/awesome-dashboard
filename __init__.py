@@ -103,6 +103,9 @@ def on_webview_will_set_content(web_content, context) -> None:
         web_content.head += _theme_shell(theme_vars)
         web_content.head += _css("dashboard", "dashboard.css")
         web_content.head += _js("dashboard", "dashboard.js")
+        if not config.get("shownWelcome", False):
+            web_content.head += _css("dashboard", "onboarding.css")
+            web_content.head += _js("dashboard", "onboarding.js")
     elif isinstance(context, Overview):
         if config.get("styleOverview", True):
             web_content.head += _theme_shell(theme_vars)

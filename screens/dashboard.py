@@ -747,6 +747,43 @@ def _fake_calendar(real: dict) -> dict:
     return fake
 
 
+def _onboarding_html(config: dict) -> str:
+    """The first-run overlay, or nothing once it has been through."""
+    if config.get("shownWelcome", False):
+        return ""
+    from . import onboarding
+
+    return onboarding.overlay_html()
+
+
+def _onboarding_data(config: dict) -> dict:
+    """Every palette the overlay might preview, so picking one is instant.
+
+    All six themes in both modes is roughly 8KB of JSON — worth carrying once
+    on the first run to avoid a round trip on every tap, and not carried at all
+    afterwards.
+    """
+    if config.get("shownWelcome", False):
+        return {}
+    try:
+        from aqt.theme import theme_manager
+
+        night = bool(theme_manager.night_mode)
+    except Exception:
+        night = False
+    return {
+        "night": night,
+        "theme": config.get("theme", "glass"),
+        "palettes": {
+            name: {
+                "light": themes.variables(name, False),
+                "dark": themes.variables(name, True),
+            }
+            for name in themes.THEMES
+        },
+    }
+
+
 def _heatmap_scale(bundle: dict, due_total: int) -> list:
     """Change points the heatmap shades against, recording today's on the way.
 
@@ -840,7 +877,6 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
         "showHeatmap": show_heatmap,
         "showPomodoro": show_pomodoro,
         "pom": pomodoro.get().state(),
-        "welcome": not config.get("shownWelcome", False),
         "lang": current_lang(),
         "i18n": {
             "start": tr("start"),
@@ -851,12 +887,12 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
             "idle": tr("pomodoro_idle"),
             "cards": tr("cards_unit"),
             "sessions": tr("sessions_today"),
-            "welcome": tr("welcome_toast"),
             "mon": tr("mon"), "wed": tr("wed"), "fri": tr("fri"),
         },
         "months": [month_name(m) for m in range(1, 13)],
         "dayMonthFormat": day_month_format(),
         "heatmapScale": _heatmap_scale(bundle, due_total),
+        "onboard": _onboarding_data(config),
     }
 
     body = (
@@ -869,6 +905,7 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
         + "".join(sections)
         + "</div></div></div>"
         + '<div id="awd-tooltip" class="awd-tooltip" hidden></div>'
+        + _onboarding_html(config)
         + f'<script>window.AWD_DATA = {json.dumps(js_data)};</script>'
     )
 

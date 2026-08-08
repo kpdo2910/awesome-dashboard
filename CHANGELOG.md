@@ -9,6 +9,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- First-run onboarding: pick a theme, light or dark, sidebar mode and card
+  skin, then a short welcome once everything is applied.
 - About page in Settings, with version, package and Anki version.
 - Reset in Settings: settings, study progress for chosen decks, or both.
 

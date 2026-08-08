@@ -1,7 +1,7 @@
 /* ============================================================
    dashboard.js — dashboard behaviour
    Reads window.AWD_DATA injected by the Python renderer:
-   heatmap render, custom tooltip, Pomodoro view, welcome toast,
+   heatmap render, custom tooltip, Pomodoro view,
    scroll restore across collapse re-renders.
    ============================================================ */
 
@@ -376,29 +376,6 @@
     }
   };
 
-  /* ---------- welcome toast ---------- */
-
-  function maybeShowWelcome() {
-    if (!data().welcome) return;
-    var toast = document.createElement("div");
-    toast.className = "awd-toast";
-    toast.textContent = i18n("welcome");
-    document.body.appendChild(toast);
-
-    var dismiss = function () {
-      toast.classList.remove("show");
-      setTimeout(function () {
-        toast.remove();
-      }, 450);
-      if (typeof pycmd === "function") pycmd("awd:welcome_done");
-    };
-    toast.addEventListener("click", dismiss);
-    setTimeout(function () {
-      toast.classList.add("show");
-    }, 500);
-    setTimeout(dismiss, 7000);
-  }
-
   /* ---------- init ---------- */
 
   function init() {
@@ -406,7 +383,6 @@
     restoreScroll();
     buildHeatmap();
     if (data().showPomodoro && data().pom) Awd.pomRender(data().pom);
-    maybeShowWelcome();
   }
 
   if (document.readyState === "loading") {

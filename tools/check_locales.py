@@ -16,7 +16,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 FALLBACK = "en"
 META_FIELDS = {"months": 12, "weekdays": 7, "weekdaysShort": 7}
 # Keys built at runtime as tr(f"prefix_{value}").
-DYNAMIC_PREFIXES = ("theme_", "appearance_", "greeting_", "color_")
+DYNAMIC_PREFIXES = ("theme_", "appearance_", "greeting_", "color_", "ob_feat_")
 
 
 def load_locales() -> dict:

@@ -5,10 +5,68 @@ Collapse/expand is handled here instead: the native command re-renders the
 whole page, while this toggles the DOM client-side and just persists the state.
 """
 
+import json
+
 from aqt import mw
 
 from ..core import conf
 from ..features import pomodoro
+
+
+def _apply_onboarding(raw: str) -> None:
+    """Save the overlay's choices, then warm the heatmap scale.
+
+    The scale is built here rather than on the next render so the work happens
+    while the overlay is still showing its progress screen, instead of stalling
+    the first dashboard the user sees.
+    """
+    try:
+        chosen = json.loads(raw)
+    except Exception as e:
+        print(f"[Awesome Dashboard] onboarding payload unreadable: {e}")
+        return
+    if not isinstance(chosen, dict):
+        return
+
+    config = conf.get()
+    if chosen.get("theme"):
+        config["theme"] = str(chosen["theme"])
+    if chosen.get("sidebarMode"):
+        config["sidebarMode"] = str(chosen["sidebarMode"])
+    if chosen.get("cardSkinDefault") is not None:
+        config["cardSkinDefault"] = chosen["cardSkinDefault"] in (True, "1", 1)
+    conf.save(config)
+
+    # Light/dark is Anki's own setting, not ours, so it goes through set_theme —
+    # the same path Settings uses, which switches dialogs and the editor too.
+    if chosen.get("appearance"):
+        try:
+            from aqt.theme import Theme
+
+            wanted = {
+                "light": Theme.LIGHT,
+                "dark": Theme.DARK,
+                "system": Theme.FOLLOW_SYSTEM,
+            }.get(str(chosen["appearance"]))
+            if wanted is not None and mw.pm.theme() != wanted:
+                mw.set_theme(wanted)
+        except Exception as e:
+            print(f"[Awesome Dashboard] onboarding appearance failed: {e}")
+
+    try:
+        from ..core import heatmap_scale, stats
+
+        stats.invalidate_cache()
+        bundle = stats.gather()
+        heatmap_scale.points_for_web(bundle.get("calendar") or {}, 0)
+    except Exception as e:
+        print(f"[Awesome Dashboard] onboarding warm-up failed: {e}")
+    try:
+        from . import qt_theme
+
+        qt_theme.apply_app_palette()
+    except Exception:
+        pass
 
 
 def _set_collapsed(raw_did: str, collapsed: bool) -> None:
@@ -151,6 +209,13 @@ def handle_message(handled, message: str, context):
         _open_settings()
     elif command == "restart":
         _restart_anki()
+    elif command.startswith("onboard:apply:"):
+        _apply_onboarding(command[len("onboard:apply:"):])
+    elif command == "onboard:finish":
+        conf.set_value("shownWelcome", True)
+        # Everything the overlay chose only reaches the screen on a rebuild, so
+        # this is the first and only re-render of the whole flow.
+        mw.deckBrowser.refresh()
     elif command == "welcome_done":
         conf.set_value("shownWelcome", True)
     elif command.startswith("collapse:"):

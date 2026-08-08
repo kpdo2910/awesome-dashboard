@@ -1,0 +1,440 @@
+/* ============================================================
+   First-run onboarding, over the dashboard.
+   Markup from screens/onboarding.py, driven by onboarding.js.
+   ============================================================ */
+
+.awd-ob {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--awd-bg);
+  font-family: "Poppins", "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "Hiragino Sans", sans-serif;
+  color: var(--awd-text);
+}
+.awd-ob[hidden] { display: none; }
+
+/* Four soft colour fields drifting behind everything, the way a macOS setup
+   backdrop reads. The palette's own semantic colours are used, so every theme
+   produces its own wash instead of a generic rainbow. `closest-side` keeps the
+   falloff smooth enough that no blur filter is needed — a full-screen blur is
+   expensive in Qt's webview. */
+.awd-ob::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(closest-side, var(--awd-accent), transparent) 12% 10% / 56% 56% no-repeat,
+    radial-gradient(closest-side, var(--awd-new), transparent) 88% 4% / 48% 48% no-repeat,
+    radial-gradient(closest-side, var(--awd-due), transparent) 92% 92% / 54% 54% no-repeat,
+    radial-gradient(closest-side, var(--awd-learn), transparent) 4% 96% / 50% 50% no-repeat;
+  opacity: .3;
+  animation: awdObDrift 26s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes awdObDrift {
+  from { transform: translate3d(-2%, -1.5%, 0) scale(1); }
+  to   { transform: translate3d(2.5%, 2%, 0) scale(1.08); }
+}
+
+.awd-ob-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 44px 32px;
+  box-sizing: border-box;
+  border: 1px solid var(--awd-border);
+  border-radius: 30px;
+  background: var(--awd-surface);
+  /* Three stacked shadows rather than one: a hairline to seat the edge, a
+     close shadow for the lift, a wide one for the room it sits in. */
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, .05),
+    0 10px 26px var(--awd-shadow),
+    0 34px 70px var(--awd-shadow);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+          backdrop-filter: blur(30px) saturate(180%);
+}
+
+.awd-ob-step {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.awd-ob-step[hidden] { display: none; }
+.awd-ob-center { justify-content: center; min-height: 320px; }
+
+/* Steps slide the way the user is travelling: forward enters from the right,
+   Back enters from the left, so the flow has a direction you can feel. The
+   outgoing step leaves first and the incoming one follows, rather than the two
+   crossing — steps differ in height, and overlapping them would need absolute
+   positioning that makes the sheet jump. */
+
+.awd-ob-step.enter-next { animation: awdObInRight .32s cubic-bezier(.32, .72, 0, 1) both; }
+.awd-ob-step.enter-prev { animation: awdObInLeft  .32s cubic-bezier(.32, .72, 0, 1) both; }
+.awd-ob-step.leave-next { animation: awdObOutLeft  .15s ease both; }
+.awd-ob-step.leave-prev { animation: awdObOutRight .15s ease both; }
+
+@keyframes awdObInRight {
+  from { transform: translateX(34px);  opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes awdObInLeft {
+  from { transform: translateX(-34px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes awdObOutLeft {
+  from { transform: translateX(0);     opacity: 1; }
+  to   { transform: translateX(-22px); opacity: 0; }
+}
+@keyframes awdObOutRight {
+  from { transform: translateX(0);     opacity: 1; }
+  to   { transform: translateX(22px);  opacity: 0; }
+}
+
+/* ---------- intro ---------- */
+.awd-ob-mark {
+  width: 74px;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: var(--awd-accent-soft);
+  color: var(--awd-accent);
+  font-size: 34px;
+  margin-bottom: 18px;
+}
+.awd-ob-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -.5px;
+}
+.awd-ob-h {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -.3px;
+}
+.awd-ob-sub {
+  margin: 10px 0 0;
+  max-width: 440px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--awd-subtle);
+}
+.awd-ob-feats {
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.awd-ob-feats li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13.5px;
+  color: var(--awd-subtle);
+}
+.awd-ob-feats li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--awd-accent);
+}
+
+/* ---------- option grids ---------- */
+.awd-ob-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+  width: 100%;
+}
+.awd-ob-grid.themes { grid-template-columns: repeat(3, 1fr); }
+/* Two options in a three-column grid would sit left of centre. */
+.awd-ob-grid.two {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 430px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Every selector below is prefixed with `.awd-ob` on purpose. Anki's base
+   stylesheet carries `button:hover { background: linear-gradient(...);
+   border: 1px solid var(--shadow) }` at (0,1,1) specificity, which outranks a
+   bare class and repaints our buttons on hover. The extra ancestor lifts these
+   to (0,2,0) so they win outright, hover state included. */
+
+.awd-ob .awd-ob-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 10px;
+  border: 1.5px solid var(--awd-border);
+  border-radius: 16px;
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 5px 14px var(--awd-shadow);
+  transition: border-color .16s ease, background .16s ease,
+              transform .16s ease, box-shadow .16s ease;
+}
+.awd-ob .awd-ob-opt:hover {
+  border-color: var(--awd-border);
+  background: var(--awd-inset);
+  transform: translateY(-3px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 12px 26px var(--awd-shadow);
+}
+.awd-ob .awd-ob-opt:active { transform: translateY(-1px) scale(.99); }
+.awd-ob .awd-ob-opt.picked,
+.awd-ob .awd-ob-opt.picked:hover {
+  border-color: var(--awd-accent);
+  background: var(--awd-accent-soft);
+  transform: translateY(-3px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 14px 28px var(--awd-shadow);
+}
+.awd-ob-opt-name { font-size: 13px; font-weight: 700; }
+.awd-ob-opt-sub {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--awd-subtle);
+}
+
+/* The preview keeps a surface of its own, so the card's selected tint sits
+   behind it rather than washing over the drawing. Hover and selection lift the
+   preview off the card instead of colouring it. */
+.awd-ob-art, .awd-ob-swatch {
+  display: block;
+  width: 100%;
+  color: var(--awd-text);
+  border-radius: 11px;
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  padding: 7px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px var(--awd-shadow);
+  transition: transform .18s cubic-bezier(.32, .72, 0, 1),
+              box-shadow .18s ease;
+}
+.awd-ob-art svg { width: 100%; height: auto; display: block; }
+
+.awd-ob .awd-ob-opt:hover .awd-ob-art,
+.awd-ob .awd-ob-opt:hover .awd-ob-swatch,
+.awd-ob .awd-ob-opt.picked .awd-ob-art,
+.awd-ob .awd-ob-opt.picked .awd-ob-swatch {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 20px var(--awd-shadow);
+}
+
+.awd-ob-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 46px;
+}
+.awd-ob-swatch i { width: 10px; height: 10px; border-radius: 99px; }
+
+/* ---------- footer buttons ---------- */
+.awd-ob-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+.awd-ob .awd-ob-go {
+  height: 44px;
+  min-width: 150px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 13px;
+  background: var(--awd-accent);
+  color: var(--awd-on-accent, #ffffff);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--awd-accent-soft);
+  transition: filter .15s ease, transform .12s ease, box-shadow .15s ease;
+}
+.awd-ob .awd-ob-go:hover {
+  border: none;
+  background: var(--awd-accent);
+  color: var(--awd-on-accent, #ffffff);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px var(--awd-accent-soft);
+}
+.awd-ob .awd-ob-go:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px var(--awd-accent-soft);
+}
+
+/* Intro puts Skip on its own line under the primary button; every later step
+   moves both Back and Skip into the top bar, out of the way of the choices. */
+.awd-ob-foot.stack { flex-direction: column; gap: 4px; }
+
+.awd-ob .awd-ob-skip {
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--awd-faint);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background .15s ease, color .15s ease;
+}
+.awd-ob .awd-ob-skip:hover {
+  border: none;
+  background: transparent;
+  color: var(--awd-subtle);
+  box-shadow: none;
+}
+
+/* ---------- top bar ----------
+   Absolute so it never adds height that would shift the step below it; the
+   sheet takes on extra top padding instead while the bar is showing. */
+.awd-ob-top {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.awd-ob-top[hidden] { display: none; }
+.awd-ob-sheet.with-top { padding-top: 66px; }
+
+.awd-ob .awd-ob-nav {
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--awd-subtle);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background .15s ease, color .15s ease;
+}
+.awd-ob .awd-ob-nav:hover {
+  border: none;
+  background: var(--awd-inset);
+  color: var(--awd-text);
+  box-shadow: none;
+}
+
+/* ---------- step dots ----------
+   Built once and only re-classed, never re-created — replacing the elements
+   would restart them from scratch and there would be nothing to animate. */
+.awd-ob-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 30px;
+  transition: opacity .25s ease;
+}
+.awd-ob-dots.gone { opacity: 0; pointer-events: none; }
+.awd-ob-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--awd-border);
+  transition: width .34s cubic-bezier(.32, .72, 0, 1),
+              background .28s ease,
+              transform .34s cubic-bezier(.32, .72, 0, 1);
+}
+/* Steps already passed stay tinted, so the row reads as progress rather than
+   a single roaming dot. */
+.awd-ob-dots i.done { background: var(--awd-accent); opacity: .4; }
+.awd-ob-dots i.on {
+  width: 20px;
+  background: var(--awd-accent);
+  opacity: 1;
+}
+
+/* ---------- applying ---------- */
+.awd-ob-spinner { display: flex; gap: 7px; }
+.awd-ob-spinner i {
+  width: 10px;
+  height: 10px;
+  border-radius: 99px;
+  background: var(--awd-accent);
+  animation: awdObPulse 1s ease-in-out infinite;
+}
+.awd-ob-spinner i:nth-child(2) { animation-delay: .15s; }
+.awd-ob-spinner i:nth-child(3) { animation-delay: .3s; }
+@keyframes awdObPulse {
+  0%, 100% { opacity: .25; transform: scale(.8); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+.awd-ob-loading { margin-top: 20px; font-size: 14px; color: var(--awd-subtle); }
+
+/* ---------- the closing flourish ----------
+   Written rather than faded in: a soft-edged mask sweeps left to right, so the
+   letters appear the way ink lands on paper. Real per-stroke drawing would need
+   glyph outlines, which a font cannot hand us at runtime. */
+
+.awd-ob-script {
+  font-family: "Snell Roundhand", "Segoe Script", "Bradley Hand",
+               "Apple Chancery", cursive;
+  font-size: 58px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--awd-text);
+  padding: 0 6px;
+}
+.awd-ob-script span {
+  display: inline-block;
+  -webkit-mask-image: linear-gradient(90deg, #000 58%, rgba(0, 0, 0, .45) 80%,
+                                      transparent 94%);
+          mask-image: linear-gradient(90deg, #000 58%, rgba(0, 0, 0, .45) 80%,
+                                      transparent 94%);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  animation: awdObWrite 2.1s cubic-bezier(.5, 0, .35, 1) both;
+}
+@keyframes awdObWrite {
+  from { -webkit-mask-size: 0% 100%;   mask-size: 0% 100%; }
+  to   { -webkit-mask-size: 260% 100%; mask-size: 260% 100%; }
+}
+
+@media (max-width: 620px) {
+  .awd-ob-grid, .awd-ob-grid.themes { grid-template-columns: repeat(2, 1fr); }
+  .awd-ob-script { font-size: 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-ob::before { animation: none; }
+  .awd-ob-step { animation: none; }
+  .awd-ob-opt:hover, .awd-ob-opt.picked { transform: none; }
+  .awd-ob-script span { animation: none; -webkit-mask-image: none; mask-image: none; }
+  .awd-ob-spinner i { animation: none; opacity: .7; }
+}
