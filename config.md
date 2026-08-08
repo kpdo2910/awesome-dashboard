@@ -55,7 +55,10 @@ what each feature does.
 - `cardOpacity` — 0–100. How solid the cards and sidebar are, with or without a
   background image. 100 is the plain opaque look. Below that they turn
   translucent, which is what makes an image visible through the page rather than
-  only around its edges. A webview without `color-mix` keeps them solid.
+  only around its edges. Needs `color-mix`, so Chromium 111 (Qt 6.6) or newer —
+  older webviews keep solid blocks, and **Settings → Appearance** hides the
+  Blocks section entirely there rather than offering controls that do nothing.
+  The About page reports which webview is running.
 - `cardBlur` — 0–40 px. Blur applied to whatever shows through a translucent
   card. Higher smears the background into colour; **0 leaves it sharp**, which is
   the only setting where a picture can actually be made out through a card.

@@ -75,6 +75,16 @@ def _addon_meta() -> dict:
     return meta
 
 
+def _webview_label() -> str:
+    """"Chromium 140" — with a note when it is too old for translucent blocks."""
+    from ..core import webfeatures
+
+    name = webfeatures.describe()
+    if webfeatures.supports_color_mix():
+        return name
+    return f"{name} · {tr('about_webview_old')}"
+
+
 class _DeckResetDialog(QDialog):
     """Deck picker for the progress reset, with each deck's card count."""
 
@@ -694,6 +704,18 @@ class AwdSettingsDialog(QDialog):
             self._row(tr("bg_dim"), self.bg_dim, tr("bg_dim_hint")),
             hint=tr("bg_hint"),
         )
+        # Before the early return below, so the image row is filled in either way.
+        self._refresh_background_row()
+
+        # Translucent blocks need color-mix, which older webviews cannot render.
+        # There the CSS falls back to solid panels, so the controls would move
+        # nothing — hide them rather than offer a slider that does nothing.
+        from ..core import webfeatures
+
+        self.card_opacity = None
+        self.card_blur = None
+        if not webfeatures.supports_color_mix():
+            return
 
         # Its own block, and never disabled: translucent blocks are just as
         # useful over a plain theme background as over an image.
@@ -716,7 +738,6 @@ class AwdSettingsDialog(QDialog):
             self._row(tr("card_blur"), self.card_blur, tr("card_blur_hint")),
             hint=tr("cards_hint"),
         )
-        self._refresh_background_row()
 
     def _refresh_background_row(self) -> None:
         """Show the pending choice if there is one, else what is stored."""
@@ -1138,6 +1159,9 @@ class AwdSettingsDialog(QDialog):
             value_row(tr("about_version"), meta["version"]),
             value_row(tr("about_package"), meta["package"]),
             value_row(tr("about_anki"), meta["anki"]),
+            # Which webview is running decides whether the Blocks controls show
+            # up at all, so it belongs somewhere the user can read it.
+            value_row(tr("about_webview"), _webview_label()),
             value_row(tr("about_licence"), "MIT"),
         )
         self._block(
@@ -1352,8 +1376,17 @@ class AwdSettingsDialog(QDialog):
                 "styleToolbar": self.style_toolbar.isChecked(),
                 "styleSystemScreens": self.style_system.isChecked(),
                 "backgroundDim": self.bg_dim.value(),
-                "cardOpacity": self.card_opacity.value(),
-                "cardBlur": self.card_blur.value(),
+                # Absent when the webview cannot render translucent blocks, in
+                # which case the stored values are left exactly as they are —
+                # moving to a newer Anki should restore the user's own settings.
+                "cardOpacity": (
+                    self.card_opacity.value() if self.card_opacity is not None
+                    else config.get("cardOpacity", 100)
+                ),
+                "cardBlur": (
+                    self.card_blur.value() if self.card_blur is not None
+                    else config.get("cardBlur", 18)
+                ),
                 "events": self._events,
                 "cardSkinDecks": skin_map,
                 "cardSkinDefault": self.card_skin_default.isChecked(),

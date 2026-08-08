@@ -252,6 +252,8 @@
         "about_version": "バージョン",
         "about_package": "パッケージ",
         "about_anki": "Anki",
+        "about_webview": "Webview",
+        "about_webview_old": "半透明ブロックには古すぎます",
         "about_source": "ソースコード",
         "about_ankiweb": "AnkiWeb ページ",
         "about_licence": "ライセンス",

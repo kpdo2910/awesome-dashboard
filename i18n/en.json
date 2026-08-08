@@ -252,6 +252,8 @@
         "about_version": "Version",
         "about_package": "Package",
         "about_anki": "Anki",
+        "about_webview": "Webview",
+        "about_webview_old": "too old for translucent blocks",
         "about_source": "Source code",
         "about_ankiweb": "AnkiWeb page",
         "about_licence": "Licence",
