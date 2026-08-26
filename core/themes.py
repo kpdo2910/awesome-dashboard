@@ -7,6 +7,14 @@ A theme may add "accent-grad", a CSS gradient painted on large accent surfaces
 (buttons, pills, progress bars). "accent" stays a solid colour regardless: it is
 what text, borders, SVG fills and the whole Qt side are drawn with, none of which
 accept a gradient. See `palette()` for why the key is always emitted.
+
+"due" is deadline red — counts of work waiting (deck rows, sidebar, overview,
+reviewer counts, the heatmap's forecast). "good" is the positive colour — the
+Good answer button, the pomodoro break state, a habit's all-done badge. They
+used to be one slot and the Good button turned the colour of a deadline; keep
+them apart. Every new-red was contrast-checked against its surfaces (light
+modes all beat the old green; dark modes stay ≥ 4.0 except glass, whose own
+light mode already sits at 2.95 by Apple-palette fidelity).
 """
 
 THEMES = {
@@ -27,8 +35,10 @@ THEMES = {
             "new-soft": "#f7e8e2",
             "learn": "#a06a2c",
             "learn-soft": "#f5ecdd",
-            "due": "#5f7f4e",
-            "due-soft": "#e9efe2",
+            "due": "#b23531",
+            "due-soft": "#f6e2e0",
+            "good": "#5f7f4e",
+            "good-soft": "#e9efe2",
         },
         "dark": {
             "bg": "#1b1715",
@@ -46,14 +56,16 @@ THEMES = {
             "new-soft": "rgba(229, 113, 79, 0.16)",
             "learn": "#d9a05b",
             "learn-soft": "rgba(217, 160, 91, 0.16)",
-            "due": "#93b478",
-            "due-soft": "rgba(147, 180, 120, 0.16)",
+            "due": "#ef6d76",
+            "due-soft": "rgba(239, 109, 118, 0.16)",
+            "good": "#93b478",
+            "good-soft": "rgba(147, 180, 120, 0.16)",
         },
     },
     "glass": {
         # Liquid Glass look, Apple system palette — accent #007AFF/#0A84FF,
-        # semantic new=blue, learn=orange, due=green, translucent surfaces
-        # over a neutral backdrop.
+        # semantic new=blue, learn=orange, due=system red, good=system green,
+        # translucent surfaces over a neutral backdrop.
         "light": {
             "bg": "#f2f2f7",
             "surface": "rgba(255, 255, 255, 0.72)",
@@ -70,8 +82,10 @@ THEMES = {
             "new-soft": "rgba(0, 122, 255, 0.12)",
             "learn": "#FF9500",
             "learn-soft": "rgba(255, 149, 0, 0.13)",
-            "due": "#28a04c",
-            "due-soft": "rgba(52, 199, 89, 0.13)",
+            "due": "#FF3B30",
+            "due-soft": "rgba(255, 59, 48, 0.13)",
+            "good": "#28a04c",
+            "good-soft": "rgba(52, 199, 89, 0.13)",
             "on-accent": "#ffffff",
         },
         "dark": {
@@ -90,8 +104,10 @@ THEMES = {
             "new-soft": "rgba(10, 132, 255, 0.16)",
             "learn": "#FF9F0A",
             "learn-soft": "rgba(255, 159, 10, 0.16)",
-            "due": "#30D158",
-            "due-soft": "rgba(48, 209, 88, 0.16)",
+            "due": "#FF453A",
+            "due-soft": "rgba(255, 69, 58, 0.16)",
+            "good": "#30D158",
+            "good-soft": "rgba(48, 209, 88, 0.16)",
             "on-accent": "#ffffff",
         },
     },
@@ -112,8 +128,10 @@ THEMES = {
             "new-soft": "#eaf0df",
             "learn": "#a06a2c",
             "learn-soft": "#f5ecdd",
-            "due": "#4e7f8f",
-            "due-soft": "#e2edf0",
+            "due": "#a84039",
+            "due-soft": "#f2e2e0",
+            "good": "#4e7f8f",
+            "good-soft": "#e2edf0",
         },
         "dark": {
             "bg": "#171a13",
@@ -131,8 +149,10 @@ THEMES = {
             "new-soft": "rgba(164, 195, 126, 0.16)",
             "learn": "#d9a05b",
             "learn-soft": "rgba(217, 160, 91, 0.16)",
-            "due": "#7eb4c3",
-            "due-soft": "rgba(126, 180, 195, 0.16)",
+            "due": "#d97b73",
+            "due-soft": "rgba(217, 123, 115, 0.16)",
+            "good": "#7eb4c3",
+            "good-soft": "rgba(126, 180, 195, 0.16)",
             "on-accent": "#1a1f14",
         },
     },
@@ -156,8 +176,10 @@ THEMES = {
             "new-soft": "rgba(64, 120, 212, 0.13)",
             "learn": "#a06a2c",
             "learn-soft": "#f5ecdd",
-            "due": "#1f9aa8",
-            "due-soft": "rgba(31, 154, 168, 0.14)",
+            "due": "#c93556",
+            "due-soft": "rgba(201, 53, 86, 0.14)",
+            "good": "#1f9aa8",
+            "good-soft": "rgba(31, 154, 168, 0.14)",
             "on-accent": "#ffffff",
         },
         "dark": {
@@ -177,8 +199,10 @@ THEMES = {
             "new-soft": "rgba(100, 171, 245, 0.16)",
             "learn": "#d9a05b",
             "learn-soft": "rgba(217, 160, 91, 0.16)",
-            "due": "#3edceb",
-            "due-soft": "rgba(62, 220, 235, 0.16)",
+            "due": "#f26d88",
+            "due-soft": "rgba(242, 109, 136, 0.16)",
+            "good": "#3edceb",
+            "good-soft": "rgba(62, 220, 235, 0.16)",
             "on-accent": "#14161f",
         },
     },
@@ -200,8 +224,10 @@ THEMES = {
             "new-soft": "rgba(228, 76, 91, 0.13)",
             "learn": "#d18327",
             "learn-soft": "rgba(209, 131, 39, 0.15)",
-            "due": "#a34a86",
-            "due-soft": "rgba(163, 74, 134, 0.14)",
+            "due": "#c22b30",
+            "due-soft": "rgba(194, 43, 48, 0.14)",
+            "good": "#a34a86",
+            "good-soft": "rgba(163, 74, 134, 0.14)",
             "on-accent": "#ffffff",
         },
         "dark": {
@@ -221,8 +247,10 @@ THEMES = {
             "new-soft": "rgba(248, 115, 113, 0.16)",
             "learn": "#ff9153",
             "learn-soft": "rgba(255, 145, 83, 0.16)",
-            "due": "#f2568f",
-            "due-soft": "rgba(242, 86, 143, 0.16)",
+            "due": "#ff4d5e",
+            "due-soft": "rgba(255, 77, 94, 0.16)",
+            "good": "#f2568f",
+            "good-soft": "rgba(242, 86, 143, 0.16)",
             "on-accent": "#1c1416",
         },
     },
@@ -243,8 +271,10 @@ THEMES = {
             "new-soft": "#f8e7ec",
             "learn": "#a06a2c",
             "learn-soft": "#f5ecdd",
-            "due": "#5f7f4e",
-            "due-soft": "#e9efe2",
+            "due": "#bd3243",
+            "due-soft": "#f8e2e5",
+            "good": "#5f7f4e",
+            "good-soft": "#e9efe2",
         },
         "dark": {
             "bg": "#1c1517",
@@ -262,8 +292,10 @@ THEMES = {
             "new-soft": "rgba(224, 139, 166, 0.16)",
             "learn": "#d9a05b",
             "learn-soft": "rgba(217, 160, 91, 0.16)",
-            "due": "#93b478",
-            "due-soft": "rgba(147, 180, 120, 0.16)",
+            "due": "#ee6675",
+            "due-soft": "rgba(238, 102, 117, 0.16)",
+            "good": "#93b478",
+            "good-soft": "rgba(147, 180, 120, 0.16)",
             "on-accent": "#1c1517",
         },
     },

@@ -267,6 +267,21 @@ body {
 .awd-hm-cell.l3 { background: color-mix(in srgb, var(--awd-accent) 75%, var(--awd-inset)); }
 .awd-hm-cell.l4 { background: var(--awd-accent); }
 
+/* Future days carry the scheduler's booked load in the due colour — the same
+   hue every deck row already uses for review counts. The compound selector
+   outranks `.awd-hm-cell.future`'s dashed placeholder whatever the load
+   order (ties go to whichever file loads last — see CLAUDE.md). */
+.awd-hm-cell.future.due-l1 { border: none; background: color-mix(in srgb, var(--awd-due) 25%, var(--awd-inset)); }
+.awd-hm-cell.future.due-l2 { border: none; background: color-mix(in srgb, var(--awd-due) 50%, var(--awd-inset)); }
+.awd-hm-cell.future.due-l3 { border: none; background: color-mix(in srgb, var(--awd-due) 75%, var(--awd-inset)); }
+.awd-hm-cell.future.due-l4 { border: none; background: var(--awd-due); }
+
+/* A cell with something behind it is a link into the Browser. */
+.awd-hm-cell.l1, .awd-hm-cell.l2, .awd-hm-cell.l3, .awd-hm-cell.l4,
+.awd-hm-cell.due-l1, .awd-hm-cell.due-l2, .awd-hm-cell.due-l3, .awd-hm-cell.due-l4 {
+  cursor: pointer;
+}
+
 .awd-heatmap-legend {
   display: flex;
   align-items: center;
@@ -286,6 +301,10 @@ body {
 .awd-heatmap-legend i.l2 { background: color-mix(in srgb, var(--awd-accent) 50%, var(--awd-inset)); }
 .awd-heatmap-legend i.l3 { background: color-mix(in srgb, var(--awd-accent) 75%, var(--awd-inset)); }
 .awd-heatmap-legend i.l4 { background: var(--awd-accent); }
+.awd-heatmap-legend i.due {
+  margin-left: 8px;
+  background: color-mix(in srgb, var(--awd-due) 60%, var(--awd-inset));
+}
 
 /* pomodoro */
 .awd-pom-card { display: flex; flex-direction: column; align-items: stretch; }
@@ -463,6 +482,10 @@ body {
   .awd-hm-cell.l1, .awd-heatmap-legend i.l1 { background: var(--awd-accent); opacity: .28; }
   .awd-hm-cell.l2, .awd-heatmap-legend i.l2 { background: var(--awd-accent); opacity: .52; }
   .awd-hm-cell.l3, .awd-heatmap-legend i.l3 { background: var(--awd-accent); opacity: .76; }
+  .awd-hm-cell.future.due-l1 { background: var(--awd-due); opacity: .28; }
+  .awd-hm-cell.future.due-l2 { background: var(--awd-due); opacity: .52; }
+  .awd-hm-cell.future.due-l3 { background: var(--awd-due); opacity: .76; }
+  .awd-heatmap-legend i.due { background: var(--awd-due); opacity: .6; }
 }
 
 /* ============================================================

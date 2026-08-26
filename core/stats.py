@@ -80,24 +80,47 @@ def gather() -> dict:
     streak, longest = _streaks(set(calendar), today_key)
 
     daily_avg = 0.0
+    pct_active = 0
     if calendar:
         first_day = min(calendar)
         try:
             first_date = datetime.strptime(first_day, "%Y-%m-%d").date()
             days_elapsed = max(1, (datetime.fromtimestamp(today_start).date() - first_date).days + 1)
             daily_avg = sum(calendar.values()) / days_elapsed
+            # Days with at least one review, out of days since the first one —
+            # the same window the average uses, so the two numbers agree.
+            pct_active = min(100, round(len(calendar) / days_elapsed * 100))
         except ValueError:
             pass
+
+    # Forecast: the load the scheduler has already booked, by due day. `due`
+    # is a day index for review/day-learn queues, and overdue cards are folded
+    # into today by Anki itself, so the map starts tomorrow. A year ahead is
+    # as far as any rendered view reaches, and the cap also shields against
+    # garbage due values decades out.
+    sched_today = mw.col.sched.today
+    base_date = datetime.fromtimestamp(today_start).date()
+    forecast = {}
+    for days_ahead, count in db.all(
+        "SELECT due - ?, count() FROM cards"
+        " WHERE queue IN (2, 3) AND due > ? AND due <= ?"
+        " GROUP BY due",
+        sched_today, sched_today, sched_today + 365,
+    ):
+        key = (base_date + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
+        forecast[key] = count
 
     _CACHE = {
         "cards_today": cards_today,
         "minutes_today": secs_today / 60,
         "retention": retention,
         "calendar": calendar,
+        "forecast": forecast,
         "today_key": today_key,
         "streak": streak,
         "longest_streak": longest,
         "daily_avg": daily_avg,
+        "pct_active": pct_active,
     }
     _CACHE_TIME = now
     return _CACHE

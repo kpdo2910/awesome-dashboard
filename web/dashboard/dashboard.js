@@ -152,14 +152,24 @@
     return value;
   }
 
-  function levelFor(count, key) {
+  function levelOf(count, scale) {
     if (!count) return 0;
-    var scale = scaleFor(key);
     if (!scale) return 1;
     if (count >= scale * 1.3) return 4;
     if (count >= scale * 0.8) return 3;
     if (count >= scale * 0.4) return 2;
     return 1;
+  }
+
+  function levelFor(count, key) {
+    return levelOf(count, scaleFor(key));
+  }
+
+  /* Future days have no history to scale against, so the booked due load is
+     measured against the latest change point — today's own normal. */
+  function dueLevelFor(count) {
+    var points = data().heatmapScale || [];
+    return levelOf(count, points.length ? points[points.length - 1][1] : 0);
   }
 
   /* GitHub-style: one full year at a time, with a year picker. */
@@ -179,6 +189,14 @@
       if (calendar[key] > 0) {
         var y = parseInt(key.slice(0, 4), 10);
         if (y) years[y] = true;
+      }
+    }
+    // Booked reviews can spill into January of a year with no history yet.
+    var forecast = data().forecast || {};
+    for (var fkey in forecast) {
+      if (forecast[fkey] > 0) {
+        var fy = parseInt(fkey.slice(0, 4), 10);
+        if (fy) years[fy] = true;
       }
     }
     return Object.keys(years)
@@ -220,6 +238,7 @@
     if (hmYear === null) hmYear = todayYearNum();
 
     var calendar = data().calendar || {};
+    var forecast = data().forecast || {};
     var todayKey = data().todayKey || "";
     var todayDay = parseInt(todayKey.replace(/-/g, ""), 10) || 0;
 
@@ -232,8 +251,11 @@
       months: data().months || [],
       weekdayLabels: ["", i18n("mon"), "", i18n("wed"), "", i18n("fri"), ""],
       classFor: function (day) {
-        if (day > todayDay) return "future";
         var key = dayKey(day);
+        if (day > todayDay) {
+          var due = forecast[key] || 0;
+          return due ? "future due-l" + dueLevelFor(due) : "future";
+        }
         return (
           "l" + levelFor(calendar[key] || 0, key) + (day === todayDay ? " today" : "")
         );
@@ -244,33 +266,57 @@
     host.appendChild(grid);
     // Current year: the most recent weeks; past years: start at January.
     host.scrollLeft = hmYear === todayYearNum() ? host.scrollWidth : 0;
-    bindTooltip(host);
+    bindHeatmap(host);
     renderYearPills();
   }
 
-  /* ---------- tooltip ---------- */
+  /* ---------- tooltip & day click ---------- */
 
-  function formatTooltip(day) {
-    var key = dayKey(day);
-    var count = (data().calendar || {})[key] || 0;
+  function formatTooltip(day, dueCount) {
     var months = data().months || [];
     var dayLabel = (data().dayMonthFormat || "{month} {day}")
       .replace("{month}", months[(Math.floor(day / 100) % 100) - 1] || "")
       .replace("{day}", day % 100);
+    if (dueCount != null) {
+      return dueCount + " " + i18n("cards") + " " + i18n("dueLabel") + " · " + dayLabel;
+    }
+    var count = (data().calendar || {})[dayKey(day)] || 0;
     return count + " " + i18n("cards") + " · " + dayLabel;
   }
 
-  function bindTooltip(host) {
+  /* What a cell has to say: reviews done for past days, booked due cards for
+     future ones. Padding cells carry no day; an empty future day is nothing. */
+  function cellInfo(target) {
+    var cell = target.closest(".awd-hm-cell");
+    if (!cell || !cell.dataset.day) return null;
+    var day = parseInt(cell.dataset.day, 10);
+    if (cell.classList.contains("future")) {
+      var due = (data().forecast || {})[dayKey(day)] || 0;
+      return due ? { day: day, count: due, future: true } : null;
+    }
+    return {
+      day: day,
+      count: (data().calendar || {})[dayKey(day)] || 0,
+      future: false,
+    };
+  }
+
+  /* Bound once per page: buildHeatmap only replaces the host's children, so
+     binding per build would stack a duplicate set of listeners on every year
+     switch — and a click would then open the Browser once per switch. */
+  function bindHeatmap(host) {
+    if (host.__awdBound) return;
+    host.__awdBound = true;
     var tip = document.getElementById("awd-tooltip");
-    if (!tip) return;
+
     host.addEventListener("mousemove", function (event) {
-      var cell = event.target.closest(".awd-hm-cell");
-      // Padding cells carry no day at all; future ones have nothing to report.
-      if (!cell || !cell.dataset.day || cell.classList.contains("future")) {
+      if (!tip) return;
+      var info = cellInfo(event.target);
+      if (!info) {
         tip.hidden = true;
         return;
       }
-      tip.textContent = formatTooltip(parseInt(cell.dataset.day, 10));
+      tip.textContent = formatTooltip(info.day, info.future ? info.count : null);
       tip.hidden = false;
       var x = event.clientX + 12;
       var y = event.clientY - 30;
@@ -281,7 +327,16 @@
       tip.style.top = Math.max(4, y) + "px";
     });
     host.addEventListener("mouseleave", function () {
-      tip.hidden = true;
+      if (tip) tip.hidden = true;
+    });
+
+    // A day with something behind it opens the Browser on exactly that day.
+    // Python picks the search, so every date rule stays on one side of the
+    // bridge; the payload is the day key itself, never an index.
+    host.addEventListener("click", function (event) {
+      var info = cellInfo(event.target);
+      if (!info || !info.count || typeof pycmd !== "function") return;
+      pycmd("awd:hm:browse:" + dayKey(info.day));
     });
   }
 

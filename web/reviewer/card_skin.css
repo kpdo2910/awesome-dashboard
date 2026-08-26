@@ -224,7 +224,7 @@ ol.awd-skin-meaning li::before {
 }
 .awd-skin-keys .k-again { color: var(--awd-new, #c94f35); }
 .awd-skin-keys .k-hard  { color: var(--awd-learn, #a06a2c); }
-.awd-skin-keys .k-good  { color: var(--awd-due, #5f7f4e); }
+.awd-skin-keys .k-good  { color: var(--awd-good, #5f7f4e); }
 .awd-skin-keys .k-easy  { color: var(--awd-subtle, #6b625b); }
 
 /* restyle Anki's own replay buttons inside skinned question content */

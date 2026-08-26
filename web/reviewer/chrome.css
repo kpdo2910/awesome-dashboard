@@ -124,14 +124,15 @@ html.awd-rev-chrome .awd-rev-pom-btn {
 }
 .awd-rev-pom.idle .awd-rev-pom-dot { opacity: .5; }
 
-/* Running: focus borrows the accent, break the "due" green. */
+/* Running: focus borrows the accent, break the "good" green — never
+   `--awd-due`, which is deadline red. */
 .awd-rev-pom.focus .awd-rev-pom-btn {
   background: var(--awd-accent-soft);
   color: var(--awd-accent);
 }
 .awd-rev-pom.break .awd-rev-pom-btn {
-  background: var(--awd-due-soft);
-  color: var(--awd-due);
+  background: var(--awd-good-soft);
+  color: var(--awd-good);
 }
 .awd-rev-pom.paused .awd-rev-pom-btn { opacity: .5; }
 

@@ -32,7 +32,7 @@
   background:
     radial-gradient(closest-side, var(--awd-accent), transparent) 12% 10% / 56% 56% no-repeat,
     radial-gradient(closest-side, var(--awd-new), transparent) 88% 4% / 48% 48% no-repeat,
-    radial-gradient(closest-side, var(--awd-due), transparent) 92% 92% / 54% 54% no-repeat,
+    radial-gradient(closest-side, var(--awd-good), transparent) 92% 92% / 54% 54% no-repeat,
     radial-gradient(closest-side, var(--awd-learn), transparent) 4% 96% / 50% 50% no-repeat;
   opacity: .3;
   animation: awdObDrift 26s ease-in-out infinite alternate;

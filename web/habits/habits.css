@@ -20,7 +20,7 @@
   white-space: nowrap;
 }
 .awd-hb-count b { color: var(--awd-accent); }
-.awd-hb-count.all-done { color: var(--awd-due, var(--awd-accent)); }
+.awd-hb-count.all-done { color: var(--awd-good, var(--awd-accent)); }
 
 /* The track is accent-soft, not inset. `--awd-inset` is a neutral — a grey in
    Glass, a warm grey elsewhere — and a full-card-width 4px line of it reads as

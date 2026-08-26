@@ -226,6 +226,7 @@ def _heatmap_card_html(bundle: dict) -> str:
     streak = fmt_int(bundle.get("streak", 0))
     longest = fmt_int(bundle.get("longest_streak", 0))
     avg = bundle.get("daily_avg", 0.0)
+    pct_active = bundle.get("pct_active", 0)
     return f"""
     <div class="awd-card awd-heatmap-card">
       <div class="awd-card-head">
@@ -233,7 +234,7 @@ def _heatmap_card_html(bundle: dict) -> str:
         <div class="awd-streak-badge" title="{tr("streak").title()}">
           <span class="awd-streak-flame">🔥</span>
           <b>{streak}</b>&nbsp;{tr("days_unit")}
-          <span class="awd-streak-sub">· {tr("longest_streak")} {longest} · {tr("daily_avg")} {avg:.0f}</span>
+          <span class="awd-streak-sub">· {tr("longest_streak")} {longest} · {tr("daily_avg")} {avg:.0f} · {tr("days_active")} {pct_active}%</span>
         </div>
       </div>
       <div id="awd-hm-years" class="awd-hm-years"></div>
@@ -242,6 +243,7 @@ def _heatmap_card_html(bundle: dict) -> str:
         <span>{tr("less")}</span>
         <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i>
         <span>{tr("more")}</span>
+        <i class="due"></i><span>{tr("due_label")}</span>
       </div>
     </div>
     """
@@ -899,6 +901,7 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
 
     js_data = {
         "calendar": heatmap_calendar,
+        "forecast": bundle.get("forecast", {}),
         "todayKey": bundle.get("today_key", ""),
         "showHeatmap": show_heatmap,
         "showPomodoro": show_pomodoro,
@@ -913,6 +916,7 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
             "break": tr("break_"),
             "idle": tr("pomodoro_idle"),
             "cards": tr("cards_unit"),
+            "dueLabel": tr("due_label"),
             "sessions": tr("sessions_today"),
             "mon": tr("mon"), "wed": tr("wed"), "fri": tr("fri"),
         },

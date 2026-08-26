@@ -7,6 +7,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- The heatmap now shows the days ahead: future cells are shaded with the
+  scheduled review load, in the same colour the deck list uses for due counts.
+- Clicking a heatmap day opens those cards in the Browser — past days show
+  what was reviewed then, future days what comes due.
+- The streak badge shows the percentage of days studied since the first review.
+
+### Changed
+
+- Due counts are now red everywhere — deck list, sidebar, overview, reviewer
+  and the heatmap's forecast — instead of green. Green never read as "work
+  waiting". The Good answer button, the pomodoro break state and the habit
+  all-done badge keep their previous positive colours.
+
 ## [1.3.0] - 2026-08-08
 
 ### Added

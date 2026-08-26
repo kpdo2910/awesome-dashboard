@@ -106,6 +106,35 @@ def _open_deck(raw_did: str) -> None:
         print(f"[Awesome Dashboard] open deck failed: {e}")
 
 
+def _heatmap_browse(key: str) -> None:
+    """Open the Browser on one heatmap day (payload is the "YYYY-MM-DD" key).
+
+    Past days list what was answered then — `prop:rated` counts a card once,
+    so the Browser can show slightly fewer rows than the tooltip's review
+    count. Future days list what the scheduler has booked for that day.
+    """
+    from datetime import datetime
+
+    try:
+        clicked = datetime.strptime(key, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return
+    if not mw.col:
+        return
+    try:
+        # day_cutoff - 86400 is the start of the current study day — the same
+        # basis the calendar keys use, so the clicked key maps back exactly.
+        today = datetime.fromtimestamp(mw.col.sched.day_cutoff - 86400).date()
+        diff = (clicked - today).days
+        search = f"prop:due={diff}" if diff > 0 else f"prop:rated={diff}"
+        import aqt
+
+        browser = aqt.dialogs.open("Browser", mw)
+        browser.search_for(search)
+    except Exception as e:
+        print(f"[Awesome Dashboard] heatmap browse failed: {e}")
+
+
 def _deck_action(action: str) -> None:
     """Rename/export the current deck from the overview footer."""
     try:
@@ -246,6 +275,8 @@ def handle_message(handled, message: str, context):
             _set_collapsed(parts[1], parts[2] == "1")
     elif command.startswith("opendeck:"):
         _open_deck(command[len("opendeck:"):])
+    elif command.startswith("hm:browse:"):
+        _heatmap_browse(command[len("hm:browse:"):])
     elif command.startswith("deck:"):
         _deck_action(command[len("deck:"):])
     elif command.startswith("sidebar:"):

@@ -64,7 +64,7 @@ html.awd-reviewer-bar button[data-ease] {
 }
 html.awd-reviewer-bar button[data-ease="1"] { color: var(--awd-new);   background: var(--awd-new-soft); }
 html.awd-reviewer-bar button[data-ease="2"] { color: var(--awd-learn); background: var(--awd-learn-soft); }
-html.awd-reviewer-bar button[data-ease="3"] { color: var(--awd-due);   background: var(--awd-due-soft); }
+html.awd-reviewer-bar button[data-ease="3"] { color: var(--awd-good); background: var(--awd-good-soft); }
 html.awd-reviewer-bar button[data-ease="4"] { color: var(--awd-subtle); background: var(--awd-inset); }
 
 /* the "Show answer" button gets the accent treatment */
