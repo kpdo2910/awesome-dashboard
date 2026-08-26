@@ -376,6 +376,13 @@ def nav_icon(kind: str, color: str) -> str:
             '<path d="M5 4.9v13.2h13.4" fill="none" stroke="#fff"'
             ' stroke-width="1.4" stroke-linecap="round" opacity="0.55"/>'
         ),
+        # a ticked circle — what a habit actually looks like on the dashboard
+        "habits": (
+            '<circle cx="11.5" cy="11.5" r="6.6" fill="none" stroke="#fff"'
+            ' stroke-width="1.5"/>'
+            '<path d="m8.4 11.6 2.1 2.2 4.5-4.7" fill="none" stroke="#fff"'
+            ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
+        ),
         # stacked cards — distinct from the "general" hamburger at a glance
         "decks": (
             '<rect x="7.4" y="4.6" width="10.4" height="7" rx="1.8"'
@@ -689,14 +696,18 @@ def settings_dialog_qss() -> str:
         background: rgba(255, 59, 48, 0.16);
         border-color: rgba(255, 59, 48, 0.35);
     }}
-    """
+    QLabel#awdFieldError {{ color: #FF3B30; font-size: 12px; }}
+    """ + _habit_controls_qss(inset, border, text)
 
 
-def habit_dialog_qss() -> str:
-    """The habit dialogs, riding on the settings QSS for palette and controls.
+def _habit_controls_qss(inset: str, border: str, text: str) -> str:
+    """The habit controls — part of the settings QSS, not a sheet of their own.
 
-    Only the two emoji buttons need their own rules, and both were broken by
-    borrowing someone else's:
+    The habit list is a page *inside* Settings now, so its footer buttons have
+    to be styled by the same stylesheet as everything around them; only the
+    editor keeps a dialog of its own, and `habit_dialog_qss` hands it this.
+
+    Both emoji buttons below were broken by borrowing someone else's rules:
 
     * the picker cells were `#awdMini`, whose `max-height: 20px` silently beat
       `setFixedSize` and left every glyph overflowing into its neighbours;
@@ -707,19 +718,7 @@ def habit_dialog_qss() -> str:
     Geometry lives here and *only* here — a `setFixedSize` in the widget code
     as well is what caused the first bug.
     """
-    try:
-        from aqt.theme import theme_manager
-
-        night = theme_manager.night_mode
-    except Exception:
-        night = False
-    pal = themes.palette(conf.get().get("theme", "glass"), night)
-    bg = pal["bg"]
-    inset = flatten(pal["inset"], bg)
-    border = flatten(pal["border"], bg)
-    text = flatten(pal["text"], bg)
-
-    return settings_dialog_qss() + f"""
+    return f"""
     /* The habit's icon, next to its name in the editor. */
     QPushButton#awdIconBtn {{
         background: {inset};
@@ -780,6 +779,15 @@ def habit_dialog_qss() -> str:
         border: 1px solid transparent;
     }}
     """
+
+
+def habit_dialog_qss() -> str:
+    """The habit editor, which is the one habit surface still in its own dialog.
+
+    Identical to the settings sheet: the habit controls moved in there when the
+    list became a settings page, and two sheets that must agree is one too many.
+    """
+    return settings_dialog_qss()
 
 
 def custom_study_qss() -> str:

@@ -147,15 +147,16 @@ def _deck_action(action: str) -> None:
 
 
 def _habit_command(command: str) -> None:
-    """Everything under `awd:habit:` — quick ticks and the two dialogs.
+    """Everything under `awd:habit:` — quick ticks, the editor and the report.
 
     A tick never re-renders the page: the strip already updated itself, and
-    `screens.habits` pushes the stored value back so the two agree.
+    `screens.habits` pushes the stored value back so the two agree. Managing
+    habits is not here — that is the Habits page of the settings dialog.
     """
     from ..screens import habits
 
-    if command == "manage":
-        habits.open_manager()
+    if command == "add":
+        habits.add()
     elif command == "report":
         habits.open_report()
     elif command.startswith("toggle:"):

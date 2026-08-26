@@ -98,13 +98,17 @@ def card_html() -> str:
     """The block itself. The chips are filled in by habits.js from AWD_DATA."""
     from .dashboard import icon
 
+    # Both are icon-only, with the label as a hover tooltip: the head shares a
+    # row with the done-count, and two labelled pills there wrapped the count
+    # onto its own line on a narrow window. Managing habits is not here at all
+    # any more — it is a page in Settings, next to everything else configurable.
     actions = (
-        f'<button class="awd-pill awd-pill-ghost awd-hb-action"'
-        f' onclick="pycmd(\'awd:habit:report\')">'
-        f'{icon("chart")}<span>{html.escape(tr("habit_report"))}</span></button>'
         f'<button class="awd-pill awd-pill-ghost awd-pill-icon awd-hb-action"'
-        f' title="{html.escape(tr("habit_manage"))}"'
-        f' onclick="pycmd(\'awd:habit:manage\')">{icon("sliders")}</button>'
+        f' title="{html.escape(tr("habit_add"))}"'
+        f' onclick="pycmd(\'awd:habit:add\')">{icon("plus")}</button>'
+        f'<button class="awd-pill awd-pill-ghost awd-pill-icon awd-hb-action"'
+        f' title="{html.escape(tr("habit_report"))}"'
+        f' onclick="pycmd(\'awd:habit:report\')">{icon("chart")}</button>'
     )
     return f"""
     <section class="awd-card awd-hb-card">
@@ -120,9 +124,6 @@ def card_html() -> str:
       <div class="awd-hb-empty" id="awd-hb-empty" hidden>
         <div class="awd-empty-title">{html.escape(tr("habit_empty"))}</div>
         <div class="awd-empty-hint">{html.escape(tr("habit_empty_hint"))}</div>
-        <button class="awd-pill awd-pill-accent"
-                onclick="pycmd('awd:habit:manage')">
-          {icon("plus")}<span>{html.escape(tr("habit_add"))}</span></button>
       </div>
     </section>
     """
@@ -144,10 +145,16 @@ def toggle(habit_id: str) -> None:
     _push(habit_id, store.toggle(habit_id, store.today()))
 
 
-def open_manager() -> None:
-    from ..ui.habits import open_manager as show
+def add() -> None:
+    """The + button: straight into the editor, no list in between.
 
-    show(mw)
+    A full re-render is right here, unlike a tick — the strip has gained a chip
+    it knows nothing about, and the counts and the progress bar move with it.
+    """
+    from ..ui.habits import add_habit
+
+    if add_habit(mw) and mw.state == "deckBrowser":
+        mw.deckBrowser.refresh()
 
 
 def open_report() -> None:

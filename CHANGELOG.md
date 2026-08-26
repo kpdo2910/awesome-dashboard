@@ -17,10 +17,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- Habits are managed from their own page in Settings now, next to Events, rather
+  than from a separate window. The dashboard keeps only two buttons: **+** adds a
+  habit straight away, and the report button is icon-only with a hover label.
 - Due counts are now red everywhere — deck list, sidebar, overview, reviewer
   and the heatmap's forecast — instead of green. Green never read as "work
   waiting". The Good answer button, the pomodoro break state and the habit
   all-done badge keep their previous positive colours.
+
+### Fixed
+
+- Typing a name with a Vietnamese, Japanese or Chinese input method and pressing
+  Save straight away did nothing: the half-composed syllable was invisible to
+  the dialog and it saw an empty field. Affected the habit editor and the name
+  fields in Settings.
+- A dialog that refuses an empty name now says so instead of doing nothing.
 
 ## [1.3.0] - 2026-08-08
 

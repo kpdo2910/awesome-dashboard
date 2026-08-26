@@ -20,7 +20,6 @@ from aqt.qt import (
     QHBoxLayout,
     QIcon,
     QLabel,
-    QLineEdit,
     QListWidget,
     QPushButton,
     QScrollArea,
@@ -40,6 +39,7 @@ from ..core.translations import (
     fmt_int,
     tr,
 )
+from .qtutil import AwdLineEdit
 
 HOMEPAGE = "https://github.com/kpdo2910/awesome-dashboard"
 ANKIWEB_CODE = "1243176816"
@@ -188,11 +188,20 @@ class _EventDialog(QDialog):
         form.setLabelAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
         )
-        self.name_edit = QLineEdit()
+        self.name_edit = AwdLineEdit()
         self.name_edit.setPlaceholderText(tr("event_name_placeholder"))
         self.date_edit = _make_date_edit()
         form.addRow(tr("event_name_label"), self.name_edit)
         form.addRow(tr("event_date_label"), self.date_edit)
+
+        # Shown only once Add has been refused: a button that does nothing at
+        # all reads as broken, and "no name yet" is invisible otherwise.
+        self.name_error = QLabel(tr("name_required"))
+        self.name_error.setObjectName("awdFieldError")
+        self.name_error.setVisible(False)
+        self.name_edit.valueEdited.connect(
+            lambda: self.name_error.setVisible(False)
+        )
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -204,18 +213,23 @@ class _EventDialog(QDialog):
 
         layout = QVBoxLayout(self)
         layout.addLayout(form)
+        layout.addWidget(self.name_error)
         layout.addWidget(buttons)
         self.name_edit.setFocus()
 
     def accept(self) -> None:
-        if not self.name_edit.text().strip():
+        # `value()`, not `text()` — see AwdLineEdit: an IME still composing the
+        # name leaves `text()` empty, and this refused a name plainly on screen.
+        if not self.name_edit.value().strip():
+            self.name_error.setVisible(True)
             self.name_edit.setFocus()
+            self.adjustSize()
             return
         super().accept()
 
     def result_event(self) -> dict:
         return {
-            "name": self.name_edit.text().strip(),
+            "name": self.name_edit.value().strip(),
             "date": self.date_edit.date().toString("yyyy-MM-dd"),
         }
 
@@ -358,6 +372,7 @@ class AwdSettingsDialog(QDialog):
             ("decks", tr("page_decks"), "#34C759"),
             ("fsrs", "FSRS", "#AF52DE"),
             ("events", tr("page_events"), "#FF9500"),
+            ("habits", tr("page_habits"), "#FF2D55"),
             ("about", tr("page_about"), "#5856D6"),
         ]
         self._page_labels = [label for _, label, _ in pages]
@@ -397,6 +412,7 @@ class AwdSettingsDialog(QDialog):
         self._stack.addWidget(self._build_decks_page(config))
         self._stack.addWidget(self._build_fsrs_page())
         self._stack.addWidget(self._build_events_page(config))
+        self._stack.addWidget(self._build_habits_page())
         self._stack.addWidget(self._build_about_page())
         right.addWidget(self._stack, 1)
 
@@ -542,11 +558,11 @@ class AwdSettingsDialog(QDialog):
     def _build_general_page(self, config: dict) -> QScrollArea:
         page, box = self._page()
 
-        self.name_edit = QLineEdit(config.get("userName", ""))
+        self.name_edit = AwdLineEdit(config.get("userName", ""))
         self.name_edit.setPlaceholderText(mw.pm.name or "")
         self.name_edit.setFixedWidth(200)
 
-        self.greeting_edit = QLineEdit(config.get("customGreeting", ""))
+        self.greeting_edit = AwdLineEdit(config.get("customGreeting", ""))
         self.greeting_edit.setFixedWidth(200)
 
         # Languages come from the i18n folder, so dropping in a new locale
@@ -581,8 +597,8 @@ class AwdSettingsDialog(QDialog):
         self.show_heatmap = self._switch(bool(config.get("showHeatmap", True)))
         self.show_pomodoro = self._switch(bool(config.get("showPomodoro", True)))
         self.show_habits = self._switch(bool(config.get("showHabits", True)))
-        manage_habits = QPushButton(tr("habit_manage"))
-        manage_habits.clicked.connect(self._manage_habits)
+        # No "manage habits" button: this row is only whether the block is
+        # drawn, and the habits themselves are the Habits page in the nav.
         self._block(
             box,
             tr("dashboard"),
@@ -591,7 +607,6 @@ class AwdSettingsDialog(QDialog):
             self._row(tr("show_heatmap"), self.show_heatmap),
             self._row(tr("show_pomodoro"), self.show_pomodoro),
             self._row(tr("show_habits"), self.show_habits),
-            self._actions_row(manage_habits),
         )
 
         self.focus_minutes = QSpinBox()
@@ -611,16 +626,6 @@ class AwdSettingsDialog(QDialog):
 
         box.addStretch(1)
         return self._wrap_page(page)
-
-    def _manage_habits(self) -> None:
-        """Open the habit manager over this dialog.
-
-        Habits are collection data with their own immediate saves, so this does
-        not wait for Save here and Cancel cannot roll it back.
-        """
-        from .habits import open_manager
-
-        open_manager(self)
 
     def _build_look_page(self, config: dict) -> QScrollArea:
         page, box = self._page()
@@ -1005,6 +1010,26 @@ class AwdSettingsDialog(QDialog):
         box.addStretch(1)
         return self._wrap_page(page)
 
+    def _build_habits_page(self) -> QScrollArea:
+        """The habit list, which used to be a modal dialog of its own.
+
+        It writes straight to the collection, so it sits outside this dialog's
+        Save/Cancel contract — see `HabitListPanel`. Built even when the
+        dashboard block is switched off: a user who hid the block should still
+        be able to find and edit what is in it.
+        """
+        page, box = self._page()
+        self._habits_panel = None
+        try:
+            from .habits import HabitListPanel
+
+            self._habits_panel = HabitListPanel(page)
+            box.addWidget(self._habits_panel)
+        except Exception as e:
+            print(f"[Awesome Dashboard] habits page failed: {e}")
+        box.addStretch(1)
+        return self._wrap_page(page)
+
     def _build_decks_page(self, config: dict) -> QScrollArea:
         """Card skin per top-level deck; the choice covers all its subdecks."""
         page, box = self._page()
@@ -1366,6 +1391,34 @@ class AwdSettingsDialog(QDialog):
         "events",
     )
 
+    def _habits_changed(self) -> bool:
+        panel = getattr(self, "_habits_panel", None)
+        return bool(panel is not None and panel.changed())
+
+    def done(self, result: int) -> None:
+        """Flush the habit writes on the way out, however this dialog closed.
+
+        Habits are not part of the Save/Cancel contract — each one lands in the
+        collection when its own editor is accepted — so Cancel and Escape still
+        have to persist them and repaint the strip. `done` catches the window
+        button and Escape, which `reject` alone would miss. The repaint is only
+        for those paths: `_save` already folds habits into its own, and doing it
+        here as well would render the deck browser twice.
+        """
+        try:
+            from ..features.habits import store as habit_store
+
+            habit_store.flush()
+            if (
+                result != QDialog.DialogCode.Accepted
+                and self._habits_changed()
+                and mw.state == "deckBrowser"
+            ):
+                mw.deckBrowser.refresh()
+        except Exception as e:
+            print(f"[Awesome Dashboard] settings: habit flush failed: {e}")
+        super().done(result)
+
     def _save(self) -> None:
         config = conf.get()
         before = {key: config.get(key) for key in self.LAYOUT_KEYS}
@@ -1380,8 +1433,8 @@ class AwdSettingsDialog(QDialog):
                 skin_map.pop(str(child_id), None)
         config.update(
             {
-                "userName": self.name_edit.text().strip(),
-                "customGreeting": self.greeting_edit.text().strip(),
+                "userName": self.name_edit.value().strip(),
+                "customGreeting": self.greeting_edit.value().strip(),
                 "theme": self.theme_picker.theme(),
                 "customAccent": self.theme_picker.accent(),
                 "language": self.lang_box.currentData(),
@@ -1422,7 +1475,13 @@ class AwdSettingsDialog(QDialog):
         # it lands in the same conf.save as everything else.
         self._commit_background(config)
         conf.save(config)
-        layout_changed = any(config.get(key) != before[key] for key in self.LAYOUT_KEYS)
+        # A habit edit is already in the collection by now, but the strip on the
+        # dashboard is drawn from it, so it needs the same re-render a layout
+        # change does.
+        layout_changed = (
+            any(config.get(key) != before[key] for key in self.LAYOUT_KEYS)
+            or self._habits_changed()
+        )
 
         try:
             self._save_fsrs()

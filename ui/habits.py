@@ -1,13 +1,14 @@
-"""Habit manager — the Qt side of the habit tracker.
+"""Habits — the Qt side of the habit tracker.
 
-Two dialogs: the manager (a list with add / edit / reorder / archive / delete)
-and the editor for a single habit.
+Two pieces: `HabitListPanel` (add / edit / reorder / archive / delete), which is
+the Habits page of the settings dialog, and `HabitEditor`, the dialog for one
+habit — reached from that page, and straight from the dashboard's + button.
 
-The manager has no Cancel. `HabitStore` writes are debounced, not transactional,
+Nothing here has a Cancel. `HabitStore` writes are debounced, not transactional,
 and the dashboard behind the dialog is ticking the same records — offering to
 "discard" changes that a habit tick may already have interleaved with would be
-a lie. Each edit lands when its own dialog is accepted; closing the manager only
-flushes.
+a lie. Each edit lands when its own dialog is accepted, so a habit change does
+**not** ride on the settings dialog's Save button; the panel's hint says so.
 """
 
 from aqt import mw
@@ -19,7 +20,6 @@ from aqt.qt import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMessageBox,
@@ -33,6 +33,7 @@ from aqt.qt import (
 
 from ..core import themes
 from ..core.translations import tr, weekday_short
+from .qtutil import AwdLineEdit
 
 # Put away / take back out. Text glyphs, not emoji, so the footer is one
 # monochrome row with +/−/✎ — and so nothing here can be clipped the way a
@@ -105,7 +106,7 @@ class _IconDialog(QDialog):
         row = QHBoxLayout()
         label = QLabel(tr("habit_icon_custom"))
         label.setObjectName("awdRowSub")
-        self.edit = QLineEdit(current)
+        self.edit = AwdLineEdit(current)
         self.edit.setMaxLength(4)
         self.edit.setFixedWidth(70)
         row.addWidget(label)
@@ -130,7 +131,7 @@ class _IconDialog(QDialog):
         self.accept()
 
     def icon(self) -> str:
-        return self.edit.text().strip() or self._chosen or models.DEFAULT_ICON
+        return self.edit.value().strip() or self._chosen or models.DEFAULT_ICON
 
 
 class _ColorRow(QWidget):
@@ -258,11 +259,22 @@ class HabitEditor(QDialog):
         self.icon_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.icon_button.setToolTip(tr("habit_icon"))
         self.icon_button.clicked.connect(self._pick_icon)
-        self.name_edit = QLineEdit(source.name)
+        self.name_edit = AwdLineEdit(source.name)
         self.name_edit.setPlaceholderText(tr("habit_name_hint"))
         head.addWidget(self.icon_button)
         head.addWidget(self.name_edit, 1)
         box.addLayout(head)
+
+        # Shown only once Save has been refused. A Save button that silently
+        # does nothing reads as a broken control, and "the habit has no name
+        # yet" is invisible from the outside.
+        self.name_error = QLabel(tr("name_required"))
+        self.name_error.setObjectName("awdFieldError")
+        self.name_error.setVisible(False)
+        box.addWidget(self.name_error)
+        self.name_edit.valueEdited.connect(
+            lambda: self.name_error.setVisible(False)
+        )
 
         self.color_row = _ColorRow(source.color)
         box.addWidget(self._labelled(tr("habit_color"), self.color_row))
@@ -279,7 +291,7 @@ class HabitEditor(QDialog):
         self.target_spin.setRange(1, models.MAX_TARGET)
         self.target_spin.setValue(source.target)
         self.target_spin.setFixedWidth(100)
-        self.unit_edit = QLineEdit(source.unit)
+        self.unit_edit = AwdLineEdit(source.unit)
         self.unit_edit.setPlaceholderText(tr("habit_unit_hint"))
         self.unit_edit.setFixedWidth(110)
         target_host = QWidget()
@@ -402,8 +414,12 @@ class HabitEditor(QDialog):
             self.icon_button.setText(self._icon)
 
     def _accept(self) -> None:
-        if not self.name_edit.text().strip():
+        # `value()`, not `text()`: with an IME still composing, `text()` is empty
+        # and Save refused a name the user could see in the field. See AwdLineEdit.
+        if not self.name_edit.value().strip():
+            self.name_error.setVisible(True)
             self.name_edit.setFocus()
+            self.adjustSize()
             return
         self.accept()
 
@@ -419,12 +435,12 @@ class HabitEditor(QDialog):
         base = self._original.to_dict() if self._original else {}
         base.update(
             {
-                "name": self.name_edit.text().strip(),
+                "name": self.name_edit.value().strip(),
                 "icon": self._icon,
                 "color": self.color_row.value(),
                 "kind": kind,
                 "target": self.target_spin.value(),
-                "unit": self.unit_edit.text().strip(),
+                "unit": self.unit_edit.value().strip(),
                 "schedule": schedule,
             }
         )
@@ -432,23 +448,28 @@ class HabitEditor(QDialog):
         return models.Habit.from_dict(base)
 
 
-# --- the manager --------------------------------------------------------------------
+# --- the list panel -----------------------------------------------------------------
 
-class HabitManager(QDialog):
+class HabitListPanel(QWidget):
+    """The habit list and its footer, as one widget.
+
+    A page of the settings dialog rather than a dialog of its own: habits are
+    configuration, and a second modal window opened from the dashboard was one
+    more place to look for them. `changed()` tells the host whether the
+    dashboard needs repainting on the way out.
+    """
+
     def __init__(self, parent=None):
-        super().__init__(parent or mw)
+        super().__init__(parent)
         self.setObjectName("awdHabits")
-        self.setWindowTitle(tr("habits"))
-        self.setStyleSheet(_qss())
-        self.resize(520, 480)
-        self.setMinimumSize(440, 380)
 
         self.store = get_store()
         self._changed = False
+        self._measured = False
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(18, 16, 18, 14)
-        root.setSpacing(10)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(7)
 
         caption = QLabel(tr("habits").upper())
         caption.setObjectName("awdSection")
@@ -497,24 +518,29 @@ class HabitManager(QDialog):
         self.show_archived.toggled.connect(self._toggle_archived)
         root.addWidget(self.show_archived)
 
+        # No Report button. It opened a webview dialog on top of this page, on
+        # top of Settings, and that stack is what hung the app. The report is
+        # reached from the dashboard, where nothing else is modal.
         hint = QLabel(tr("habits_hint"))
         hint.setObjectName("awdRowSub")
         hint.setWordWrap(True)
         root.addWidget(hint)
 
-        # No Report button. It opened a webview dialog on top of this one, on
-        # top of Settings, and that stack is what hung the app. The report is
-        # reached from the dashboard, where nothing else is modal.
-        buttons = QHBoxLayout()
-        close_button = QPushButton(tr("done"))
-        close_button.setObjectName("awdPrimary")
-        close_button.setDefault(True)
-        close_button.clicked.connect(self.accept)
-        buttons.addStretch(1)
-        buttons.addWidget(close_button)
-        root.addLayout(buttons)
-
         self._refresh()
+
+    def changed(self) -> bool:
+        """True once something here would change what the dashboard draws."""
+        return self._changed
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        # Measure the rows once more here. A row's height depends on the font
+        # the stylesheet gives it, and this panel only inherits the settings
+        # dialog's sheet once it is inside the dialog — the height taken in
+        # __init__ was taken with Qt's default font.
+        if not self._measured:
+            self._measured = True
+            self._refresh()
 
     # --- list ---
 
@@ -570,7 +596,23 @@ class HabitManager(QDialog):
             self.list.setItemWidget(item, widget)
         if habits:
             self.list.setCurrentRow(max(0, min(selected, len(habits) - 1)))
+        self._fit_height()
         self._sync_buttons()
+
+    def _fit_height(self) -> None:
+        """Grow with the list, then scroll — the same idiom as the events list.
+
+        The page around this is a QScrollArea, which honours a widget's size
+        hint: left to itself a QListWidget asks for a fixed 256px, so a single
+        habit sat in a tall empty box and eleven of them scrolled inside a
+        scrolling page.
+        """
+        row = max(
+            (self.list.item(i).sizeHint().height() for i in range(self.list.count())),
+            default=0,
+        )
+        shown = min(max(self.list.count(), 1), 6)
+        self.list.setFixedHeight(10 + shown * (row or 40))
 
     def _sync_buttons(self) -> None:
         habit = self._selected()
@@ -589,13 +631,8 @@ class HabitManager(QDialog):
     # --- actions ---
 
     def _add(self) -> None:
-        dialog = HabitEditor(self)
-        if not dialog.exec():
+        if not add_habit(self):
             return
-        habit = dialog.habit()
-        if habit is None:
-            return
-        self.store.add(habit)
         self._changed = True
         self._refresh()
 
@@ -665,22 +702,24 @@ class HabitManager(QDialog):
         self.store.set_pref("hideArchived", not shown)
         self._refresh()
 
-    # --- lifecycle ---
 
-    def done(self, result: int) -> None:
-        """Flush and repaint the dashboard on the way out, however it closed.
+# --- entry points -------------------------------------------------------------------
 
-        `done` catches the window's close button and Escape as well as the
-        buttons, which `accept` alone would miss.
-        """
-        try:
-            self.store.flush()
-            if self._changed and mw.state == "deckBrowser":
-                mw.deckBrowser.refresh()
-        except Exception as e:
-            print(f"[Awesome Dashboard] habits: closing the manager failed: {e}")
-        super().done(result)
+def add_habit(parent=None) -> bool:
+    """The editor on its own — the dashboard's + button, and the panel's.
 
-
-def open_manager(parent=None) -> None:
-    HabitManager(parent).exec()
+    Returns True when a habit was actually stored, so the caller can decide
+    whether the screen behind it has to be redrawn. Flushes rather than leaving
+    it to the debounce: this is the end of a deliberate edit, not one tap in a
+    burst of them, and the dashboard is about to re-render from the store.
+    """
+    dialog = HabitEditor(parent or mw)
+    if not dialog.exec():
+        return False
+    habit = dialog.habit()
+    if habit is None:
+        return False
+    store = get_store()
+    store.add(habit)
+    store.flush()
+    return True

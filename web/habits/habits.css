@@ -171,8 +171,10 @@
 .awd-hb.off { opacity: .5; }
 .awd-hb.off .awd-hb-sub { font-style: italic; }
 
+/* No button in here: the + in the card head adds a habit whether the strip is
+   empty or not, and a second one in the middle of the block meant the control
+   moved as soon as the first habit existed. */
 .awd-hb-empty { text-align: center; padding: 22px 10px 8px; }
-.awd-hb-empty .awd-pill { margin-top: 12px; }
 .awd-hb-empty[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
