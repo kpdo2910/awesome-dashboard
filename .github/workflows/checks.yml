@@ -1,0 +1,141 @@
+# Pull-request gate. Everything here has to pass before main can move, because
+# a merge into main publishes a release: whatever lands is what users install.
+name: checks
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: locales, tests, syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Locale parity
+        run: python3 tools/check_locales.py
+
+      - name: Habit logic tests
+        run: python3 tools/test_habits.py
+
+      - name: Python syntax
+        run: find . -name '*.py' -not -path './.git/*' -exec python3 -m py_compile {} +
+
+      - name: JavaScript syntax
+        # Every .js under web/, not a hand-kept list of four: a new screen's
+        # script would otherwise never be checked, and Anki reports a syntax
+        # error there as a blank webview.
+        run: find web -name '*.js' -print0 | xargs -0 -n1 -t node --check
+
+  version:
+    name: version bump
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: A change users can see needs a version of its own
+        env:
+          BASE: ${{ github.base_ref || github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet --no-tags origin "+refs/heads/$BASE:refs/remotes/origin/$BASE" || true
+
+          version="$(python3 tools/release_check.py --print-version)"
+          base_version="$(git show "origin/$BASE:manifest.json" |
+              python3 -c 'import json,sys; print(json.load(sys.stdin)["human_version"])')"
+
+          # Files that never reach an installed add-on cannot need a version of
+          # their own -- docs/ and tools/ are stripped out of the zip, and the
+          # three markdown files at the root are read on GitHub, not in Anki.
+          changed="$(git diff --name-only "origin/$BASE...HEAD" -- . \
+              ':(exclude)docs/**' \
+              ':(exclude)tools/**' \
+              ':(exclude).github/**' \
+              ':(exclude).gitignore' \
+              ':(exclude)README.md' \
+              ':(exclude)README.vi.md' \
+              ':(exclude)CHANGELOG.md')"
+
+          if [ -z "$changed" ]; then
+            echo "nothing that ships to users changed -- $version stands"
+            {
+              echo "### Version"
+              echo
+              echo "No packaged file changed, so \`$version\` stands."
+              echo "Merging this will **not** cut a release."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "files that ship to users changed:"
+          printf '%s\n' "$changed" | sed 's/^/  /'
+          echo
+
+          # A merge cuts a release from whatever manifest.json says, so a stale
+          # version here means the workflow silently skips the release instead.
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "PROBLEM  v$version is already tagged and released"
+            echo "         - bump human_version in manifest.json and cut a CHANGELOG section"
+            {
+              echo "### Version"
+              echo
+              echo ":x: \`v$version\` is already released. Bump \`manifest.json\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          python3 tools/release_check.py --base "$base_version"
+
+          {
+            echo "### Version"
+            echo
+            echo "\`$base_version\` → \`$version\`."
+            echo "Merging this tags **v$version** and publishes the release."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  package:
+    name: build .ankiaddon
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Same script the release uses, so a packaging mistake shows up on the
+      # pull request rather than on the release page. The artifact is a real
+      # dev build: download it and install it in Anki to test the branch.
+      - name: Build
+        id: build
+        run: |
+          set -euo pipefail
+          version="$(python3 tools/release_check.py --print-version)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          tools/build_addon.sh "dist/awesome_dashboard-${version}-dev.ankiaddon"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: awesome_dashboard-${{ steps.build.outputs.version }}-dev
+          path: dist/*.ankiaddon
+          if-no-files-found: error
+          retention-days: 14

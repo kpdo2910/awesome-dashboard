@@ -1,0 +1,147 @@
+# Cut a release from main. Nothing here is triggered by a tag: the version in
+# manifest.json is the trigger, and a merge that does not change it simply
+# finds its tag already present and stops. That makes a docs merge harmless and
+# makes re-running this workflow idempotent.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: tag, build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Has this version already gone out?
+        id: gate
+        run: |
+          set -euo pipefail
+          git fetch --quiet --tags origin || true
+
+          version="$(python3 tools/release_check.py --print-version)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "fresh=no" >> "$GITHUB_OUTPUT"
+            echo "v$version is already tagged -- nothing to release"
+            {
+              echo "### No release"
+              echo
+              echo "\`manifest.json\` still says \`$version\`, which is already tagged."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "fresh=yes" >> "$GITHUB_OUTPUT"
+            echo "releasing v$version"
+          fi
+
+      # The pull-request gate ran these already, but a release must never ship
+      # from a red repo -- main can also be pushed to directly.
+      - name: Locale parity
+        if: steps.gate.outputs.fresh == 'yes'
+        run: python3 tools/check_locales.py
+
+      - name: Habit logic tests
+        if: steps.gate.outputs.fresh == 'yes'
+        run: python3 tools/test_habits.py
+
+      - name: Python syntax
+        if: steps.gate.outputs.fresh == 'yes'
+        run: find . -name '*.py' -not -path './.git/*' -exec python3 -m py_compile {} +
+
+      - name: JavaScript syntax
+        if: steps.gate.outputs.fresh == 'yes'
+        run: find web -name '*.js' -print0 | xargs -0 -n1 -t node --check
+
+      - name: Release paperwork
+        if: steps.gate.outputs.fresh == 'yes'
+        run: python3 tools/release_check.py
+
+      - name: Build the add-on
+        if: steps.gate.outputs.fresh == 'yes'
+        env:
+          VERSION: ${{ steps.gate.outputs.version }}
+        run: tools/build_addon.sh "dist/awesome_dashboard-${VERSION}.ankiaddon"
+
+      - name: Release notes from the CHANGELOG
+        if: steps.gate.outputs.fresh == 'yes'
+        run: |
+          set -euo pipefail
+          python3 tools/release_check.py --notes > dist/notes.md
+          cat dist/notes.md
+
+      # Annotated, to match every tag cut by hand before this workflow existed.
+      - name: Tag
+        id: tag
+        if: steps.gate.outputs.fresh == 'yes'
+        env:
+          VERSION: ${{ steps.gate.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Publish
+        if: steps.gate.outputs.fresh == 'yes'
+        env:
+          VERSION: ${{ steps.gate.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "v$VERSION" \
+              "dist/awesome_dashboard-${VERSION}.ankiaddon" \
+              --title "v$VERSION" \
+              --notes-file dist/notes.md
+
+      # The tag is pushed before the release exists, so a failure in between would
+      # leave a tag with nothing attached -- and the gate above reads a tag as
+      # "already released", so the re-run would skip instead of retrying. Take
+      # the tag back down and the next run starts clean.
+      - name: Take the tag back down if publishing failed
+        if: failure() && steps.tag.outcome == 'success'
+        env:
+          VERSION: ${{ steps.gate.outputs.version }}
+        run: |
+          git push --delete origin "v$VERSION" || true
+          echo "rolled back tag v$VERSION -- re-run this workflow once the cause is fixed" >&2
+
+      # AnkiWeb has no API worth automating against, and it is where the users
+      # actually are -- so say plainly that the release is only half done.
+      - name: What is left to do by hand
+        if: steps.gate.outputs.fresh == 'yes'
+        env:
+          VERSION: ${{ steps.gate.outputs.version }}
+        run: |
+          {
+            echo "### Released v$VERSION"
+            echo
+            echo "[Release page](${{ github.server_url }}/${{ github.repository }}/releases/tag/v$VERSION)"
+            echo
+            echo "**Still manual:**"
+            echo
+            echo "1. Upload the \`.ankiaddon\` to the **existing** AnkiWeb page"
+            echo "   <https://ankiweb.net/shared/info/1243176816> -- a new page orphans every current user."
+            echo "   Branches: min \`23.10\`, max = latest tested version, **no leading \`-\`**."
+            echo "2. Paste \`docs/ankiweb-description.html\` into the Description box and rewrite"
+            echo "   the \`🆕 New in $VERSION\` banner from this release's CHANGELOG section."
+            echo "3. Only if \`docs/images/\` changed: repoint the screenshot URL at \`v$VERSION\`,"
+            echo "   which now exists."
+          } >> "$GITHUB_STEP_SUMMARY"
