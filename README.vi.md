@@ -6,7 +6,7 @@
 <a href="https://github.com/kpdo2910/awesome-dashboard/releases/latest"><img alt="Bản mới nhất" src="https://img.shields.io/github/v/release/kpdo2910/awesome-dashboard?style=flat-square&label=release&color=0a84ff"></a>
 <a href="https://ankiweb.net/shared/info/1243176816"><img alt="AnkiWeb 1243176816" src="https://img.shields.io/badge/AnkiWeb-1243176816-1ba9c4?style=flat-square"></a>
 <img alt="Anki 23.10+" src="https://img.shields.io/badge/Anki-23.10%2B-30d158?style=flat-square">
-<img alt="Tiếng Việt, English, 日本語" src="https://img.shields.io/badge/VI%20%C2%B7%20EN%20%C2%B7%20JA-ff9f0a?style=flat-square">
+<img alt="Tiếng Việt, English, Português (Brasil), 日本語" src="https://img.shields.io/badge/VI%20%C2%B7%20EN%20%C2%B7%20PT--BR%20%C2%B7%20JA-ff9f0a?style=flat-square">
 <a href="LICENSE"><img alt="Giấy phép MIT" src="https://img.shields.io/badge/gi%E1%BA%A5y%20ph%C3%A9p-MIT-8e8e93?style=flat-square"></a>
 </p>
 
@@ -14,7 +14,7 @@ Awesome Dashboard thay màn hình bộ thẻ, màn hình tổng quan và khung m
 của Anki bằng một giao diện thống nhất: thẻ thống kê, heatmap hoạt động kiểu
 GitHub, đồng hồ Pomodoro, theo dõi thói quen, đếm ngược kỳ thi và thanh bên tuỳ
 chọn — với sáu chủ đề màu, mỗi chủ đề có bảng màu sáng và tối riêng, hỗ trợ
-tiếng Việt, tiếng Anh và tiếng Nhật.
+tiếng Việt, tiếng Anh, tiếng Bồ Đào Nha (Brasil) và tiếng Nhật.
 
 ![Awesome Dashboard](docs/images/feature-vi.png)
 
@@ -99,7 +99,8 @@ Thống kê, hộp thoại) qua biến CSS và bảng màu Qt.
 
 ### 🌐 Ngôn ngữ
 
-Tiếng Việt, English và 日本語, mặc định theo ngôn ngữ của Anki. Mọi chuỗi nằm
+Tiếng Việt, English, Português (Brasil) và 日本語, mặc định theo ngôn ngữ của
+Anki. Mọi chuỗi nằm
 trong `i18n/<mã>.json` — chép `en.json`, dịch phần `strings`, khởi động lại là
 ngôn ngữ mới xuất hiện trong Cài đặt. Mỗi file cũng tự mang tên tháng, thứ, dấu
 phân cách hàng nghìn và thứ tự ngày tháng riêng nên ngày hiển thị tự nhiên. Key

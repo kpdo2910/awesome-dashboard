@@ -8,7 +8,8 @@ what each feature does.
 
 - `userName` — display name in the greeting; empty uses the profile name.
 - `customGreeting` — fixed greeting; empty gives a time-of-day greeting.
-- `language` — `auto`, or any locale code present in `i18n/` (`en`, `vi`, `ja`).
+- `language` — `auto`, or any locale code present in `i18n/` (`en`, `vi`,
+  `pt_BR`, `ja`).
 
 ## Dashboard
 

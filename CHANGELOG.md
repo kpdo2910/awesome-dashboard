@@ -7,6 +7,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- Português (Brasil) — a full Brazilian Portuguese translation contributed by
+  [@robsonssantos83](https://github.com/robsonssantos83). It follows Anki's
+  language automatically, or can be picked in **Settings → General**.
+
 ## [1.4.0] - 2026-08-26
 
 ### Added

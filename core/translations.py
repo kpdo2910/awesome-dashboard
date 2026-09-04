@@ -80,8 +80,12 @@ def current_lang() -> str:
             lang = ""
     lang = lang.lower().replace("-", "_")
     # Anki reports regional codes like "vi_VN"; match the bare language too.
+    # Fold our own code as well, because a locale that only exists per region is
+    # named for it ("pt_BR.json") and would otherwise never match a lowercased
+    # "pt_br". Longest code first, so pt_BR still beats a future bare pt.
     for code in sorted(codes, key=len, reverse=True):
-        if lang == code or lang.startswith(f"{code}_"):
+        folded = code.lower()
+        if lang == folded or lang.startswith(f"{folded}_"):
             return code
     return FALLBACK
 
@@ -118,8 +122,10 @@ def anki_language_code(code: str) -> str:
     try:
         import anki.lang
 
+        folded = code.lower()
         for _name, anki_code in anki.lang.langs:
-            if anki_code == code or anki_code.startswith(f"{code}_"):
+            lowered = anki_code.lower()
+            if lowered == folded or lowered.startswith(f"{folded}_"):
                 return anki_code
     except Exception:
         pass
