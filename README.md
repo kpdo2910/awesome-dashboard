@@ -6,7 +6,7 @@
 <a href="https://github.com/kpdo2910/awesome-dashboard/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kpdo2910/awesome-dashboard?style=flat-square&label=release&color=0a84ff"></a>
 <a href="https://ankiweb.net/shared/info/1243176816"><img alt="AnkiWeb 1243176816" src="https://img.shields.io/badge/AnkiWeb-1243176816-1ba9c4?style=flat-square"></a>
 <img alt="Anki 23.10+" src="https://img.shields.io/badge/Anki-23.10%2B-30d158?style=flat-square">
-<img alt="English, Tiếng Việt, 日本語" src="https://img.shields.io/badge/EN%20%C2%B7%20VI%20%C2%B7%20JA-ff9f0a?style=flat-square">
+<img alt="English, Tiếng Việt, Português (Brasil), 日本語" src="https://img.shields.io/badge/EN%20%C2%B7%20VI%20%C2%B7%20PT--BR%20%C2%B7%20JA-ff9f0a?style=flat-square">
 <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-8e8e93?style=flat-square"></a>
 </p>
 
@@ -14,7 +14,7 @@ Awesome Dashboard replaces Anki's deck screen, deck overview and review chrome
 with a single, consistent interface: stat cards, a GitHub-style activity
 heatmap, a Pomodoro timer, a habit tracker, exam countdowns and an optional
 sidebar — across six colour themes with matching light and dark palettes, in
-English, Vietnamese and Japanese.
+English, Vietnamese, Brazilian Portuguese and Japanese.
 
 ![Awesome Dashboard](docs/images/feature-en.png)
 
@@ -99,7 +99,8 @@ dialogs) through its CSS variables and the Qt palette.
 
 ### 🌐 Languages
 
-English, Tiếng Việt and 日本語, following Anki's language by default. Every
+English, Tiếng Việt, Português (Brasil) and 日本語, following Anki's language
+by default. Every
 string lives in `i18n/<code>.json` — copy `en.json`, translate the `strings`
 values, and the new language appears in Settings on the next restart. Each file
 also carries its own month and weekday names, thousands separator and date
