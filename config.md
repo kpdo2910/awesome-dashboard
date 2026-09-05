@@ -122,6 +122,25 @@ feature appears at all, and whether it may touch the scheduler.
   because that would spend the deck's daily allowance on a session you thought
   was practice.
 
+## Cards preview
+
+The deck's whole card list as a grid of flippable tiles, opened from the same
+place as the study modes and drawn into the same webview — there is no second
+window. A tile shows what Anki itself renders, so cloze, conditional templates,
+images and audio all come out right, but **not** the note type's own CSS: that
+CSS is written for a full screen and falls apart in a tile.
+
+The toolbar above the grid is where these are set; they are listed here because
+they are the same config keys.
+
+- `showPreview` — whether the deck overview offers Cards preview at all.
+- `cpColumns` — tiles across, 2-6.
+- `cpRows` — rows down, 2-6. Times the columns, that is the page size.
+- `cpRatio` — tile shape: `3:4`, `1:1`, `4:3` or `16:9`.
+- `cpFont` — text scale inside a tile, 70-160 percent.
+- `cpFlip` — what turns a tile over: `click` or `hover`.
+- `cpSort` — card order: `added`, `due` or `alpha`.
+
 ## Internal
 
 - `cardSkinDefault` — whether decks with no entry of their own use the card

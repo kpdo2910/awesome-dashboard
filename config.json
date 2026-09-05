@@ -39,6 +39,13 @@
     "qzMatchPairs": 6,
     "qzSessionSize": 40,
     "qzGrade": false,
+    "showPreview": true,
+    "cpColumns": 4,
+    "cpRows": 3,
+    "cpRatio": "1:1",
+    "cpFont": 100,
+    "cpFlip": "click",
+    "cpSort": "added",
     "shownWelcome": false,
     "settingsPage": "general"
 }

@@ -9,6 +9,13 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **Cards preview** — every card in a deck as a grid of flippable tiles, opened
+  from its overview and drawn in the same window. Click or hover to turn a tile
+  over, **Flip all** to show every answer, and set columns, rows per page, tile
+  shape, text size and card order on the grid itself.
+- Preview tiles show what Anki renders, so cloze, conditional templates and
+  furigana are right, and **images and audio work**; TeX is typeset with Anki's
+  own MathJax, fetched only when a card on screen has any.
 - **Study modes** — Flashcards, Learn, Test and Match, opened from a deck's
   overview. They leave the review schedule alone unless you switch grading on.
 - Each deck chooses which fields go on the front and which on the back, in

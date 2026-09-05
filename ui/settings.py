@@ -964,13 +964,17 @@ class AwdSettingsDialog(QDialog):
                 mw.progress.finish()
 
     def _build_modes_page(self, config: dict) -> QScrollArea:
-        """The two study-mode settings that are not about a session.
+        """The settings the deck overview's extra screens do not own.
 
         Everything else — which fields go on each side, session lengths,
-        question kinds — lives on the deck's own Study modes screen, where the
-        deck is already known. This page had to grow a deck picker to ask what
-        that screen had already said, and a modal window over a study session
-        is a heavier answer than the question deserves.
+        question kinds, the preview grid's shape — lives on the screen itself,
+        where the deck is already known. This page had to grow a deck picker to
+        ask what that screen had already said, and a modal window over a study
+        session is a heavier answer than the question deserves.
+
+        Cards preview sits here rather than on a page of its own: a new nav
+        entry has to be named in `README.md`, `README.vi.md` and
+        `docs/ankiweb-description.html` too, and nothing breaks when it is not.
         """
         page, box = self._page()
 
@@ -986,6 +990,15 @@ class AwdSettingsDialog(QDialog):
             box,
             tr("qz_grade"),
             self._row(tr("qz_grade"), self.qz_grade, subtitle=tr("qz_grade_desc")),
+        )
+
+        # Only whether the feature appears. Columns, shape, text size and order
+        # are set on the grid itself, where the deck is already known.
+        self.cp_show = self._switch(bool(config.get("showPreview", True)))
+        self._block(
+            box,
+            tr("cp_title"),
+            self._row(tr("cp_show"), self.cp_show, subtitle=tr("cp_where")),
         )
 
         box.addStretch(1)
@@ -1501,6 +1514,7 @@ class AwdSettingsDialog(QDialog):
         "showPomodoro",
         "showHabits",
         "showQuizlet",
+        "showPreview",
         "hideNativeBottomBar",
         "hideNativeToolbar",
         "styleOverview",
@@ -1624,6 +1638,7 @@ class AwdSettingsDialog(QDialog):
                 "autoGradeDecks": grade_decks,
                 "showQuizlet": self.qz_show.isChecked(),
                 "qzGrade": self.qz_grade.isChecked(),
+                "showPreview": self.cp_show.isChecked(),
                 # Rides along with Save so Cancel leaves the reopen page alone,
                 # like every other field in this dialog.
                 "settingsPage": self._page_keys[self._stack.currentIndex()],

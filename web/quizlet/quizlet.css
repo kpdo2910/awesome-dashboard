@@ -28,8 +28,6 @@
   box-shadow: none;
 }
 .awd-qz button:active { box-shadow: none; }
-.awd-ov .awd-ov-modes { margin: 10px 0 0; box-sizing: border-box; }
-
 /* A note field can hold an image of any size. `max-height` alone leaves the
    width free, and a wide one then bleeds straight out through the card's
    rounded corner and across the page — nothing here clips its overflow,
@@ -829,29 +827,3 @@ html.awd-softcards .awd-qz-tile {
 .awd-qz-empty { text-align: center; display: flex; flex-direction: column; gap: 8px; }
 .awd-qz-empty-title { font-size: 16px; font-weight: 700; }
 .awd-qz-empty-body { font-size: 13px; color: var(--awd-subtle); line-height: 1.55; }
-
-/* ---------- the entry button on the normal overview ---------- */
-.awd-ov .awd-ov-modes {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  margin-top: 10px;
-  padding: 9px 18px;
-  border-radius: 11px;
-  border: 1px solid var(--awd-border);
-  background: var(--awd-surface);
-  box-shadow: 0 1px 3px var(--awd-shadow);
-  color: var(--awd-text);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color .15s ease;
-}
-.awd-ov .awd-ov-modes:hover {
-  background: var(--awd-surface);
-  border: 1px solid var(--awd-accent);
-  color: var(--awd-accent);
-}
-.awd-ov .awd-ov-modes svg { width: 15px; height: 15px; }

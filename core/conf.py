@@ -61,6 +61,24 @@ DEFAULTS = {
     # its answers to the scheduler would reschedule cards the user never saw in
     # the reviewer. When on, only cards already due are touched.
     "qzGrade": False,
+    # Cards preview — the deck's card list as a flippable grid, opened from
+    # the same place as the study modes.
+    "showPreview": True,
+    # Tiles across and rows down; their product is the page size, and Python
+    # slices the card list with it. See features/preview/grid.py.
+    "cpColumns": 4,
+    "cpRows": 3,
+    # Tile shape, tall through wide: "3:4", "1:1", "4:3" or "16:9".
+    # Square by default: measured at four columns in an 1180px window, a
+    # 3:4 tile is 269x358 and a flashcard's few words leave most of it
+    # empty.
+    "cpRatio": "1:1",
+    # Text scale inside a tile, as a percentage.
+    "cpFont": 100,
+    # What turns a tile over: "click" or "hover".
+    "cpFlip": "click",
+    # Card order: "added", "due" or "alpha".
+    "cpSort": "added",
     "shownWelcome": False,
     # Nav page the settings dialog reopens on. A page id, not an index, so
     # adding or reordering a nav entry cannot land the user somewhere else.

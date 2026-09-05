@@ -81,6 +81,24 @@ lại hiện kèm bên cạnh, và mọi đáp án đều có nút **Chi tiết*
 chính bộ thẻ, thay vì trong một cửa sổ riêng. Thẻ Cloze
 và Image Occlusion để dành cho trình ôn tập của Anki.
 
+## 🖼️ Xem trước thẻ
+
+Toàn bộ thẻ của một deck dưới dạng lưới các ô lật được, mở bằng nút **Xem trước
+thẻ** trên overview của deck. Giống các chế độ học, nó vẽ ngay trong cửa sổ hiện
+tại — không có cửa sổ thứ hai nào phải mở rồi đóng.
+
+Bấm vào một ô để lật, hoặc đặt lật khi rê chuột; **Lật tất cả** hiện mọi đáp án
+cùng lúc. Số cột, số hàng mỗi trang, khung ô (từ cao đến rộng), cỡ chữ và thứ tự
+thẻ chỉnh ngay trên lưới, và được ghi nhớ. Một chấm ở góc cho biết thẻ là mới,
+đang học, đến hạn, tạm ngưng hay bị hoãn; cờ hiện thành một ô vuông màu.
+
+Ô hiển thị đúng thứ Anki render ra, nên cloze, template điều kiện và furigana
+đều đúng — **kể cả ảnh và âm thanh**, thứ mà add-on được lấy làm mẫu nói rằng nó
+không làm được. TeX được sắp bằng chính MathJax của Anki, chỉ tải khi trang đang
+xem thực sự có công thức. Thứ mà một ô *không* dùng là stylesheet của note type:
+nó viết cho màn hình đầy và vỡ ở 270px, nên ô được vẽ theo bảng màu của add-on,
+với cỡ chữ mà field yêu cầu được co lại cho vừa.
+
 ## 🎴 Màn ôn thẻ
 
 Thanh trên (quay về, tên bộ thẻ, sửa, thao tác khác) và thanh dưới (số thẻ còn
@@ -118,7 +136,7 @@ Tám trang, bố cục theo kiểu macOS System Settings:
 | 🎨 Giao diện | Chủ đề, chế độ sáng/tối, chọn màn hình được áp theme, ẩn thanh gốc của Anki |
 | 🗂️ Bộ thẻ | Giao diện thẻ và chấm tự động theo từng bộ, mốc thời gian trả lời, và đổi tên / tuỳ chọn / xuất / xoá |
 | 🧠 FSRS | Bật FSRS, mức ghi nhớ mong muốn, tối ưu và đánh giá tham số |
-| 🎯 Chế độ học | Có hiện chế độ học hay không, và có cho phép chấm điểm thẻ hay không |
+| 🎯 Chế độ học | Có hiện chế độ học và xem trước thẻ hay không, và có cho phép chấm điểm thẻ hay không |
 | 📅 Sự kiện | Danh sách đếm ngược kỳ thi |
 | ✅ Thói quen | Danh sách thói quen: thêm, sửa, đổi thứ tự, lưu trữ |
 | ℹ️ Giới thiệu | Phiên bản, bản webview đang chạy và các tuỳ chọn đặt lại |
