@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-05
+
 ### Added
 
 - **Cards preview** — every card in a deck as a grid of flippable tiles, opened
@@ -206,7 +208,8 @@ First public release. Tested on Anki 26.08.
   that also retints Anki's own screens.
 - English, Tiếng Việt and 日本語, following Anki's language by default.
 
-[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.6.0
 [1.5.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.5.0
 [1.4.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.4.0
 [1.3.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.3.0
