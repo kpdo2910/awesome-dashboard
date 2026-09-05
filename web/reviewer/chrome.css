@@ -82,6 +82,20 @@ html.awd-rev-chrome .awd-rev-btn:hover {
   color: var(--awd-text);
 }
 html.awd-rev-chrome .awd-rev-btn.icon { width: 34px; padding: 0; }
+/* The UA's `[hidden] { display: none }` is (0,1,0) and the rule above is
+   (0,1,2), so `display: inline-flex` was quietly winning: the Pomodoro's skip
+   button set `hidden` and stayed on screen anyway, idle or not. */
+html.awd-rev-chrome .awd-rev-btn[hidden] { display: none; }
+/* Restating background: Anki's own :hover paints a gradient on a disabled
+   button otherwise. */
+html.awd-rev-chrome .awd-rev-btn:disabled,
+html.awd-rev-chrome .awd-rev-btn:disabled:hover {
+  background: transparent;
+  border: none;
+  color: var(--awd-faint);
+  cursor: default;
+  opacity: .55;
+}
 html.awd-rev-chrome .awd-rev-back { color: var(--awd-accent); padding-left: 4px; }
 html.awd-rev-chrome .awd-rev-back:hover { color: var(--awd-accent); }
 .awd-rev-btn svg { width: 16px; height: 16px; }
@@ -235,3 +249,119 @@ html.awd-rev-chrome .night-mode .awd-rev-rate.ease4 { background: rgba(10, 132, 
   html.awd-rev-chrome .awd-rev-show,
   html.awd-rev-chrome .awd-rev-btn { transition: none; }
 }
+
+/* ---------- auto-grading ----------
+   Zones reuse the theme's semantic colours, as the counts above them do. */
+
+html.awd-rev-chrome .awd-rev-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+}
+
+html.awd-rev-chrome .awd-ag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+html.awd-rev-chrome .awd-ag[hidden],
+html.awd-rev-chrome .awd-rev-rates[hidden] { display: none; }
+
+/* ---------- the countdown track ---------- */
+
+.awd-ag-track {
+  position: relative;
+  display: flex;
+  width: min(360px, 100%);
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--awd-inset);
+}
+.awd-ag-band { height: 100%; opacity: .85; }
+.awd-ag-band.easy { background: var(--awd-new); }
+.awd-ag-band.good { background: var(--awd-good); }
+.awd-ag-band.hard { background: var(--awd-learn); }
+
+/* Only `width` is animated: an animated `transform` would make this a
+   containing block and disable backdrop-filter inside the bar. */
+.awd-ag-spent {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  background: var(--awd-bg);
+  opacity: .92;
+  border-right: 2px solid var(--awd-text);
+  animation-name: awd-ag-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  /* duration is set inline, from the deck's own hardMax */
+}
+@keyframes awd-ag-drain { from { width: 0; } to { width: 100%; } }
+
+.awd-ag-paused {
+  display: none;
+  margin-top: -4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--awd-faint);
+}
+.awd-ag.paused .awd-ag-paused { display: block; }
+.awd-ag.paused .awd-ag-band { opacity: .16; }
+.awd-ag.paused .awd-ag-spent { opacity: .55; }
+
+/* ---------- the verdict ---------- */
+
+html.awd-rev-chrome .awd-ag-pill {
+  display: inline-flex;
+  /* Not `baseline`: it parks the group at the top of a fixed-height box. */
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--awd-inset);
+  color: var(--awd-text);
+  font: inherit;
+  cursor: pointer;
+  transition: filter .15s ease, transform .1s ease;
+}
+html.awd-rev-chrome .awd-ag-pill:hover {
+  background: var(--awd-inset);
+  border: none;
+  filter: brightness(1.06);
+}
+html.awd-rev-chrome .awd-ag-pill:active { transform: scale(.97); }
+
+.awd-ag-time { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+               font-size: 12px; font-weight: 700; opacity: .7; }
+.awd-ag-sep { font-size: 12px; opacity: .45; }
+.awd-ag-grade { font-size: 15px; font-weight: 700; }
+.awd-ag-int { font-size: 11.5px; font-weight: 500; opacity: .8; }
+
+/* Plain colour first, color-mix second: a webview without color-mix keeps
+   the neutral pill above. */
+.awd-ag.zone-easy  .awd-ag-pill { color: var(--awd-new);
+  background: color-mix(in srgb, var(--awd-new) 14%, transparent); }
+.awd-ag.zone-good  .awd-ag-pill { color: var(--awd-good);
+  background: color-mix(in srgb, var(--awd-good) 15%, transparent); }
+.awd-ag.zone-hard  .awd-ag-pill { color: var(--awd-learn);
+  background: color-mix(in srgb, var(--awd-learn) 15%, transparent); }
+.awd-ag.zone-again .awd-ag-pill { color: var(--awd-due);
+  background: color-mix(in srgb, var(--awd-due) 14%, transparent); }
+
+.awd-ag .awd-skin-keys { margin-top: 0; }
+
+html.awd-rev-chrome .awd-rev-rate.chosen {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+

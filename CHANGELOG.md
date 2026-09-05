@@ -7,6 +7,47 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-05
+
+### Added
+
+- **Auto-grading** — let the clock pick the rating. A countdown bar runs under
+  the card while you think, and how long you took before showing the answer
+  decides between Easy, Good and Hard; let the bar run out and the answer is
+  shown for you and the card is Again. You then answer with two keys — **←**
+  you didn't know it, **→** you did, **Space** confirms — and the four rating
+  buttons stay hidden until you click the result, which brings them back with
+  the auto-picked one marked. The keys are listed under the card. The clock
+  stops whenever Anki is not the active window. Off by default; switch it on,
+  and set the three thresholds, in **Settings → Decks**, globally or per deck.
+- An **undo** button in the review screen's header, next to edit, for when a
+  card has already gone by.
+
+### Changed
+
+- **Settings → Decks** now lists each deck once, with the card skin and
+  auto-grading switches side by side, instead of a separate list per feature.
+- Anki's toast notifications follow the theme instead of the fixed yellow box:
+  they are drawn as an inverted panel in the palette's own colours, with the
+  frame dropped and the corners rounded. Follows **Appearance → Theme Anki's
+  other screens**.
+- The card skin's arrow legend under the card follows the mode: with
+  auto-grading on it shows the three keys that work rather than four ratings,
+  two of which no longer do anything. Decks without the card skin get the same
+  legend in the answer bar instead.
+
+### Fixed
+
+- The card skin's progress bar counts cards, not reviews. Answering Again wrote
+  a review-log row, so a card you failed moved the bar forward and grew the
+  total at the same time; a card now counts only once it is no longer coming
+  back today.
+- The Pomodoro's skip button no longer stays on screen while the timer is
+  idle — the reviewer's own button styling was overriding `hidden`.
+- "Again" in the card skin's arrow legend is red again. It was reading from the
+  blue "new cards" colour, so the harshest rating was drawn in the calmest
+  colour on the row.
+
 ## [1.5.0] - 2026-09-05
 
 ### Added
@@ -155,7 +196,8 @@ First public release. Tested on Anki 26.08.
   that also retints Anki's own screens.
 - English, Tiếng Việt and 日本語, following Anki's language by default.
 
-[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.5.0...HEAD
+[unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.6.0
 [1.5.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.5.0
 [1.4.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.4.0
 [1.3.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.3.0

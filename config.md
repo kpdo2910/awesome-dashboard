@@ -75,6 +75,18 @@ what each feature does.
 
 - `cardSkinDecks` — per-deck card skin, `{"<deck id>": true}`. Set from
   **Settings → Decks**; a top-level deck's setting covers its subdecks.
+- `autoGrade` — auto-grading: the clock picks the rating, so reviewing is two
+  keys (← didn't know, → knew it) and Again/Hard/Good/Easy are hidden. Needs
+  `styleReviewer`, which draws the bar it lives in.
+- `autoGradeEasyMax` / `autoGradeGoodMax` / `autoGradeHardMax` — seconds.
+  Answer within the first and it is Easy, within the second Good, within the
+  third Hard; past the third it is Again. `autoGradeHardMax` is also how long
+  the question-side countdown runs, so the bar emptying *is* Again. The clock
+  stops whenever Anki is not the active window, so stepping away costs nothing.
+- `autoGradeDecks` — per-deck overrides, `{"<deck id>": {"enabled": true,
+  "easyMax": 3}}`. Partial: anything the entry does not name is inherited from
+  the parent deck, and from these global values above it. Set from
+  **Settings → Decks**.
 
 FSRS itself is stored by Anki, not here: the global switch lives in the
 collection config and desired retention plus parameters live on each deck
