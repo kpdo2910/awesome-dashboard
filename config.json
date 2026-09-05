@@ -29,6 +29,16 @@
     "backgroundDim": 25,
     "cardOpacity": 100,
     "cardBlur": 18,
+    "showQuizlet": true,
+    "qzDirection": "term",
+    "qzTestLength": 20,
+    "qzTestTypes": [
+        "choice",
+        "typed"
+    ],
+    "qzMatchPairs": 6,
+    "qzSessionSize": 40,
+    "qzGrade": false,
     "shownWelcome": false,
     "settingsPage": "general"
 }

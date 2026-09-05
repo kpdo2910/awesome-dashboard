@@ -371,6 +371,7 @@ class AwdSettingsDialog(QDialog):
             ("look", tr("page_look"), "#007AFF"),
             ("decks", tr("page_decks"), "#34C759"),
             ("fsrs", "FSRS", "#AF52DE"),
+            ("modes", tr("page_modes"), "#00C7BE"),
             ("events", tr("page_events"), "#FF9500"),
             ("habits", tr("page_habits"), "#FF2D55"),
             ("about", tr("page_about"), "#5856D6"),
@@ -411,6 +412,7 @@ class AwdSettingsDialog(QDialog):
         self._stack.addWidget(self._build_look_page(config))
         self._stack.addWidget(self._build_decks_page(config))
         self._stack.addWidget(self._build_fsrs_page())
+        self._stack.addWidget(self._build_modes_page(config))
         self._stack.addWidget(self._build_events_page(config))
         self._stack.addWidget(self._build_habits_page())
         self._stack.addWidget(self._build_about_page())
@@ -961,6 +963,34 @@ class AwdSettingsDialog(QDialog):
             finally:
                 mw.progress.finish()
 
+    def _build_modes_page(self, config: dict) -> QScrollArea:
+        """The two study-mode settings that are not about a session.
+
+        Everything else — which fields go on each side, session lengths,
+        question kinds — lives on the deck's own Study modes screen, where the
+        deck is already known. This page had to grow a deck picker to ask what
+        that screen had already said, and a modal window over a study session
+        is a heavier answer than the question deserves.
+        """
+        page, box = self._page()
+
+        self.qz_show = self._switch(bool(config.get("showQuizlet", True)))
+        self._block(
+            box,
+            tr("qz_title"),
+            self._row(tr("qz_show"), self.qz_show, subtitle=tr("qz_where")),
+        )
+
+        self.qz_grade = self._switch(bool(config.get("qzGrade", False)))
+        self._block(
+            box,
+            tr("qz_grade"),
+            self._row(tr("qz_grade"), self.qz_grade, subtitle=tr("qz_grade_desc")),
+        )
+
+        box.addStretch(1)
+        return self._wrap_page(page)
+
     def _build_events_page(self, config: dict) -> QScrollArea:
         page, box = self._page()
 
@@ -1470,6 +1500,7 @@ class AwdSettingsDialog(QDialog):
         "showHeatmap",
         "showPomodoro",
         "showHabits",
+        "showQuizlet",
         "hideNativeBottomBar",
         "hideNativeToolbar",
         "styleOverview",
@@ -1591,6 +1622,8 @@ class AwdSettingsDialog(QDialog):
                 "autoGradeGoodMax": self.grade_spins["goodMax"].value(),
                 "autoGradeHardMax": self.grade_spins["hardMax"].value(),
                 "autoGradeDecks": grade_decks,
+                "showQuizlet": self.qz_show.isChecked(),
+                "qzGrade": self.qz_grade.isChecked(),
                 # Rides along with Save so Cancel leaves the reopen page alone,
                 # like every other field in this dialog.
                 "settingsPage": self._page_keys[self._stack.currentIndex()],

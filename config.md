@@ -92,14 +92,44 @@ FSRS itself is stored by Anki, not here: the global switch lives in the
 collection config and desired retention plus parameters live on each deck
 preset. **Settings → FSRS** edits them through Anki's own API.
 
+## Study modes
+
+Quizlet-style Flashcards, Learn, Test and Match, opened from a deck's overview.
+Which fields go on the front of a card and which on the back is worked out from
+the card template; the pinned overrides live in the collection, not here, so
+they sync and survive a reinstall. They are edited on the deck's own Study modes
+screen, along with the session sizes below — the deck is already known there,
+and a window of its own would only ask again. The first field on a side is the
+one being asked about; the rest is shown alongside it, and a **Details** button
+opens the whole card. A side holds at most two fields on the front and three on
+the back, and never fewer than one.
+
+**Settings → Study modes** keeps only `showQuizlet` and `qzGrade`: whether the
+feature appears at all, and whether it may touch the scheduler.
+
+- `showQuizlet` — whether the deck overview offers the study modes at all.
+- `qzDirection` — which side is the prompt: `term`, `definition` or `mixed`.
+- `qzTestLength` — questions in one Test, 1-100.
+- `qzTestTypes` — question kinds a Test draws from, any of `tf`, `choice`,
+  `typed`. They are dealt round-robin rather than at random, so a short test
+  still covers every kind you asked for.
+- `qzMatchPairs` — pairs in one Match round, 2-12.
+- `qzSessionSize` — terms taken into one Learn session. `0` means the whole
+  deck, which on a large deck is a session you will not finish.
+- `qzGrade` — pass answers on to Anki's scheduler. **Off by default.** A study
+  mode is practice; when this is on, only cards *already due* are graded
+  (correct is Good, wrong is Again) — new cards are never introduced here,
+  because that would spend the deck's daily allowance on a session you thought
+  was practice.
+
 ## Internal
 
 - `cardSkinDefault` — whether decks with no entry of their own use the card
   skin. `true` means every newly added deck starts with it on.
 - `shownWelcome` — whether the first-run toast has been shown.
 - `settingsPage` — nav page the settings dialog reopens on (`general`, `look`,
-  `decks`, `fsrs`, `events`, `about`). Written by **Save**, so cancelling out
-  of the dialog leaves it as it was.
+  `decks`, `fsrs`, `modes`, `events`, `habits`, `about`). Written by **Save**,
+  so cancelling out of the dialog leaves it as it was.
 - `debugFakeYears` — development only: synthesises several years of heatmap
   activity so the year picker can be tested. Display-only; the collection is
   never touched.

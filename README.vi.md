@@ -53,6 +53,34 @@ ngày tới** lấy từ ngày đến hạn thật trong lịch, danh sách bộ
 thao tác mờ ở dưới (tuỳ chọn, học tuỳ biến, đổi tên, xuất, mô tả). Hai thanh
 gốc của Anki được ẩn ở màn này vì trang đã tự có.
 
+## 🎯 Chế độ học
+
+Bốn cách học một bộ thẻ theo kiểu Quizlet, mở bằng nút **Chế độ học** ở màn
+hình bộ thẻ. Chúng chạy ngay trong cửa sổ hiện tại — không có webview thứ hai,
+không phải ứng dụng riêng — và mặc định không đụng gì tới lịch ôn tập.
+
+| Chế độ | Nội dung |
+| --- | --- |
+| **Thẻ lật** | Lật thẻ theo nhịp của bạn, xáo trộn, phát âm thanh |
+| **Học** | Từng vòng bảy thẻ, khó dần khi bạn đã nhớ: đúng/sai, rồi trắc nghiệm, rồi tự gõ. Sai một câu là tụt lại một bậc |
+| **Kiểm tra** | Số câu cố định, trộn nhiều dạng, chấm điểm ở cuối kèm danh sách câu sai |
+| **Ghép cặp** | Ghép từ với nghĩa, tính giờ, lưu kỷ lục riêng cho từng bộ thẻ |
+
+Câu tự gõ chấp nhận lỗi chính tả nhẹ — đảo hai chữ cái, hoặc sai một ký tự ở từ
+dài — và nói rõ là "gần đúng" chứ không lặng lẽ cho qua; trường chứa nhiều nghĩa
+thì gõ nghĩa nào cũng được. Phiên Học được lưu trong collection nên còn nguyên
+sau khi tắt Anki và đồng bộ được giữa các máy.
+
+**Trường nào ở mặt trước, trường nào ở mặt sau** được suy ra từ mẫu thẻ chứ
+không phải theo thứ tự khai báo — nên loại thẻ có trường đầu tiên là số thứ tự
+vẫn ra đúng từ, và thẻ chiều ngược lại là một câu hỏi khác chứ không lặp lại câu
+cũ. Chọn ngay trên màn Chế độ học của bộ thẻ đó, mỗi loại thẻ một thiết lập — tối đa
+hai trường mặt trước, ba trường mặt sau — trường đầu tiên ở mỗi mặt là trường được hỏi, những trường còn
+lại hiện kèm bên cạnh, và mọi đáp án đều có nút **Chi tiết** mở ra toàn bộ thẻ
+đúng như màn ôn tập vẫn vẽ. Độ dài phiên và dạng câu hỏi cũng chỉnh ở đó, trên
+chính bộ thẻ, thay vì trong một cửa sổ riêng. Thẻ Cloze
+và Image Occlusion để dành cho trình ôn tập của Anki.
+
 ## 🎴 Màn ôn thẻ
 
 Thanh trên (quay về, tên bộ thẻ, sửa, thao tác khác) và thanh dưới (số thẻ còn
@@ -82,7 +110,7 @@ xác nhận của Anki cũng được vẽ theo màu của theme.
 
 ## ⚙️ Cài đặt trong add-on
 
-Bảy trang, bố cục theo kiểu macOS System Settings:
+Tám trang, bố cục theo kiểu macOS System Settings:
 
 | Trang | Nội dung |
 | --- | --- |
@@ -90,6 +118,7 @@ Bảy trang, bố cục theo kiểu macOS System Settings:
 | 🎨 Giao diện | Chủ đề, chế độ sáng/tối, chọn màn hình được áp theme, ẩn thanh gốc của Anki |
 | 🗂️ Bộ thẻ | Giao diện thẻ và chấm tự động theo từng bộ, mốc thời gian trả lời, và đổi tên / tuỳ chọn / xuất / xoá |
 | 🧠 FSRS | Bật FSRS, mức ghi nhớ mong muốn, tối ưu và đánh giá tham số |
+| 🎯 Chế độ học | Có hiện chế độ học hay không, và có cho phép chấm điểm thẻ hay không |
 | 📅 Sự kiện | Danh sách đếm ngược kỳ thi |
 | ✅ Thói quen | Danh sách thói quen: thêm, sửa, đổi thứ tự, lưu trữ |
 | ℹ️ Giới thiệu | Phiên bản, bản webview đang chạy và các tuỳ chọn đặt lại |

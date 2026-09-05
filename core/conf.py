@@ -48,6 +48,19 @@ DEFAULTS = {
     # 0 leaves it sharp, which is the only way to actually read the image
     # through a card rather than see a smear of its colours.
     "cardBlur": 18,
+    # Quizlet-style study modes, opened from the deck overview.
+    "showQuizlet": True,
+    # Which side of the card is the prompt: "term", "definition" or "mixed".
+    "qzDirection": "term",
+    "qzTestLength": 20,
+    "qzTestTypes": ["choice", "typed"],
+    "qzMatchPairs": 6,
+    # Terms taken into one Learn session. 0 means the whole deck.
+    "qzSessionSize": 40,
+    # Off by default, and deliberately: a study mode is practice, and passing
+    # its answers to the scheduler would reschedule cards the user never saw in
+    # the reviewer. When on, only cards already due are touched.
+    "qzGrade": False,
     "shownWelcome": False,
     # Nav page the settings dialog reopens on. A page id, not an index, so
     # adding or reordering a nav entry cannot land the user somewhere else.

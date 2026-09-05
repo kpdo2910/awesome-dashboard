@@ -53,6 +53,36 @@ button, a **7-day forecast** built from the scheduler's real due dates, the
 subdeck list, and quiet footer actions (options, custom study, rename, export,
 description). Anki's own bars are hidden here — the page carries its own.
 
+## 🎯 Study modes
+
+Four Quizlet-style ways to work through a deck, opened with the **Study modes**
+button on its overview. They run in the same window — no second webview, no
+separate app — and by default none of them touches your review schedule.
+
+| Mode | What it does |
+| --- | --- |
+| **Flashcards** | Flip through the deck at your own pace, shuffle, play audio |
+| **Learn** | Rounds of seven that get harder as a term sticks: true/false, then multiple choice, then typing it out. Miss one and it drops back a level |
+| **Test** | A fixed number of questions in a mix of kinds, marked at the end with a list of what you got wrong |
+| **Match** | Pair terms with definitions against the clock, with a personal best per deck |
+
+Typed answers allow a spelling slip — a transposition or one edit in a longer
+word — and say so rather than accepting it silently; a field holding several
+synonyms accepts any one of them. A Learn session is saved in your collection,
+so it survives closing Anki and syncs between desktops.
+
+**Which fields go on each side** is worked out from the card template, not from
+the order the fields happen to be in — so a note type whose first field is a row
+number still gets the word, and a reverse card is a different question rather
+than the same one twice. Pick them from the deck's own Study modes
+screen, one setting per note type — up to two fields on the front and three on
+the back — where the first
+field on a side is the one being asked about, the rest is shown alongside it,
+and a **Details** button on any revealed answer opens the whole card exactly as
+the review screen draws it. Session lengths and question kinds are set there
+too, on the deck, rather than in a window of their own. Cloze and Image Occlusion cards are left to
+Anki's own reviewer.
+
 ## 🎴 Review screen
 
 The header (back, deck name, edit, more) and footer (remaining counts, then
@@ -83,7 +113,7 @@ answered, and Anki's own toast confirming it is drawn in the theme's colours.
 
 ## ⚙️ Settings
 
-Seven pages, laid out like macOS System Settings:
+Eight pages, laid out like macOS System Settings:
 
 | Page | What's in it |
 | --- | --- |
@@ -91,6 +121,7 @@ Seven pages, laid out like macOS System Settings:
 | 🎨 Appearance | Theme, light/dark mode, which screens to theme, hiding Anki's native bars |
 | 🗂️ Decks | Per-deck card skin and auto-grading, answer-time thresholds, and rename / options / export / delete |
 | 🧠 FSRS | Enable FSRS, desired retention, optimise and evaluate parameters |
+| 🎯 Study modes | Whether the study modes appear, and whether they may grade cards |
 | 📅 Events | Exam countdown list |
 | ✅ Habits | The habit list: add, edit, reorder, archive |
 | ℹ️ About | Version, webview build, and the reset options |
