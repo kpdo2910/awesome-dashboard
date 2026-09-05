@@ -31,6 +31,9 @@ jobs:
       - name: Habit logic tests
         run: python3 tools/test_habits.py
 
+      - name: Auto-grade rule tests
+        run: python3 tools/test_autograde.py
+
       - name: Python syntax
         run: find . -name '*.py' -not -path './.git/*' -exec python3 -m py_compile {} +
 

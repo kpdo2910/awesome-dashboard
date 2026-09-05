@@ -65,6 +65,22 @@ above the word, audio button, numbered meanings, image, collapsible example and
 notes — with a horizontal flip animation. Click or press Space to flip; rate
 with the arrow keys or a mouse swipe and the card flies away.
 
+**Auto-grading** is the other optional mode, and it changes how you answer.
+Show answer works exactly as it always did, with a countdown bar underneath
+showing which band you are in — and the time you took to get there picks Easy,
+Good or Hard for you. Let the bar run out and the answer appears on its own,
+graded Again. On the answer side you then say only whether you knew it — **←**
+no, **→** yes, **Space** to confirm — instead of judging how well; the keys are
+listed under the card. The four rating buttons are hidden, and a click on the
+result brings them back with the auto-picked one marked, so a mistake is one
+click from fixed. The clock stops whenever Anki is
+not the active window, so stepping away never costs you a card, and time spent
+reading the answer never counts. Set the thresholds — globally or per deck —
+in **Settings → Decks**.
+
+Beside the edit button, an **undo** control puts back the card you just
+answered, and Anki's own toast confirming it is drawn in the theme's colours.
+
 ## ⚙️ Settings
 
 Seven pages, laid out like macOS System Settings:
@@ -73,7 +89,7 @@ Seven pages, laid out like macOS System Settings:
 | --- | --- |
 | 📋 General | Name, greeting, language, sidebar mode, dashboard sections, Pomodoro lengths |
 | 🎨 Appearance | Theme, light/dark mode, which screens to theme, hiding Anki's native bars |
-| 🗂️ Decks | Per-deck card skin, and rename / options / export / delete |
+| 🗂️ Decks | Per-deck card skin and auto-grading, answer-time thresholds, and rename / options / export / delete |
 | 🧠 FSRS | Enable FSRS, desired retention, optimise and evaluate parameters |
 | 📅 Events | Exam countdown list |
 | ✅ Habits | The habit list: add, edit, reorder, archive |

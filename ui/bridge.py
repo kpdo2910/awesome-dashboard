@@ -285,6 +285,10 @@ def handle_message(handled, message: str, context):
         if mode in ("full", "compact", "hidden"):
             # The page already switched client-side; just persist the choice.
             conf.set_value("sidebarMode", mode)
+    elif command == "undo":
+        from ..features.autograde import controller as autograde
+
+        autograde.undo()
     elif command == "pom:toggle":
         pomodoro.get().toggle_pause()
     elif command == "pom:reset":

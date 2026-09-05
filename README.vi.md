@@ -65,6 +65,21 @@ lấy từ scheduler nên theo đúng cấu hình bộ thẻ và FSRS.
 dụ và ghi chú thu gọn được — kèm animation lật ngang. Bấm hoặc nhấn Space để
 lật; chấm điểm bằng phím mũi tên hoặc vuốt chuột, thẻ sẽ bay đi.
 
+**Chấm tự động** là tuỳ chọn còn lại, và nó thay đổi cách bạn trả lời. Nút Hiện
+đáp án vẫn y như cũ, bên dưới có thêm thanh đếm ngược cho biết bạn đang ở vùng
+nào — và thời gian bạn mất tới lúc đó sẽ chọn Dễ, Tốt hay Khó thay bạn. Để
+thanh cạn thì đáp án tự hiện và thẻ bị chấm Lại. Sang mặt đáp án, bạn chỉ cần
+nói mình có thuộc hay không — **←** không, **→** có, **Space** để xác nhận —
+thay vì tự chấm mức độ; các phím được ghi ngay dưới thẻ. Bốn nút chấm điểm được
+ẩn đi, và chỉ cần bấm vào kết quả là chúng hiện lại, với mức đã chọn được đánh
+dấu sẵn — chấm nhầm thì sửa trong một cú bấm. Đồng hồ
+dừng mỗi khi Anki không phải cửa sổ đang dùng, nên rời máy một lát không bao
+giờ mất thẻ, và thời gian đọc đáp án không bao giờ bị tính. Đặt các mốc thời
+gian — chung hoặc theo từng bộ thẻ — trong **Cài đặt → Bộ thẻ**.
+
+Cạnh nút sửa còn có nút **hoàn tác**, trả lại thẻ bạn vừa trả lời; thông báo
+xác nhận của Anki cũng được vẽ theo màu của theme.
+
 ## ⚙️ Cài đặt trong add-on
 
 Bảy trang, bố cục theo kiểu macOS System Settings:
@@ -73,7 +88,7 @@ Bảy trang, bố cục theo kiểu macOS System Settings:
 | --- | --- |
 | 📋 Chung | Tên, lời chào, ngôn ngữ, chế độ thanh bên, các khối trên dashboard, độ dài Pomodoro |
 | 🎨 Giao diện | Chủ đề, chế độ sáng/tối, chọn màn hình được áp theme, ẩn thanh gốc của Anki |
-| 🗂️ Bộ thẻ | Giao diện thẻ theo từng bộ, và đổi tên / tuỳ chọn / xuất / xoá |
+| 🗂️ Bộ thẻ | Giao diện thẻ và chấm tự động theo từng bộ, mốc thời gian trả lời, và đổi tên / tuỳ chọn / xuất / xoá |
 | 🧠 FSRS | Bật FSRS, mức ghi nhớ mong muốn, tối ưu và đánh giá tham số |
 | 📅 Sự kiện | Danh sách đếm ngược kỳ thi |
 | ✅ Thói quen | Danh sách thói quen: thêm, sửa, đổi thứ tự, lưu trữ |

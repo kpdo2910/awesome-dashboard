@@ -15,7 +15,7 @@ import unicodedata
 
 from aqt import mw
 
-from ..core import conf
+from ..core import conf, decks
 from ..core.translations import tr
 
 # Role detection order matters: first match wins (e.g. Basic's "Front" must
@@ -63,26 +63,11 @@ def _role_for(field_name: str):
 
 # --- per-deck enablement -----------------------------------------------------
 
-def _deck_chain_ids(did: int):
-    """The deck and its ancestors (nearest first), resolved by name."""
-    ids = []
-    try:
-        name = mw.col.decks.name(did)
-        parts = name.split("::")
-        for i in range(len(parts), 0, -1):
-            candidate = mw.col.decks.id_for_name("::".join(parts[:i]))
-            if candidate:
-                ids.append(int(candidate))
-    except Exception:
-        ids = [int(did)]
-    return ids or [int(did)]
-
-
 def skin_enabled_for_deck(did: int) -> bool:
     config = conf.get()
     mapping = config.get("cardSkinDecks") or {}
     if isinstance(mapping, dict):
-        for deck_id in _deck_chain_ids(did):
+        for deck_id in reversed(decks.chain_ids(did)):
             value = mapping.get(str(deck_id))
             if value is not None:
                 return bool(value)
@@ -99,13 +84,6 @@ def toggle_deck(did: int) -> bool:
     config["cardSkinDecks"] = mapping
     conf.save(config)
     return new_value
-
-
-def _card_deck_id(card) -> int:
-    try:
-        return int(card.current_deck_id())
-    except Exception:
-        return int(getattr(card, "odid", 0) or card.did)
 
 
 # --- content helpers -----------------------------------------------------------
@@ -141,27 +119,53 @@ def _collect(note):
 
 
 def _progress(card):
-    """(done_today, total_today) for the card's deck subtree."""
+    """(cards finished today, cards due today) for the card's deck subtree.
+
+    Counts of *cards*, never of reviews or learning steps. New and review come
+    from the scheduler because only it applies the deck's daily limits.
+    """
     try:
-        remaining = sum(mw.col.sched.counts(card))
-    except Exception:
-        try:
-            remaining = sum(mw.col.sched.counts())
-        except Exception:
-            return None
-    try:
-        did = _card_deck_id(card)
-        deck_ids = mw.col.decks.deck_and_child_ids(did)
+        deck_ids = mw.col.decks.deck_and_child_ids(decks.deck_id_for_card(card))
         ids_csv = ",".join(str(int(i)) for i in deck_ids)
-        start_ms = (mw.col.sched.day_cutoff - 86400) * 1000
+        today = int(mw.col.sched.today)
+        cutoff = int(mw.col.sched.day_cutoff)
+        start_ms = (cutoff - 86400) * 1000
+    except Exception:
+        return None
+
+    # odid as well as did: a card pulled into a filtered deck keeps its home
+    # deck only in odid, and the subtree being measured is the home one.
+    in_decks = f"(c.did IN ({ids_csv}) OR c.odid IN ({ids_csv}))"
+    coming_back = (
+        f"((c.queue IN (1, 4) AND c.due <= {cutoff})"
+        f" OR (c.queue = 3 AND c.due <= {today})"
+        f" OR (c.queue = 2 AND c.due <= {today}))"
+    )
+    try:
         done = mw.col.db.scalar(
-            "SELECT count() FROM revlog r JOIN cards c ON r.cid = c.id"
-            f" WHERE r.id > ? AND r.type IN (0,1,2,3) AND c.did IN ({ids_csv})",
+            "SELECT count(DISTINCT r.cid) FROM revlog r JOIN cards c ON r.cid = c.id"
+            f" WHERE r.id > ? AND r.type IN (0, 1, 2, 3) AND {in_decks}"
+            f" AND NOT {coming_back}",
             start_ms,
         ) or 0
+        learning = mw.col.db.scalar(
+            f"SELECT count() FROM cards c WHERE {in_decks}"
+            f" AND ((c.queue IN (1, 4) AND c.due <= {cutoff})"
+            f" OR (c.queue = 3 AND c.due <= {today}))"
+        ) or 0
     except Exception:
-        done = 0
-    total = done + max(0, remaining)
+        return None
+
+    try:
+        counts = list(mw.col.sched.counts(card))
+    except Exception:
+        try:
+            counts = list(mw.col.sched.counts())
+        except Exception:
+            counts = [0, 0, 0]
+    counts += [0, 0, 0]
+
+    total = done + learning + int(counts[0]) + int(counts[2])
     return (done, total) if total > 0 else None
 
 
@@ -232,10 +236,16 @@ def install_space_toggle() -> None:
 
     def wrapped(self):
         try:
+            from ..features.autograde import controller as autograde
+
+            # Question side is left alone: that press is what the clock times.
+            if self.state == "answer" and autograde.active_now():
+                autograde.knew_it()
+                return
             if (
                 self.state == "answer"
                 and self.card is not None
-                and skin_enabled_for_deck(_card_deck_id(self.card))
+                and skin_enabled_for_deck(decks.deck_id_for_card(self.card))
             ):
                 self.web.eval("if (window.AwdSkin) AwdSkin.toggleFlip();")
                 return
@@ -258,11 +268,22 @@ ARROW_MAP = (
 
 
 def _arrow_answer(direction: str, ease: int) -> None:
+    """The one dispatch point for the arrow keys: two handlers on one key is an
+    ambiguous shortcut and Qt fires neither, so the two features share them."""
+    from ..features.autograde import controller as autograde
+
+    if autograde.active_now():
+        if direction == "left":
+            autograde.did_not_know()
+        elif direction == "right":
+            autograde.knew_it()
+        return
+
     reviewer = mw.reviewer
     if reviewer is None or reviewer.state != "answer" or reviewer.card is None:
         return
     try:
-        if not skin_enabled_for_deck(_card_deck_id(reviewer.card)):
+        if not skin_enabled_for_deck(decks.deck_id_for_card(reviewer.card)):
             return
     except Exception:
         return
@@ -289,7 +310,29 @@ def on_state_shortcuts(state: str, shortcuts: list) -> None:
 _question_cache = {"cid": None, "html": ""}
 
 
-def _keys_hint() -> str:
+# The space bar, drawn rather than typed: ␣ and ⎵ are missing or wildly
+# different in the mono stacks this legend uses, and a key hint that renders as
+# a tofu box is worse than no hint.
+SPACE_ICON = (
+    '<svg class="k-icon" viewBox="0 0 24 12" fill="none" stroke="currentColor"'
+    ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
+    ' aria-hidden="true"><path d="M3 3.5v5h18v-5"/></svg>'
+)
+
+
+def keys_hint(card=None) -> str:
+    """The key legend, matched to what the keys actually do. Shared with the
+    answer bar, which shows it for decks with no card skin."""
+    from ..features.autograde import controller as autograde
+
+    if card is not None and autograde.settings_for_card(card) is not None:
+        return (
+            '<div class="awd-skin-keys">'
+            f'<span class="k-again">← {tr("ag_dont_know")}</span>'
+            f'<span class="k-space">{SPACE_ICON} {tr("ag_confirm")}</span>'
+            f'<span class="k-good">→ {tr("ag_know")}</span>'
+            "</div>"
+        )
     return (
         '<div class="awd-skin-keys">'
         f'<span class="k-again">← {tr("rate_again")}</span>'
@@ -300,7 +343,7 @@ def _keys_hint() -> str:
     )
 
 
-def _flip_scene(progress: str, front_html: str, answer_card_html: str) -> str:
+def _flip_scene(progress: str, card, front_html: str, answer_card_html: str) -> str:
     return f"""{progress}<div class="awd-skin">
   <div class="awd-flip-scene" onclick="AwdSkin.click(event)">
     <div class="awd-flip-inner" id="awd-flip">
@@ -310,17 +353,19 @@ def _flip_scene(progress: str, front_html: str, answer_card_html: str) -> str:
       <div class="awd-flip-face back">{answer_card_html}</div>
     </div>
   </div>
-  {_keys_hint()}
+  {keys_hint(card)}
 </div>"""
 
 
 def _answer_page(progress: str, card, answer_card_html: str) -> str:
     """Wrap an answer card in the flip scene when the question is cached."""
     if _question_cache.get("cid") == card.id and _question_cache.get("html"):
-        return _flip_scene(progress, _question_cache["html"], answer_card_html)
+        return _flip_scene(progress, card, _question_cache["html"],
+                           answer_card_html)
     return (
         f'{progress}<div class="awd-skin">'
-        f'<div class="awd-flip-scene">{answer_card_html}</div>{_keys_hint()}</div>'
+        f'<div class="awd-flip-scene">{answer_card_html}</div>'
+        f'{keys_hint(card)}</div>'
     )
 
 
@@ -328,7 +373,7 @@ def on_card_will_show(text: str, card, kind: str) -> str:
     if kind not in ("reviewQuestion", "reviewAnswer"):
         return text
     try:
-        if not skin_enabled_for_deck(_card_deck_id(card)):
+        if not skin_enabled_for_deck(decks.deck_id_for_card(card)):
             return text
     except Exception:
         return text

@@ -26,7 +26,7 @@ except ImportError:
 from .core import background, conf, stats, themes
 from .features.habits import store as habit_store
 from .screens import card_skin, dashboard, overview, reviewer
-from .ui import bridge, qt_theme
+from .ui import bridge, qt_theme, toast
 
 TOOLBAR_CONTEXTS = tuple(
     cls for cls in (Toolbar, BottomBar, TopToolbar, BottomToolbar) if cls is not None
@@ -55,6 +55,8 @@ qt_theme.install_custom_study_hook()
 
 # Space on a skinned answer flips the card instead of rating it.
 card_skin.install_space_toggle()
+
+toast.install()
 
 # Habit ticks are written behind a debounce, so every way out of a profile has
 # to flush. Registering the hooks is safe here; nothing reads mw.col yet.

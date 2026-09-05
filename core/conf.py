@@ -23,6 +23,13 @@ DEFAULTS = {
     "styleReviewer": True,
     "events": [],
     "cardSkinDecks": {},
+    # Thresholds in seconds; hardMax also draws the question-side countdown.
+    "autoGrade": False,
+    "autoGradeEasyMax": 5,
+    "autoGradeGoodMax": 10,
+    "autoGradeHardMax": 15,
+    # Partial per-deck overrides, merged root-first — see autograde/rules.py.
+    "autoGradeDecks": {},
     # The fallback for decks with no entry of their own, which is every deck
     # added after the add-on was installed.
     "cardSkinDefault": True,

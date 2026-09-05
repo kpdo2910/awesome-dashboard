@@ -222,10 +222,16 @@ ol.awd-skin-meaning li::before {
   font-weight: 600;
   color: var(--awd-faint, #a89e96);
 }
-.awd-skin-keys .k-again { color: var(--awd-new, #c94f35); }
+/* --awd-due, not --awd-new: the fallback beside it is a red-orange, so red
+   was always the intent — but --awd-new is the *blue* slot in every theme,
+   so "Again" has been rendering as the calmest colour on the row. */
+.awd-skin-keys .k-again { color: var(--awd-due, #c94f35); }
 .awd-skin-keys .k-hard  { color: var(--awd-learn, #a06a2c); }
 .awd-skin-keys .k-good  { color: var(--awd-good, #5f7f4e); }
 .awd-skin-keys .k-easy  { color: var(--awd-subtle, #6b625b); }
+.awd-skin-keys .k-space { color: var(--awd-subtle, #6b625b);
+                          display: inline-flex; align-items: center; gap: 5px; }
+.awd-skin-keys .k-icon { width: 15px; height: 7.5px; flex: none; }
 
 /* restyle Anki's own replay buttons inside skinned question content */
 .awd-skin .replay-button svg { width: 38px; height: 38px; }

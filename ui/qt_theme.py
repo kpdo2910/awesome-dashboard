@@ -525,6 +525,20 @@ def settings_dialog_qss() -> str:
     }}
     QLabel#awdRowTitle {{ font-size: 13px; font-weight: 600; }}
     QLabel#awdRowSub {{ font-size: 11px; color: {subtle}; }}
+    /* Size lives here, not in setFixedSize: a QSS min-/max- would win over it
+       anyway, so keeping both would just be two numbers to disagree. */
+    QLabel#awdInfo {{
+        min-width: 15px; max-width: 15px;
+        min-height: 15px; max-height: 15px;
+        border: 1px solid {faint}; border-radius: 8px;
+        color: {faint}; font-size: 10px; font-weight: 700;
+    }}
+    QLabel#awdInfo:hover {{ border-color: {accent}; color: {accent}; }}
+    QToolTip {{
+        background: {surface}; color: {text};
+        border: 1px solid {border}; border-radius: 6px;
+        padding: 6px 8px; font-size: 11px;
+    }}
     QLabel#awdSection {{
         font-size: 10.5px;
         font-weight: 700;
