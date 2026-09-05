@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest something new, or a change to how something already works.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Write in English or Vietnamese — either is fine.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The problem first, not the solution — it often has a simpler answer than the one you had in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the add-on?
+      options:
+        - Dashboard (deck list)
+        - Deck overview
+        - Reviewer and card skin
+        - Habits
+        - Pomodoro
+        - Themes and appearance
+        - Settings
+        - Translations
+        - Somewhere else, or not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Mockups, screenshots from other apps, or how another add-on solves it.

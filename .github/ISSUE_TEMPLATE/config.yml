@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Add-on page on AnkiWeb
+    url: https://ankiweb.net/shared/info/1243176816
+    about: Install the add-on, or leave a rating.
+  - name: README
+    url: https://github.com/kpdo2910/awesome-dashboard#readme
+    about: Features, settings and setup — worth a look before filing.
