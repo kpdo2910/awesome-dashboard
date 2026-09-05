@@ -54,6 +54,34 @@ button, a <b>7-day forecast</b> built from the scheduler's real due dates, the
 subdeck list, and quiet footer actions (options, custom study, rename, export,
 description). Anki's own bars are hidden here — the page carries its own.</p>
 
+<h3>🎯 Study modes</h3>
+<p>Four Quizlet-style ways to work through a deck, opened with the <b>Study
+modes</b> button on its overview. They run in the same window, and by default
+none of them touches your review schedule.</p>
+<ul>
+  <li><b>Flashcards</b> — flip through the deck at your own pace, shuffle, play
+      audio</li>
+  <li><b>Learn</b> — rounds of seven that get harder as a term sticks: true or
+      false, then multiple choice, then typing it out. Miss one and it drops
+      back a level</li>
+  <li><b>Test</b> — a fixed number of questions in a mix of kinds, marked at the
+      end with a list of what you got wrong</li>
+  <li><b>Match</b> — pair terms with definitions against the clock, with a
+      personal best per deck</li>
+</ul>
+<p>Typed answers allow a spelling slip and say so rather than accepting it
+silently; a field holding several synonyms accepts any one of them. A Learn
+session is saved in your collection, so it survives closing Anki and syncs
+between desktops.</p>
+<p><b>Which fields go on each side</b> is worked out from the card template, not
+from the order the fields happen to be in. Pick them from the deck's own
+Study modes screen — up to two fields on the front and three on the back — where
+the first field on a side is the one being asked about, the rest is shown
+alongside it, and a <b>Details</b> button on any revealed answer opens the whole
+card exactly as the review screen draws it. Session lengths and question kinds
+are set there too, rather than in a window of their own. Cloze and Image Occlusion
+cards are left to Anki's own reviewer.</p>
+
 <h3>🎴 Review screen</h3>
 <p>The header (back, deck name, edit, more) and footer (remaining counts, then
 Show answer or the four rating buttons) are drawn in the page, so Anki's top
@@ -65,15 +93,18 @@ example and notes — with a horizontal flip animation. Click or press Space to
 flip; rate with the arrow keys or a mouse swipe and the card flies away.</p>
 
 <h3>⚙️ Settings</h3>
-<p>Seven pages, laid out like macOS System Settings:</p>
+<p>Eight pages, laid out like macOS System Settings:</p>
 <ul>
   <li>📋 <b>General</b> — name, greeting, language, sidebar mode, dashboard
       sections, Pomodoro lengths</li>
   <li>🎨 <b>Appearance</b> — theme, light/dark mode, which screens to theme, hiding
       Anki's native bars</li>
-  <li>🗂️ <b>Decks</b> — per-deck card skin, and rename / options / export / delete</li>
+  <li>🗂️ <b>Decks</b> — per-deck card skin and auto-grading, answer-time
+      thresholds, and rename / options / export / delete</li>
   <li>🧠 <b>FSRS</b> — enable FSRS, desired retention, optimise and evaluate
       parameters</li>
+  <li>🎯 <b>Study modes</b> — whether the study modes appear, and whether they
+      may grade cards</li>
   <li>📅 <b>Events</b> — exam countdown list</li>
   <li>✅ <b>Habits</b> — the habit list: add, edit, reorder, archive</li>
   <li>ℹ️ <b>About</b> — version, webview build, and the reset options</li>

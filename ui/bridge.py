@@ -270,6 +270,10 @@ def handle_message(handled, message: str, context):
         conf.set_value("shownWelcome", True)
     elif command.startswith("habit:"):
         _habit_command(command[len("habit:"):])
+    elif command.startswith("qz:"):
+        from ..screens import quizlet
+
+        quizlet.command(command[len("qz:"):])
     elif command.startswith("collapse:"):
         parts = command.split(":")
         if len(parts) == 3:

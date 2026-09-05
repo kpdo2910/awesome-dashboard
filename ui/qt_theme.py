@@ -383,6 +383,15 @@ def nav_icon(kind: str, color: str) -> str:
             '<path d="m8.4 11.6 2.1 2.2 4.5-4.7" fill="none" stroke="#fff"'
             ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
         ),
+        # a card with a second one behind it and a play triangle: the study
+        # modes are the deck being *used* rather than the deck being listed
+        "modes": (
+            '<rect x="4.4" y="6.4" width="10.6" height="8.2" rx="2"'
+            ' fill="none" stroke="#fff" stroke-width="1.4"/>'
+            '<path d="M8 18.4h8.8a1.8 1.8 0 0 0 1.8-1.8V9.4" fill="none"'
+            ' stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>'
+            '<path d="M8.6 8.8v3.4l2.9-1.7z" fill="#fff"/>'
+        ),
         # stacked cards — distinct from the "general" hamburger at a glance
         "decks": (
             '<rect x="7.4" y="4.6" width="10.4" height="7" rx="1.8"'
@@ -685,6 +694,20 @@ def settings_dialog_qss() -> str:
     }}
     QPushButton#awdMini:hover {{ background: {inset}; }}
     QPushButton#awdMini:pressed {{ background: {border}; }}
+    /* A quiet text action inside a card. Its own name because #awdMini is a
+       26x20 icon cell whose max-width and max-height silently beat anything
+       the widget asks for, and a label borrowed into it is clipped to a few
+       letters. */
+    QPushButton#awdLinkBtn {{
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: {accent};
+    }}
+    QPushButton#awdLinkBtn:hover {{ background: {inset}; }}
     QPushButton {{
         background: {inset};
         color: {text};

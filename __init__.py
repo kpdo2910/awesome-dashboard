@@ -25,7 +25,8 @@ except ImportError:
 
 from .core import background, conf, stats, themes
 from .features.habits import store as habit_store
-from .screens import card_skin, dashboard, overview, reviewer
+from .features.quizlet import store as quizlet_store
+from .screens import card_skin, dashboard, overview, quizlet, reviewer
 from .ui import bridge, qt_theme, toast
 
 TOOLBAR_CONTEXTS = tuple(
@@ -58,9 +59,12 @@ card_skin.install_space_toggle()
 
 toast.install()
 
-# Habit ticks are written behind a debounce, so every way out of a profile has
-# to flush. Registering the hooks is safe here; nothing reads mw.col yet.
+# Habit ticks and study-mode sessions are written behind a debounce, so every
+# way out of a profile has to flush. Registering the hooks is safe here;
+# nothing reads mw.col yet.
 habit_store.install_hooks()
+quizlet_store.install_hooks()
+quizlet.install_hooks()
 
 
 def _asset(*parts: str) -> str:
@@ -167,11 +171,18 @@ def on_webview_will_set_content(web_content, context) -> None:
             web_content.head += _css("dashboard", "onboarding.css")
             web_content.head += _js("dashboard", "onboarding.js")
     elif isinstance(context, Overview):
-        if config.get("styleOverview", True):
+        if config.get("styleOverview", True) or quizlet.active():
             web_content.head += _theme_shell(theme_vars)
             web_content.head += _add_classes("awd-overview")
             web_content.head += _css("overview", "overview.css")
             web_content.head += _background_layer(config)
+        if config.get("showQuizlet", True):
+            # card_skin.css too: a study mode's Details view is the review
+            # screen's own answer card, built by the same function, so it needs
+            # the same stylesheet rather than a second copy of those rules.
+            web_content.head += _css("reviewer", "card_skin.css")
+            web_content.head += _css("quizlet", "quizlet.css")
+            web_content.head += _js("quizlet", "quizlet.js")
     elif isinstance(context, Reviewer):
         # Theme vars + the per-deck card-skin stylesheet are always available;
         # the skin only activates for decks the user opted in (card_skin.py).

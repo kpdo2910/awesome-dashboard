@@ -7,10 +7,13 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-## [1.6.0] - 2026-09-05
-
 ### Added
 
+- **Study modes** — Flashcards, Learn, Test and Match, opened from a deck's
+  overview. They leave the review schedule alone unless you switch grading on.
+- Each deck chooses which fields go on the front and which on the back, in
+  **Settings → Study modes**; a revealed answer has a **Details** button that
+  opens the full card exactly as the review screen draws it.
 - **Auto-grading** — let the clock pick the rating. A countdown bar runs under
   the card while you think, and how long you took before showing the answer
   decides between Easy, Good and Hard; let the bar run out and the answer is
@@ -196,8 +199,7 @@ First public release. Tested on Anki 26.08.
   that also retints Anki's own screens.
 - English, Tiếng Việt and 日本語, following Anki's language by default.
 
-[unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.6.0...HEAD
-[1.6.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.6.0
+[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.5.0...HEAD
 [1.5.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.5.0
 [1.4.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.4.0
 [1.3.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.3.0

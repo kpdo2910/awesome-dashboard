@@ -369,6 +369,69 @@ def _answer_page(progress: str, card, answer_card_html: str) -> str:
     )
 
 
+def answer_body(note, counter: str = "", clean=None) -> str:
+    """The inside of a skinned answer card, built from a note's own fields.
+
+    Shared with the study modes, so a revealed answer looks the same wherever
+    it is revealed rather than being two designs that drift — see
+    `screens/quizlet.py`. Returns "" when no field reads as the word, which is
+    the caller's cue to fall back to whatever Anki rendered.
+
+    `clean` filters each field's markup on the way in. The reviewer passes
+    nothing, because that page renders the note's HTML anyway; a study mode
+    passes a script stripper, because its payload reaches the page as JSON and
+    is written into `innerHTML`.
+    """
+    buckets, sounds, images = _collect(note)
+    if clean is not None:
+        buckets = {role: [clean(value) for value in values]
+                   for role, values in buckets.items()}
+    word = (buckets.get("word") or [""])[0]
+    if not word:
+        return ""
+
+    reading = (buckets.get("reading") or [""])[0]
+    tag_text = (buckets.get("tag") or [""])[0]
+    top_left = (
+        f'<span class="awd-skin-chip">{html_mod.escape(tag_text)}</span>'
+        if tag_text else "<span></span>"
+    )
+    reading_html = (
+        f'<div class="awd-skin-reading">{html_mod.escape(reading)}</div>'
+        if reading else ""
+    )
+    word_html = (
+        '<div class="awd-skin-wordrow">'
+        f'<span class="awd-skin-word">{html_mod.escape(word)}</span>'
+        f"{_audio_button(sounds)}</div>"
+    )
+    image_html = ""
+    if images:
+        src = html_mod.escape(images[0], quote=True)
+        image_html = f'<div class="awd-skin-img"><img src="{src}"></div>'
+
+    example_html = ""
+    examples = [e for e in (buckets.get("example") or []) if e]
+    if examples:
+        example_html = _fold(
+            tr("skin_example"), "".join(f"<p>{e}</p>" for e in examples),
+            accent=True,
+        )
+
+    notes_html = ""
+    notes = [n for n in (buckets.get("notes") or []) if n]
+    if notes:
+        notes_html = _fold(tr("skin_notes"), "".join(f"<p>{n}</p>" for n in notes))
+
+    return f"""<div class="awd-skin-top">{top_left}{counter}</div>
+    <div class="awd-skin-center">{reading_html}{word_html}</div>
+    <hr class="awd-skin-line">
+    {_meanings_html(buckets.get("meaning") or [])}
+    {image_html}
+    {example_html}
+    {notes_html}"""
+
+
 def on_card_will_show(text: str, card, kind: str) -> str:
     if kind not in ("reviewQuestion", "reviewAnswer"):
         return text
@@ -396,67 +459,17 @@ def on_card_will_show(text: str, card, kind: str) -> str:
                 progress, card, f'<div class="awd-skin-card answer">{text}</div>'
             )
 
-        buckets, sounds, images = _collect(note)
-        word = (buckets.get("word") or [""])[0]
-        if not word:
-            return _answer_page(
-                progress, card, f'<div class="awd-skin-card answer">{text}</div>'
-            )
-
-        reading = (buckets.get("reading") or [""])[0]
-        tag_text = (buckets.get("tag") or [""])[0]
-
-        top_left = (
-            f'<span class="awd-skin-chip">{html_mod.escape(tag_text)}</span>'
-            if tag_text else "<span></span>"
-        )
         stats = _progress(card)
         counter = (
             f'<span class="awd-skin-count">{stats[0]}/{stats[1]}</span>'
             if stats else ""
         )
-
-        reading_html = (
-            f'<div class="awd-skin-reading">{html_mod.escape(reading)}</div>'
-            if reading else ""
-        )
-        word_html = (
-            '<div class="awd-skin-wordrow">'
-            f'<span class="awd-skin-word">{html_mod.escape(word)}</span>'
-            f"{_audio_button(sounds)}</div>"
-        )
-
-        image_html = ""
-        if images:
-            src = html_mod.escape(images[0], quote=True)
-            image_html = f'<div class="awd-skin-img"><img src="{src}"></div>'
-
-        example_html = ""
-        examples = [e for e in (buckets.get("example") or []) if e]
-        if examples:
-            example_html = _fold(
-                tr("skin_example"),
-                "".join(f"<p>{e}</p>" for e in examples),
-                accent=True,
+        body = answer_body(note, counter)
+        if not body:
+            return _answer_page(
+                progress, card, f'<div class="awd-skin-card answer">{text}</div>'
             )
-
-        notes_html = ""
-        notes = [n for n in (buckets.get("notes") or []) if n]
-        if notes:
-            notes_html = _fold(
-                tr("skin_notes"),
-                "".join(f"<p>{n}</p>" for n in notes),
-            )
-
-        answer_card = f"""<div class="awd-skin-card answer">
-    <div class="awd-skin-top">{top_left}{counter}</div>
-    <div class="awd-skin-center">{reading_html}{word_html}</div>
-    <hr class="awd-skin-line">
-    {_meanings_html(buckets.get("meaning") or [])}
-    {image_html}
-    {example_html}
-    {notes_html}
-  </div>"""
+        answer_card = f'<div class="awd-skin-card answer">{body}</div>'
         return _answer_page(progress, card, answer_card)
     except Exception as e:
         print(f"[Awesome Dashboard] card skin failed: {e}")

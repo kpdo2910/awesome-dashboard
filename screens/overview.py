@@ -240,6 +240,15 @@ def _render_congrats(self: Overview, deck) -> None:
 def render_page(self: Overview) -> None:
     if not mw.col:
         return
+
+    # A study-mode session lives in this webview, so it is checked before the
+    # redesign is: turning the overview redesign off mid-session must not
+    # leave the user looking at a screen with no way back.
+    from . import quizlet
+
+    if quizlet.active():
+        return quizlet.render(self)
+
     if not conf.get().get("styleOverview", True):
         return _original_render_page(self)
 
@@ -293,6 +302,11 @@ def render_page(self: Overview) -> None:
             f'{tr("study_now")}</button>'
             f'<div class="awd-ov-study-hint">{tr("nothing_due")}</div>'
         )
+    if conf.get().get("showQuizlet", True) and not deck.get("dyn"):
+        # Filtered decks are left out: their cards are on loan from elsewhere,
+        # and a Learn session keyed to this deck would empty itself the moment
+        # the filter was rebuilt.
+        button += quizlet.button_html(did)
 
     body = f"""
     <div class="awd-ov">
