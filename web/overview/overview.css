@@ -165,6 +165,47 @@ html.awd-overview .awd-ov-study:active {
   margin-top: 9px;
 }
 
+/* ---------- the entry buttons under the study button ----------
+   Study modes and Cards preview both draw one of these, so the rule
+   belongs to the screen that holds them rather than to either feature.
+   `box-sizing` and `margin` are restated because Anki's own webview.css
+   sets `* { box-sizing: content-box }` and `button { margin: 0 4px }`,
+   and `:hover` restates background and border because its `button:hover`
+   gradient outranks a plain class at (0,1,1). */
+.awd-ov-extras {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+html.awd-overview .awd-ov .awd-ov-modes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0;
+  padding: 9px 18px;
+  box-sizing: border-box;
+  border-radius: 11px;
+  border: 1px solid var(--awd-border);
+  background: var(--awd-surface);
+  box-shadow: 0 1px 3px var(--awd-shadow);
+  color: var(--awd-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s ease;
+}
+html.awd-overview .awd-ov .awd-ov-modes:hover {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-accent);
+  color: var(--awd-accent);
+}
+html.awd-overview .awd-ov .awd-ov-modes:active { box-shadow: none; }
+.awd-ov .awd-ov-modes svg { width: 15px; height: 15px; }
+
 /* ---------- cards (forecast, subdecks) ---------- */
 .awd-ov-card {
   background: var(--awd-surface);

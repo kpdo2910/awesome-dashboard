@@ -274,6 +274,10 @@ def handle_message(handled, message: str, context):
         from ..screens import quizlet
 
         quizlet.command(command[len("qz:"):])
+    elif command.startswith("cp:"):
+        from ..screens import preview
+
+        preview.command(command[len("cp:"):])
     elif command.startswith("collapse:"):
         parts = command.split(":")
         if len(parts) == 3:

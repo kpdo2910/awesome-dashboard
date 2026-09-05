@@ -358,6 +358,11 @@ def _deck_name(deck_id: int) -> str:
 def open_picker(deck_id: int) -> None:
     """Read the deck once and show the mode picker."""
     global _active
+    from . import preview
+
+    # One webview, one screen in it — see `preview.open_grid` for the other
+    # half of this.
+    preview.close()
     entries, skipped = _sample_pool(deck_id)
     _active = {
         "deck": int(deck_id),

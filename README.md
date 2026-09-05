@@ -83,6 +83,26 @@ the review screen draws it. Session lengths and question kinds are set there
 too, on the deck, rather than in a window of their own. Cloze and Image Occlusion cards are left to
 Anki's own reviewer.
 
+## 🖼️ Cards preview
+
+Every card in a deck as a grid of flippable tiles, opened with the **Cards
+preview** button on its overview. Like the study modes it draws into the same
+window — there is no second one to open or close.
+
+Click a tile to turn it over, or set it to turn on hover; **Flip all** shows
+every answer at once. Columns, rows per page, tile shape (tall through wide),
+text size and card order are set on the grid itself, and they are remembered.
+A dot in the corner says whether a card is new, learning, due, suspended or
+buried, and a flag shows as a coloured square.
+
+Tiles show what Anki itself renders, so cloze deletions, conditional templates
+and furigana all come out right — **images and audio included**, which is the
+one thing the add-on this was modelled on says it cannot do. TeX is typeset
+with Anki's own MathJax, fetched only when a card on screen actually has any.
+What a tile does *not* use is the note type's own stylesheet: it is written for
+a full screen and falls apart at 270px, so tiles are drawn in the add-on's
+palette instead, with the font sizes a field asks for scaled to fit.
+
 ## 🎴 Review screen
 
 The header (back, deck name, edit, more) and footer (remaining counts, then
@@ -121,7 +141,7 @@ Eight pages, laid out like macOS System Settings:
 | 🎨 Appearance | Theme, light/dark mode, which screens to theme, hiding Anki's native bars |
 | 🗂️ Decks | Per-deck card skin and auto-grading, answer-time thresholds, and rename / options / export / delete |
 | 🧠 FSRS | Enable FSRS, desired retention, optimise and evaluate parameters |
-| 🎯 Study modes | Whether the study modes appear, and whether they may grade cards |
+| 🎯 Study modes | Whether the study modes and the cards preview appear, and whether a study mode may grade cards |
 | 📅 Events | Exam countdown list |
 | ✅ Habits | The habit list: add, edit, reorder, archive |
 | ℹ️ About | Version, webview build, and the reset options |
