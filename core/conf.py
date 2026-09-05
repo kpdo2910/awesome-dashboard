@@ -23,6 +23,13 @@ DEFAULTS = {
     "styleReviewer": True,
     "events": [],
     "cardSkinDecks": {},
+    # Thresholds in seconds; hardMax also draws the question-side countdown.
+    "autoGrade": False,
+    "autoGradeEasyMax": 5,
+    "autoGradeGoodMax": 10,
+    "autoGradeHardMax": 15,
+    # Partial per-deck overrides, merged root-first — see autograde/rules.py.
+    "autoGradeDecks": {},
     # The fallback for decks with no entry of their own, which is every deck
     # added after the add-on was installed.
     "cardSkinDefault": True,
@@ -41,6 +48,37 @@ DEFAULTS = {
     # 0 leaves it sharp, which is the only way to actually read the image
     # through a card rather than see a smear of its colours.
     "cardBlur": 18,
+    # Quizlet-style study modes, opened from the deck overview.
+    "showQuizlet": True,
+    # Which side of the card is the prompt: "term", "definition" or "mixed".
+    "qzDirection": "term",
+    "qzTestLength": 20,
+    "qzTestTypes": ["choice", "typed"],
+    "qzMatchPairs": 6,
+    # Terms taken into one Learn session. 0 means the whole deck.
+    "qzSessionSize": 40,
+    # Off by default, and deliberately: a study mode is practice, and passing
+    # its answers to the scheduler would reschedule cards the user never saw in
+    # the reviewer. When on, only cards already due are touched.
+    "qzGrade": False,
+    # Cards preview — the deck's card list as a flippable grid, opened from
+    # the same place as the study modes.
+    "showPreview": True,
+    # Tiles across and rows down; their product is the page size, and Python
+    # slices the card list with it. See features/preview/grid.py.
+    "cpColumns": 4,
+    "cpRows": 3,
+    # Tile shape, tall through wide: "3:4", "1:1", "4:3" or "16:9".
+    # Square by default: measured at four columns in an 1180px window, a
+    # 3:4 tile is 269x358 and a flashcard's few words leave most of it
+    # empty.
+    "cpRatio": "1:1",
+    # Text scale inside a tile, as a percentage.
+    "cpFont": 100,
+    # What turns a tile over: "click" or "hover".
+    "cpFlip": "click",
+    # Card order: "added", "due" or "alpha".
+    "cpSort": "added",
     "shownWelcome": False,
     # Nav page the settings dialog reopens on. A page id, not an index, so
     # adding or reordering a nav entry cannot land the user somewhere else.

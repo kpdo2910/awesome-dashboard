@@ -18,9 +18,9 @@ across six colour
 themes with matching light and dark palettes, in English, Vietnamese, Brazilian
 Portuguese and Japanese.</p>
 
-<img src="https://raw.githubusercontent.com/kpdo2910/awesome-dashboard/v1.3.0/docs/images/feature-en.png" width="700" alt="Awesome Dashboard screenshot">
+<img src="https://raw.githubusercontent.com/kpdo2910/awesome-dashboard/v1.6.0/docs/images/feature-en.png" width="700" alt="Awesome Dashboard screenshot">
 
-<p><b>🆕 New in 1.5.0</b> — Português (Brasil): a full Brazilian Portuguese translation contributed by robsonssantos83. The add-on follows Anki's own language, so it appears on its own for anyone already running Anki in Portuguese.</p>
+<p><b>🆕 New in 1.6.0</b> — three ways to study a deck without the review queue. <b>Study modes</b>: Flashcards, Learn, Test and Match, opened from a deck's overview and leaving your schedule alone unless you switch grading on. <b>Cards preview</b>: every card in the deck as a grid of flippable tiles, with images, audio and TeX. And <b>auto-grading</b>, which lets a countdown pick the rating from how long you took, so a review is two keys instead of four.</p>
 
 <p>Requires Anki 23.10 or newer. Developed and tested on Anki 26.08.</p>
 
@@ -54,6 +54,49 @@ button, a <b>7-day forecast</b> built from the scheduler's real due dates, the
 subdeck list, and quiet footer actions (options, custom study, rename, export,
 description). Anki's own bars are hidden here — the page carries its own.</p>
 
+<h3>🎯 Study modes</h3>
+<p>Four Quizlet-style ways to work through a deck, opened with the <b>Study
+modes</b> button on its overview. They run in the same window, and by default
+none of them touches your review schedule.</p>
+<ul>
+  <li><b>Flashcards</b> — flip through the deck at your own pace, shuffle, play
+      audio</li>
+  <li><b>Learn</b> — rounds of seven that get harder as a term sticks: true or
+      false, then multiple choice, then typing it out. Miss one and it drops
+      back a level</li>
+  <li><b>Test</b> — a fixed number of questions in a mix of kinds, marked at the
+      end with a list of what you got wrong</li>
+  <li><b>Match</b> — pair terms with definitions against the clock, with a
+      personal best per deck</li>
+</ul>
+<p>Typed answers allow a spelling slip and say so rather than accepting it
+silently; a field holding several synonyms accepts any one of them. A Learn
+session is saved in your collection, so it survives closing Anki and syncs
+between desktops.</p>
+<p><b>Which fields go on each side</b> is worked out from the card template, not
+from the order the fields happen to be in. Pick them from the deck's own
+Study modes screen — up to two fields on the front and three on the back — where
+the first field on a side is the one being asked about, the rest is shown
+alongside it, and a <b>Details</b> button on any revealed answer opens the whole
+card exactly as the review screen draws it. Session lengths and question kinds
+are set there too, rather than in a window of their own. Cloze and Image Occlusion
+cards are left to Anki's own reviewer.</p>
+
+<h3>🖼️ Cards preview</h3>
+<p>Every card in a deck as a grid of flippable tiles, opened with the <b>Cards
+preview</b> button on its overview. Like the study modes it draws into the same
+window — there is no second one to open or close. Click a tile to turn it over,
+or set it to turn on hover; <b>Flip all</b> shows every answer at once. Columns,
+rows per page, tile shape, text size and card order are set on the grid itself
+and remembered, and a dot in the corner says whether a card is new, learning,
+due, suspended or buried.</p>
+<p>Tiles show what Anki itself renders, so cloze deletions, conditional
+templates and furigana all come out right — <b>images and audio included</b>.
+TeX is typeset with Anki's own MathJax, fetched only when a card on screen
+actually has any. A tile does not use the note type's own stylesheet: it is
+written for a full screen and falls apart at 270px, so tiles are drawn in the
+add-on's palette, with the font sizes a field asks for scaled to fit.</p>
+
 <h3>🎴 Review screen</h3>
 <p>The header (back, deck name, edit, more) and footer (remaining counts, then
 Show answer or the four rating buttons) are drawn in the page, so Anki's top
@@ -65,15 +108,18 @@ example and notes — with a horizontal flip animation. Click or press Space to
 flip; rate with the arrow keys or a mouse swipe and the card flies away.</p>
 
 <h3>⚙️ Settings</h3>
-<p>Seven pages, laid out like macOS System Settings:</p>
+<p>Eight pages, laid out like macOS System Settings:</p>
 <ul>
   <li>📋 <b>General</b> — name, greeting, language, sidebar mode, dashboard
       sections, Pomodoro lengths</li>
   <li>🎨 <b>Appearance</b> — theme, light/dark mode, which screens to theme, hiding
       Anki's native bars</li>
-  <li>🗂️ <b>Decks</b> — per-deck card skin, and rename / options / export / delete</li>
+  <li>🗂️ <b>Decks</b> — per-deck card skin and auto-grading, answer-time
+      thresholds, and rename / options / export / delete</li>
   <li>🧠 <b>FSRS</b> — enable FSRS, desired retention, optimise and evaluate
       parameters</li>
+  <li>🎯 <b>Study modes</b> — whether the study modes and the cards preview
+      appear, and whether a study mode may grade cards</li>
   <li>📅 <b>Events</b> — exam countdown list</li>
   <li>✅ <b>Habits</b> — the habit list: add, edit, reorder, archive</li>
   <li>ℹ️ <b>About</b> — version, webview build, and the reset options</li>

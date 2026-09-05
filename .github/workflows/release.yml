@@ -57,9 +57,21 @@ jobs:
         if: steps.gate.outputs.fresh == 'yes'
         run: python3 tools/check_locales.py
 
+      - name: Config-key parity
+        if: steps.gate.outputs.fresh == 'yes'
+        run: python3 tools/check_config.py
+
       - name: Habit logic tests
         if: steps.gate.outputs.fresh == 'yes'
         run: python3 tools/test_habits.py
+
+      - name: Auto-grade rule tests
+        if: steps.gate.outputs.fresh == 'yes'
+        run: python3 tools/test_autograde.py
+
+      - name: Study-mode logic tests
+        if: steps.gate.outputs.fresh == 'yes'
+        run: python3 tools/test_quizlet.py
 
       - name: Python syntax
         if: steps.gate.outputs.fresh == 'yes'

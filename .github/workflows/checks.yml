@@ -4,7 +4,7 @@ name: checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 permissions:
@@ -28,8 +28,17 @@ jobs:
       - name: Locale parity
         run: python3 tools/check_locales.py
 
+      - name: Config-key parity
+        run: python3 tools/check_config.py
+
       - name: Habit logic tests
         run: python3 tools/test_habits.py
+
+      - name: Auto-grade rule tests
+        run: python3 tools/test_autograde.py
+
+      - name: Study-mode logic tests
+        run: python3 tools/test_quizlet.py
 
       - name: Python syntax
         run: find . -name '*.py' -not -path './.git/*' -exec python3 -m py_compile {} +
@@ -42,6 +51,9 @@ jobs:
 
   version:
     name: version bump
+    # main only: a pull request into dev is not a release, and dev holds the
+    # last released version until one is asked for.
+    if: github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

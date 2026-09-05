@@ -31,7 +31,7 @@ from aqt.qt import (
     QWidget,
 )
 
-from ..core import conf
+from ..core import conf, decks
 from ..core.translations import (
     anki_language_code,
     available_languages,
@@ -39,7 +39,7 @@ from ..core.translations import (
     fmt_int,
     tr,
 )
-from .qtutil import AwdLineEdit
+from .qtutil import AwdInfoIcon, AwdLineEdit
 
 HOMEPAGE = "https://github.com/kpdo2910/awesome-dashboard"
 ANKIWEB_CODE = "1243176816"
@@ -371,6 +371,7 @@ class AwdSettingsDialog(QDialog):
             ("look", tr("page_look"), "#007AFF"),
             ("decks", tr("page_decks"), "#34C759"),
             ("fsrs", "FSRS", "#AF52DE"),
+            ("modes", tr("page_modes"), "#00C7BE"),
             ("events", tr("page_events"), "#FF9500"),
             ("habits", tr("page_habits"), "#FF2D55"),
             ("about", tr("page_about"), "#5856D6"),
@@ -411,6 +412,7 @@ class AwdSettingsDialog(QDialog):
         self._stack.addWidget(self._build_look_page(config))
         self._stack.addWidget(self._build_decks_page(config))
         self._stack.addWidget(self._build_fsrs_page())
+        self._stack.addWidget(self._build_modes_page(config))
         self._stack.addWidget(self._build_events_page(config))
         self._stack.addWidget(self._build_habits_page())
         self._stack.addWidget(self._build_about_page())
@@ -452,7 +454,8 @@ class AwdSettingsDialog(QDialog):
         box.setSpacing(30)
         return page, box
 
-    def _row(self, title: str, control=None, subtitle: str = "") -> QWidget:
+    def _row(self, title: str, control=None, subtitle: str = "",
+             info: str = "") -> QWidget:
         row = QWidget()
         layout = QHBoxLayout(row)
         layout.setContentsMargins(14, 9, 14, 9)
@@ -470,6 +473,9 @@ class AwdSettingsDialog(QDialog):
         layout.addLayout(text_box, 1)
         if control is not None:
             layout.addWidget(control, 0, Qt.AlignmentFlag.AlignVCenter)
+        if info:
+            layout.addWidget(AwdInfoIcon(info, row), 0,
+                             Qt.AlignmentFlag.AlignVCenter)
         return row
 
     def _group(self, *rows: QWidget) -> QWidget:
@@ -957,6 +963,47 @@ class AwdSettingsDialog(QDialog):
             finally:
                 mw.progress.finish()
 
+    def _build_modes_page(self, config: dict) -> QScrollArea:
+        """The settings the deck overview's extra screens do not own.
+
+        Everything else — which fields go on each side, session lengths,
+        question kinds, the preview grid's shape — lives on the screen itself,
+        where the deck is already known. This page had to grow a deck picker to
+        ask what that screen had already said, and a modal window over a study
+        session is a heavier answer than the question deserves.
+
+        Cards preview sits here rather than on a page of its own: a new nav
+        entry has to be named in `README.md`, `README.vi.md` and
+        `docs/ankiweb-description.html` too, and nothing breaks when it is not.
+        """
+        page, box = self._page()
+
+        self.qz_show = self._switch(bool(config.get("showQuizlet", True)))
+        self._block(
+            box,
+            tr("qz_title"),
+            self._row(tr("qz_show"), self.qz_show, subtitle=tr("qz_where")),
+        )
+
+        self.qz_grade = self._switch(bool(config.get("qzGrade", False)))
+        self._block(
+            box,
+            tr("qz_grade"),
+            self._row(tr("qz_grade"), self.qz_grade, subtitle=tr("qz_grade_desc")),
+        )
+
+        # Only whether the feature appears. Columns, shape, text size and order
+        # are set on the grid itself, where the deck is already known.
+        self.cp_show = self._switch(bool(config.get("showPreview", True)))
+        self._block(
+            box,
+            tr("cp_title"),
+            self._row(tr("cp_show"), self.cp_show, subtitle=tr("cp_where")),
+        )
+
+        box.addStretch(1)
+        return self._wrap_page(page)
+
     def _build_events_page(self, config: dict) -> QScrollArea:
         page, box = self._page()
 
@@ -1031,10 +1078,12 @@ class AwdSettingsDialog(QDialog):
         return self._wrap_page(page)
 
     def _build_decks_page(self, config: dict) -> QScrollArea:
-        """Card skin per top-level deck; the choice covers all its subdecks."""
+        """Everything that can be set per deck, in one table."""
         page, box = self._page()
 
+        from ..features.autograde import rules as ag_rules
         from ..screens import card_skin
+        from .autograde import deck_controls
 
         self._skin_switches = {}
         # Effective (possibly inherited) value at open time, so _save only
@@ -1042,6 +1091,11 @@ class AwdSettingsDialog(QDialog):
         self._skin_initial = {}
         # Subdeck ids, so flipping a parent can clear their stale overrides.
         self._skin_descendants = {}
+        self._grade_switches = {}
+        self._grade_initial = {}
+        self._grade_entries = {}
+        self._grade_names = {}
+        stored_decks = dict(config.get("autoGradeDecks") or {})
         rows = []
         try:
             tree = mw.col.sched.deck_due_tree()
@@ -1056,33 +1110,84 @@ class AwdSettingsDialog(QDialog):
                 ids.extend(descendants(child))
             return ids
 
+        header_row = self._row("", deck_controls(
+            self._column_caption(tr("card_skin_short")),
+            self._column_caption(tr("auto_grade_short")),
+        ))
         for node in nodes:
             did = int(node.deck_id)
-            enabled = card_skin.skin_enabled_for_deck(did)
-            switch = self._switch(enabled)
-            self._skin_switches[did] = switch
-            self._skin_initial[did] = enabled
+            skin_on = card_skin.skin_enabled_for_deck(did)
+            skin_switch = self._switch(skin_on)
+            self._skin_switches[did] = skin_switch
+            self._skin_initial[did] = skin_on
             self._skin_descendants[did] = descendants(node)
+
+            grade_on = ag_rules.resolve(config, decks.chain_ids(did))["enabled"]
+            grade_switch = self._switch(grade_on)
+            self._grade_switches[did] = grade_switch
+            self._grade_initial[did] = grade_on
+            entry = stored_decks.get(str(did))
+            self._grade_entries[did] = dict(entry) if isinstance(entry, dict) else {}
+            self._grade_names[did] = node.name
+
+            edit = QPushButton("⋯")
+            edit.setObjectName("awdMini")
+            edit.setCursor(Qt.CursorShape.PointingHandCursor)
+            edit.setToolTip(tr("ag_deck_edit"))
+            edit.clicked.connect(lambda _c, d=did: self._edit_deck_grade(d))
+
             subtitle = ""
             count = len(self._skin_descendants[did])
             if count:
                 subtitle = tr("subdecks_included", n=count)
-            rows.append(self._row(node.name, switch, subtitle))
+            rows.append(self._row(
+                node.name,
+                deck_controls(skin_switch, grade_switch, edit),
+                subtitle,
+            ))
 
         if rows:
-            self._block(box, tr("card_skin_section"), *rows, hint=tr("card_skin_hint"))
+            self._block(box, tr("deck_settings_section"), header_row, *rows,
+                        hint=tr("deck_settings_hint"))
         else:
             empty = QLabel(tr("empty_title"))
             empty.setObjectName("awdRowSub")
             box.addWidget(empty)
 
-        # A policy rather than a deck, so it sits in its own card below the list.
+        self.auto_grade = self._switch(bool(config.get("autoGrade", False)))
+        self.grade_spins = {}
+        grade_rows = [self._row(tr("auto_grade"), self.auto_grade,
+                                info=tr("auto_grade_info"))]
+        # Translated here rather than by key, so tools/check_locales.py can
+        # still see these as used — it only reads literal tr("...") calls.
+        for key, conf_key, label, info in (
+            ("easyMax", "autoGradeEasyMax", tr("ag_easy_max"), tr("ag_easy_info")),
+            ("goodMax", "autoGradeGoodMax", tr("ag_good_max"), tr("ag_good_info")),
+            ("hardMax", "autoGradeHardMax", tr("ag_hard_max"), tr("ag_hard_info")),
+        ):
+            spin = QSpinBox()
+            spin.setRange(1, 600)
+            spin.setSuffix(" s")
+            spin.setValue(int(config.get(conf_key, ag_rules.DEFAULTS[key])))
+            spin.setFixedWidth(96)
+            spin.valueChanged.connect(self._sync_grade_order)
+            self.grade_spins[key] = spin
+            grade_rows.append(self._row(label, spin, info=info))
+        hint = tr("auto_grade_hint")
+        if not config.get("styleReviewer", True):
+            hint = tr("auto_grade_needs_chrome")
+            self.auto_grade.setEnabled(False)
+            for spin in self.grade_spins.values():
+                spin.setEnabled(False)
+        self._block(box, tr("auto_grade_section"), *grade_rows, hint=hint)
+        self._sync_grade_order()
+
         self.card_skin_default = self._switch(
             bool(config.get("cardSkinDefault", True))
         )
         self._block(
             box,
-            "",
+            tr("new_decks_section"),
             self._row(tr("card_skin_default"), self.card_skin_default),
             hint=tr("card_skin_default_hint"),
         )
@@ -1124,6 +1229,38 @@ class AwdSettingsDialog(QDialog):
 
         box.addStretch(1)
         return self._wrap_page(page)
+
+    def _column_caption(self, text: str) -> QLabel:
+        label = QLabel(text)
+        label.setObjectName("awdRowSub")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        return label
+
+    def _sync_grade_order(self) -> None:
+        """Each threshold floors the next; they cannot be entered backwards."""
+        floor = 1
+        for key in ("easyMax", "goodMax", "hardMax"):
+            spin = self.grade_spins[key]
+            spin.setMinimum(floor)
+            floor = spin.value() + 1
+
+    def _edit_deck_grade(self, did: int) -> None:
+        """Open this deck's own thresholds."""
+        from ..features.autograde import rules as ag_rules
+        from .autograde import AwdDeckGradeDialog
+
+        config = conf.get()
+        config["autoGradeEasyMax"] = self.grade_spins["easyMax"].value()
+        config["autoGradeGoodMax"] = self.grade_spins["goodMax"].value()
+        config["autoGradeHardMax"] = self.grade_spins["hardMax"].value()
+        chain = [d for d in decks.chain_ids(did) if d != did]
+        inherited = ag_rules.resolve(config, chain)
+        dialog = AwdDeckGradeDialog(
+            self, self._grade_names.get(did, ""),
+            self._grade_entries.get(did, {}), inherited,
+        )
+        if dialog.exec():
+            self._grade_entries[did] = dialog.entry()
 
     def _deck_action(self, kind: str) -> None:
         """Run one of Anki's own deck commands on the selected deck.
@@ -1376,6 +1513,8 @@ class AwdSettingsDialog(QDialog):
         "showHeatmap",
         "showPomodoro",
         "showHabits",
+        "showQuizlet",
+        "showPreview",
         "hideNativeBottomBar",
         "hideNativeToolbar",
         "styleOverview",
@@ -1431,6 +1570,32 @@ class AwdSettingsDialog(QDialog):
             # and let the whole subtree follow this switch.
             for child_id in self._skin_descendants.get(did, []):
                 skin_map.pop(str(child_id), None)
+        grade_decks = dict(config.get("autoGradeDecks") or {})
+        for did, switch in getattr(self, "_grade_switches", {}).items():
+            entry = dict(grade_decks.get(str(did)) or {})
+            # The thresholds and the switch are stored in one entry, so an
+            # untouched switch must not drop a threshold override the dialog
+            # just set — and vice versa.
+            entry = {k: v for k, v in entry.items() if k != "enabled"}
+            entry.update(self._grade_entries.get(did, {}))
+            if switch.isChecked() != self._grade_initial.get(did):
+                entry["enabled"] = switch.isChecked()
+                # A subdeck's own entry would win over this one, so clear the
+                # switch from the whole subtree and let it follow the parent.
+                for child_id in self._skin_descendants.get(did, []):
+                    child = grade_decks.get(str(child_id))
+                    if isinstance(child, dict):
+                        child.pop("enabled", None)
+                        if child:
+                            grade_decks[str(child_id)] = child
+                        else:
+                            grade_decks.pop(str(child_id), None)
+            elif "enabled" in (grade_decks.get(str(did)) or {}):
+                entry["enabled"] = grade_decks[str(did)]["enabled"]
+            if entry:
+                grade_decks[str(did)] = entry
+            else:
+                grade_decks.pop(str(did), None)
         config.update(
             {
                 "userName": self.name_edit.value().strip(),
@@ -1466,6 +1631,14 @@ class AwdSettingsDialog(QDialog):
                 "events": self._events,
                 "cardSkinDecks": skin_map,
                 "cardSkinDefault": self.card_skin_default.isChecked(),
+                "autoGrade": self.auto_grade.isChecked(),
+                "autoGradeEasyMax": self.grade_spins["easyMax"].value(),
+                "autoGradeGoodMax": self.grade_spins["goodMax"].value(),
+                "autoGradeHardMax": self.grade_spins["hardMax"].value(),
+                "autoGradeDecks": grade_decks,
+                "showQuizlet": self.qz_show.isChecked(),
+                "qzGrade": self.qz_grade.isChecked(),
+                "showPreview": self.cp_show.isChecked(),
                 # Rides along with Save so Cancel leaves the reopen page alone,
                 # like every other field in this dialog.
                 "settingsPage": self._page_keys[self._stack.currentIndex()],

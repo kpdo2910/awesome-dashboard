@@ -53,6 +53,52 @@ ngày tới** lấy từ ngày đến hạn thật trong lịch, danh sách bộ
 thao tác mờ ở dưới (tuỳ chọn, học tuỳ biến, đổi tên, xuất, mô tả). Hai thanh
 gốc của Anki được ẩn ở màn này vì trang đã tự có.
 
+## 🎯 Chế độ học
+
+Bốn cách học một bộ thẻ theo kiểu Quizlet, mở bằng nút **Chế độ học** ở màn
+hình bộ thẻ. Chúng chạy ngay trong cửa sổ hiện tại — không có webview thứ hai,
+không phải ứng dụng riêng — và mặc định không đụng gì tới lịch ôn tập.
+
+| Chế độ | Nội dung |
+| --- | --- |
+| **Thẻ lật** | Lật thẻ theo nhịp của bạn, xáo trộn, phát âm thanh |
+| **Học** | Từng vòng bảy thẻ, khó dần khi bạn đã nhớ: đúng/sai, rồi trắc nghiệm, rồi tự gõ. Sai một câu là tụt lại một bậc |
+| **Kiểm tra** | Số câu cố định, trộn nhiều dạng, chấm điểm ở cuối kèm danh sách câu sai |
+| **Ghép cặp** | Ghép từ với nghĩa, tính giờ, lưu kỷ lục riêng cho từng bộ thẻ |
+
+Câu tự gõ chấp nhận lỗi chính tả nhẹ — đảo hai chữ cái, hoặc sai một ký tự ở từ
+dài — và nói rõ là "gần đúng" chứ không lặng lẽ cho qua; trường chứa nhiều nghĩa
+thì gõ nghĩa nào cũng được. Phiên Học được lưu trong collection nên còn nguyên
+sau khi tắt Anki và đồng bộ được giữa các máy.
+
+**Trường nào ở mặt trước, trường nào ở mặt sau** được suy ra từ mẫu thẻ chứ
+không phải theo thứ tự khai báo — nên loại thẻ có trường đầu tiên là số thứ tự
+vẫn ra đúng từ, và thẻ chiều ngược lại là một câu hỏi khác chứ không lặp lại câu
+cũ. Chọn ngay trên màn Chế độ học của bộ thẻ đó, mỗi loại thẻ một thiết lập — tối đa
+hai trường mặt trước, ba trường mặt sau — trường đầu tiên ở mỗi mặt là trường được hỏi, những trường còn
+lại hiện kèm bên cạnh, và mọi đáp án đều có nút **Chi tiết** mở ra toàn bộ thẻ
+đúng như màn ôn tập vẫn vẽ. Độ dài phiên và dạng câu hỏi cũng chỉnh ở đó, trên
+chính bộ thẻ, thay vì trong một cửa sổ riêng. Thẻ Cloze
+và Image Occlusion để dành cho trình ôn tập của Anki.
+
+## 🖼️ Xem trước thẻ
+
+Toàn bộ thẻ của một deck dưới dạng lưới các ô lật được, mở bằng nút **Xem trước
+thẻ** trên overview của deck. Giống các chế độ học, nó vẽ ngay trong cửa sổ hiện
+tại — không có cửa sổ thứ hai nào phải mở rồi đóng.
+
+Bấm vào một ô để lật, hoặc đặt lật khi rê chuột; **Lật tất cả** hiện mọi đáp án
+cùng lúc. Số cột, số hàng mỗi trang, khung ô (từ cao đến rộng), cỡ chữ và thứ tự
+thẻ chỉnh ngay trên lưới, và được ghi nhớ. Một chấm ở góc cho biết thẻ là mới,
+đang học, đến hạn, tạm ngưng hay bị hoãn; cờ hiện thành một ô vuông màu.
+
+Ô hiển thị đúng thứ Anki render ra, nên cloze, template điều kiện và furigana
+đều đúng — **kể cả ảnh và âm thanh**, thứ mà add-on được lấy làm mẫu nói rằng nó
+không làm được. TeX được sắp bằng chính MathJax của Anki, chỉ tải khi trang đang
+xem thực sự có công thức. Thứ mà một ô *không* dùng là stylesheet của note type:
+nó viết cho màn hình đầy và vỡ ở 270px, nên ô được vẽ theo bảng màu của add-on,
+với cỡ chữ mà field yêu cầu được co lại cho vừa.
+
 ## 🎴 Màn ôn thẻ
 
 Thanh trên (quay về, tên bộ thẻ, sửa, thao tác khác) và thanh dưới (số thẻ còn
@@ -65,16 +111,32 @@ lấy từ scheduler nên theo đúng cấu hình bộ thẻ và FSRS.
 dụ và ghi chú thu gọn được — kèm animation lật ngang. Bấm hoặc nhấn Space để
 lật; chấm điểm bằng phím mũi tên hoặc vuốt chuột, thẻ sẽ bay đi.
 
+**Chấm tự động** là tuỳ chọn còn lại, và nó thay đổi cách bạn trả lời. Nút Hiện
+đáp án vẫn y như cũ, bên dưới có thêm thanh đếm ngược cho biết bạn đang ở vùng
+nào — và thời gian bạn mất tới lúc đó sẽ chọn Dễ, Tốt hay Khó thay bạn. Để
+thanh cạn thì đáp án tự hiện và thẻ bị chấm Lại. Sang mặt đáp án, bạn chỉ cần
+nói mình có thuộc hay không — **←** không, **→** có, **Space** để xác nhận —
+thay vì tự chấm mức độ; các phím được ghi ngay dưới thẻ. Bốn nút chấm điểm được
+ẩn đi, và chỉ cần bấm vào kết quả là chúng hiện lại, với mức đã chọn được đánh
+dấu sẵn — chấm nhầm thì sửa trong một cú bấm. Đồng hồ
+dừng mỗi khi Anki không phải cửa sổ đang dùng, nên rời máy một lát không bao
+giờ mất thẻ, và thời gian đọc đáp án không bao giờ bị tính. Đặt các mốc thời
+gian — chung hoặc theo từng bộ thẻ — trong **Cài đặt → Bộ thẻ**.
+
+Cạnh nút sửa còn có nút **hoàn tác**, trả lại thẻ bạn vừa trả lời; thông báo
+xác nhận của Anki cũng được vẽ theo màu của theme.
+
 ## ⚙️ Cài đặt trong add-on
 
-Bảy trang, bố cục theo kiểu macOS System Settings:
+Tám trang, bố cục theo kiểu macOS System Settings:
 
 | Trang | Nội dung |
 | --- | --- |
 | 📋 Chung | Tên, lời chào, ngôn ngữ, chế độ thanh bên, các khối trên dashboard, độ dài Pomodoro |
 | 🎨 Giao diện | Chủ đề, chế độ sáng/tối, chọn màn hình được áp theme, ẩn thanh gốc của Anki |
-| 🗂️ Bộ thẻ | Giao diện thẻ theo từng bộ, và đổi tên / tuỳ chọn / xuất / xoá |
+| 🗂️ Bộ thẻ | Giao diện thẻ và chấm tự động theo từng bộ, mốc thời gian trả lời, và đổi tên / tuỳ chọn / xuất / xoá |
 | 🧠 FSRS | Bật FSRS, mức ghi nhớ mong muốn, tối ưu và đánh giá tham số |
+| 🎯 Chế độ học | Có hiện chế độ học và xem trước thẻ hay không, và có cho phép chấm điểm thẻ hay không |
 | 📅 Sự kiện | Danh sách đếm ngược kỳ thi |
 | ✅ Thói quen | Danh sách thói quen: thêm, sửa, đổi thứ tự, lưu trữ |
 | ℹ️ Giới thiệu | Phiên bản, bản webview đang chạy và các tuỳ chọn đặt lại |

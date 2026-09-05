@@ -1,0 +1,829 @@
+/* ============================================================
+   Quizlet-style study modes. Markup is built by web/quizlet/quizlet.js
+   from payloads computed in screens/quizlet.py.
+
+   Rendered inside the deck overview's webview, so html.awd-overview and
+   overview.css are already in play: the page background, the font stack and
+   the #middle/center width reset all come from there.
+   ============================================================ */
+
+/* Anki's base stylesheet paints every <button> — and three of its declarations
+   are invisible until something measures a button:
+
+     button { margin: 0 4px; padding: 8px 10px; }
+     button:active { box-shadow: inset 0 … rgba(0,0,0,.35); }
+     * { box-sizing: content-box; }     a universal selector, over everything
+
+   The margin put the segmented control's pill — sized as a fraction of the
+   track — 8px out of step with the label it sits under, and the gap read as a
+   rendering fault. The padding is worse on a round icon button that sets only
+   a width: 28px less 20px of padding leaves 8px for the icon, so a 13px glyph
+   was measured at 6px and read as a smudge. The active shadow read as a grey
+   block following the cursor. Reset all four once here; every rule below is
+   more specific, so the padding and shadow they set for themselves stand. */
+.awd-qz button {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+.awd-qz button:active { box-shadow: none; }
+/* A note field can hold an image of any size. `max-height` alone leaves the
+   width free, and a wide one then bleeds straight out through the card's
+   rounded corner and across the page — nothing here clips its overflow,
+   because a collapsible example needs to be able to grow. */
+.awd-qz img { max-width: 100%; height: auto; }
+
+.awd-qz {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 14px 26px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- header ---------- */
+.awd-qz-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.awd-qz-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 10px 5px 4px;
+  border-radius: 8px;
+  color: var(--awd-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.awd-qz-back:hover { background: var(--awd-inset); }
+.awd-qz-back svg { width: 14px; height: 14px; }
+.awd-qz-head-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--awd-subtle);
+  text-align: center;
+}
+.awd-qz-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--awd-subtle);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.awd-qz-icon:hover { background: var(--awd-inset); color: var(--awd-text); }
+.awd-qz-icon svg { width: 16px; height: 16px; }
+
+/* ---------- generic card ---------- */
+.awd-qz-card {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  border-radius: 18px;
+  box-shadow: 0 1px 3px var(--awd-shadow);
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+html.awd-softcards .awd-qz-card,
+html.awd-softcards .awd-qz-mode,
+html.awd-softcards .awd-qz-tile {
+  background: color-mix(in srgb, var(--awd-surface) var(--awd-card-mix), transparent);
+  backdrop-filter: var(--awd-card-filter);
+  -webkit-backdrop-filter: var(--awd-card-filter);
+}
+
+/* ---------- the field pair ---------- */
+.awd-qz-pair {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 12.5px;
+  color: var(--awd-subtle);
+}
+.awd-qz-pair b {
+  color: var(--awd-text);
+  font-weight: 650;
+}
+.awd-qz-pair-arrow { color: var(--awd-faint); }
+.awd-qz-pair-change {
+  margin-left: auto;
+  color: var(--awd-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.awd-qz-pair-change:hover { text-decoration: underline; }
+.awd-qz-sample {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--awd-border);
+  font-size: 13px;
+  color: var(--awd-subtle);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.awd-qz-sample span:first-child { color: var(--awd-text); font-weight: 600; }
+
+.awd-qz-meta {
+  font-size: 12px;
+  color: var(--awd-faint);
+  text-align: center;
+}
+
+/* ---------- mode grid ---------- */
+.awd-qz-modes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (max-width: 560px) {
+  .awd-qz-modes { grid-template-columns: 1fr; }
+}
+
+/* Anki's base CSS paints every <button>: `button:hover` sets a gradient and a
+   border at (0,1,1), which outranks a plain class. Every rule below is
+   anchored on .awd-qz so it wins, and every :hover restates background *and*
+   border for the same reason. */
+.awd-qz .awd-qz-mode {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--awd-border);
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 1px 3px var(--awd-shadow);
+  transition: transform .14s ease, border-color .14s ease, background .14s ease;
+}
+.awd-qz .awd-qz-mode:hover {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-accent);
+  transform: translateY(-2px);
+}
+.awd-qz-mode-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex: 0 0 auto;
+  background: var(--awd-accent-soft);
+  color: var(--awd-accent);
+}
+.awd-qz-mode-ic svg { width: 19px; height: 19px; }
+/* The three lines are <span>s inside a flex item, so each has to be told to be
+   a block — left inline they run together into one paragraph and the name
+   stops reading as a heading at all. */
+.awd-qz-mode-name { display: block; font-size: 14.5px; font-weight: 700; }
+.awd-qz-mode-desc {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--awd-subtle);
+  line-height: 1.45;
+}
+.awd-qz-mode-best {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--awd-good);
+}
+
+/* ---------- resume banner ---------- */
+.awd-qz-resume {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-color: var(--awd-accent);
+}
+.awd-qz-resume-text { flex: 1; min-width: 180px; }
+.awd-qz-resume-title { font-size: 13.5px; font-weight: 700; }
+.awd-qz-resume-body { font-size: 12px; color: var(--awd-subtle); margin-top: 2px; }
+
+/* ---------- buttons ---------- */
+.awd-qz .awd-qz-btn {
+  padding: 9px 18px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  background: var(--awd-accent-grad, var(--awd-accent));
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: filter .15s ease;
+}
+.awd-qz .awd-qz-btn:hover {
+  background: var(--awd-accent-grad, var(--awd-accent));
+  border: 1px solid transparent;
+  filter: brightness(1.08);
+}
+/* Surface, not inset: these sit on the page background rather than inside a
+   card, and the inset grey read as a disabled control next to the accent
+   button beside it. */
+.awd-qz .awd-qz-btn.ghost {
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  border: 1px solid var(--awd-border);
+  box-shadow: 0 1px 2px var(--awd-shadow);
+}
+.awd-qz .awd-qz-btn.ghost:hover {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-accent);
+  filter: none;
+}
+
+/* ---------- options row ---------- */
+.awd-qz-opts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--awd-subtle);
+  justify-content: center;
+}
+/* The selected pill is one element that slides, not a background that jumps
+   from button to button. That needs the segments to be equal width, hence
+   `flex: 1 1 0` — with text-width segments the pill would have to be measured
+   in JS on every render and after every font swap. --awd-seg-i is the chosen
+   index; the page moves it itself on a click so the slide is not waiting on a
+   round trip (ui/bridge.py does the same for the sidebar mode). */
+.awd-qz-seg {
+  position: relative;
+  /* Grid, not flex. `flex: 1 1 0` cannot equalise these: the track shrinks to
+     its content, so there is no free space to share out and every segment
+     settles at its own text width — measured 42 / 62 / 65px, with the pill
+     sized at a flat third and sitting under none of them. Equal `1fr` columns
+     under intrinsic sizing all take the width of the widest, which is the
+     behaviour a segmented control wants and needs no JS to maintain. The pill
+     is absolutely positioned, so it is out of flow and claims no column. */
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--awd-inset);
+  border-radius: 10px;
+  padding: 2px;
+}
+.awd-qz-seg-pill {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--awd-seg-n, 1));
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-border);
+  box-shadow: 0 1px 2px var(--awd-shadow);
+  transform: translateX(calc(var(--awd-seg-i, 0) * 100%));
+  transition: transform .3s cubic-bezier(.32, .72, 0, 1);
+  pointer-events: none;
+}
+.awd-qz .awd-qz-seg button {
+  position: relative;
+  margin: 0;
+  padding: 5px 13px;
+  white-space: nowrap;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--awd-subtle);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+.awd-qz .awd-qz-seg button:hover,
+.awd-qz .awd-qz-seg button.on {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--awd-text);
+}
+
+/* ---------- the in-page settings screen ---------- */
+.awd-qz-setup { display: flex; flex-direction: column; gap: 12px; }
+.awd-qz-setup-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.awd-qz-setup-title { font-size: 14px; font-weight: 700; }
+.awd-qz-setup-count { font-size: 11.5px; color: var(--awd-faint); }
+.awd-qz .awd-qz-link {
+  margin-left: auto;
+  padding: 3px 8px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--awd-accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.awd-qz .awd-qz-link:hover {
+  background: var(--awd-inset);
+  border: 1px solid transparent;
+}
+
+.awd-qz-fieldgrid { display: flex; flex-direction: column; }
+.awd-qz-fieldrow {
+  display: grid;
+  grid-template-columns: 1fr 76px 76px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-top: 1px solid var(--awd-border);
+  font-size: 13.5px;
+}
+.awd-qz-fieldrow.head {
+  border-top: none;
+  padding-bottom: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--awd-faint);
+}
+.awd-qz-fieldrow.head i {
+  display: block;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: .75;
+}
+.awd-qz-fieldrow.head span:not(:first-child),
+.awd-qz-fieldrow > .awd-qz-tick { justify-self: center; }
+
+.awd-qz .awd-qz-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 7px;
+  border: 1.5px solid var(--awd-border);
+  background: var(--awd-surface);
+  color: transparent;
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease;
+}
+.awd-qz .awd-qz-tick:hover {
+  background: var(--awd-accent-soft);
+  border: 1.5px solid var(--awd-accent);
+}
+/* Only an *empty* locked box fades. A ticked one that cannot be unticked is
+   still on, and fading it would read as half-on rather than as fixed. */
+.awd-qz .awd-qz-tick.locked:not(.on),
+.awd-qz .awd-qz-tick.locked:not(.on):hover {
+  background: var(--awd-inset);
+  border: 1.5px solid transparent;
+  opacity: .45;
+}
+.awd-qz .awd-qz-tick.locked { cursor: default; }
+.awd-qz .awd-qz-tick.on,
+.awd-qz .awd-qz-tick.on:hover {
+  background: var(--awd-accent);
+  border: 1.5px solid var(--awd-accent);
+  color: #fff;
+}
+.awd-qz .awd-qz-tick svg { width: 13px; height: 13px; }
+
+.awd-qz-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+}
+.awd-qz-step-label { flex: 1; }
+.awd-qz-step-value {
+  min-width: 72px;
+  text-align: center;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.awd-qz .awd-qz-round.small { width: 28px; height: 28px; }
+.awd-qz .awd-qz-round.small svg { width: 13px; height: 13px; }
+
+.awd-qz-kinds { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.awd-qz .awd-qz-chip {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--awd-border);
+  background: var(--awd-surface);
+  color: var(--awd-subtle);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.awd-qz .awd-qz-chip:hover {
+  background: var(--awd-inset);
+  border: 1px solid var(--awd-accent);
+}
+.awd-qz .awd-qz-chip.on,
+.awd-qz .awd-qz-chip.on:hover {
+  background: var(--awd-accent-soft);
+  border: 1px solid var(--awd-accent);
+  color: var(--awd-accent);
+}
+
+.awd-qz-hintline {
+  font-size: 11.5px;
+  color: var(--awd-faint);
+  line-height: 1.5;
+}
+.awd-qz-opts.start { justify-content: flex-start; }
+
+/* ---------- progress ---------- */
+.awd-qz-topbar { display: flex; align-items: center; gap: 12px; }
+.awd-qz-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--awd-inset);
+  overflow: hidden;
+}
+.awd-qz-track i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--awd-accent-grad, var(--awd-accent));
+  transition: width .3s ease;
+}
+.awd-qz-status {
+  display: flex;
+  gap: 12px;
+  font-size: 11.5px;
+  color: var(--awd-subtle);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.awd-qz-status b { color: var(--awd-text); font-weight: 650; }
+
+/* ---------- question ---------- */
+.awd-qz-q { display: flex; flex-direction: column; gap: 14px; }
+.awd-qz-prompt {
+  min-height: 96px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  font-size: 30px;
+  font-weight: 650;
+  line-height: 1.3;
+  word-break: break-word;
+}
+.awd-qz-prompt.small { font-size: 20px; font-weight: 600; }
+.awd-qz-prompt img { max-height: 220px; border-radius: 10px; }
+.awd-qz-kind {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--awd-faint);
+  text-align: center;
+}
+
+.awd-qz-options { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 560px) { .awd-qz-options { grid-template-columns: 1fr; } }
+.awd-qz .awd-qz-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 13px 15px;
+  border-radius: 13px;
+  border: 1px solid var(--awd-border);
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color .14s ease, background .14s ease;
+}
+.awd-qz .awd-qz-opt:hover {
+  background: var(--awd-accent-soft);
+  border: 1px solid var(--awd-accent);
+}
+.awd-qz-opt-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--awd-inset);
+  color: var(--awd-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.awd-qz .awd-qz-opt.right,
+.awd-qz .awd-qz-opt.right:hover {
+  border: 1px solid var(--awd-good);
+  background: var(--awd-good-soft);
+}
+.awd-qz .awd-qz-opt.wrong,
+.awd-qz .awd-qz-opt.wrong:hover {
+  border: 1px solid var(--awd-due);
+  background: var(--awd-due-soft);
+}
+
+/* ---------- typed answer ---------- */
+.awd-qz-type { display: flex; flex-direction: column; gap: 10px; }
+.awd-qz .awd-qz-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 16px;
+  border-radius: 13px;
+  border: 1.5px solid var(--awd-border);
+  background: var(--awd-inset);
+  color: var(--awd-text);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+.awd-qz .awd-qz-input:focus { border-color: var(--awd-accent); }
+.awd-qz-typerow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* Only the last button is pushed right. Every button in the row carries
+   .awd-qz-btn, so an unqualified `margin-left: auto` spaces all three of them
+   evenly across the card and Hint, Don't know and Answer stop reading as a
+   pair of asides next to one action. */
+.awd-qz-typerow .awd-qz-btn:last-of-type { margin-left: auto; }
+.awd-qz-hint {
+  font-size: 13px;
+  color: var(--awd-subtle);
+  letter-spacing: .08em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---------- feedback ---------- */
+.awd-qz-feedback { display: flex; flex-direction: column; gap: 12px; }
+.awd-qz-verdict {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.awd-qz-verdict.ok { color: var(--awd-good); }
+.awd-qz-verdict.no { color: var(--awd-due); }
+.awd-qz-verdict.almost { color: var(--awd-learn); }
+.awd-qz-verdict svg { width: 19px; height: 19px; }
+.awd-qz-was {
+  font-size: 12px;
+  color: var(--awd-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.awd-qz-was strong { color: var(--awd-text); font-size: 16px; font-weight: 650; }
+.awd-qz-was s { color: var(--awd-faint); }
+.awd-qz-extras {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--awd-border);
+  font-size: 13px;
+}
+.awd-qz-extra-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--awd-faint);
+}
+.awd-qz-extras img { max-height: 160px; border-radius: 8px; }
+
+/* ---------- a side's other fields ---------- */
+.awd-qz-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--awd-border);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.awd-qz-row-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--awd-faint);
+  margin-bottom: 1px;
+}
+.awd-qz-row-body img { max-height: 200px; border-radius: 8px; }
+
+/* ---------- the details toggle ---------- */
+.awd-qz-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.awd-qz-details .awd-qz-detail { width: 100%; }
+.awd-qz-details .awd-qz-detail > .awd-qz-setup + .awd-qz-setup {
+  margin-top: 12px;
+}
+
+/* ---------- the revealed answer (card_skin markup) ---------- */
+/* The reveal is built by screens/card_skin.answer_body and styled by
+   web/reviewer/card_skin.css, which is loaded on this page too. Only the parts
+   that assume a full review screen are overridden. */
+.awd-qz .awd-skin-card {
+  border-radius: 18px;
+  box-shadow: 0 1px 3px var(--awd-shadow);
+  padding: 20px 20px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+}
+.awd-qz .awd-skin-word { font-size: 34px; }
+.awd-qz .awd-skin-meaning { font-size: 15px; }
+
+/* ---------- flashcards ---------- */
+/* The scene itself is the review screen's — .awd-flip-scene, .awd-flip-inner
+   and .awd-flip-face come from card_skin.css, which this page loads. Two flip
+   implementations is two animations that drift, and the reviewer's turns the
+   card the way a card turns. Only the sizing is ours. */
+.awd-qz .awd-flip-scene { margin: 0 auto; width: 100%; }
+.awd-qz .awd-flip-face > .awd-skin-card { min-height: 320px; }
+.awd-qz .awd-skin-card.question {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.awd-qz .awd-flip-face.back > .awd-skin-card { justify-content: center; }
+
+.awd-qz-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.awd-qz-count { font-size: 12.5px; color: var(--awd-subtle); min-width: 74px; text-align: center; }
+.awd-qz .awd-qz-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--awd-border);
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  cursor: pointer;
+  font: inherit;
+}
+.awd-qz .awd-qz-round:hover {
+  background: var(--awd-inset);
+  border: 1px solid var(--awd-accent);
+}
+.awd-qz .awd-qz-round[disabled] { opacity: .35; cursor: default; }
+.awd-qz .awd-qz-round svg { width: 17px; height: 17px; }
+
+/* ---------- match ---------- */
+.awd-qz-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 640px) { .awd-qz-grid { grid-template-columns: repeat(3, 1fr); } }
+.awd-qz .awd-qz-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 92px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--awd-border);
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.35;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform .12s ease, border-color .12s ease, opacity .25s ease;
+}
+.awd-qz .awd-qz-tile:hover {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-accent);
+}
+.awd-qz .awd-qz-tile.picked,
+.awd-qz .awd-qz-tile.picked:hover {
+  border: 1px solid var(--awd-accent);
+  background: var(--awd-accent-soft);
+}
+.awd-qz .awd-qz-tile.miss,
+.awd-qz .awd-qz-tile.miss:hover {
+  border: 1px solid var(--awd-due);
+  background: var(--awd-due-soft);
+  animation: awdQzShake .3s ease;
+}
+.awd-qz .awd-qz-tile.gone {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(.9);
+}
+.awd-qz-tile img { max-height: 64px; border-radius: 6px; }
+@keyframes awdQzShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.awd-qz-timer {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- results ---------- */
+.awd-qz-result { text-align: center; display: flex; flex-direction: column; gap: 10px; }
+.awd-qz-result-big {
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--awd-accent);
+  font-variant-numeric: tabular-nums;
+}
+.awd-qz-result-title { font-size: 17px; font-weight: 700; }
+.awd-qz-result-note { font-size: 12.5px; color: var(--awd-subtle); }
+.awd-qz-record {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--awd-good-soft);
+  color: var(--awd-good);
+  font-size: 12px;
+  font-weight: 700;
+}
+.awd-qz-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.awd-qz-review { display: flex; flex-direction: column; gap: 8px; }
+.awd-qz-review-row {
+  display: grid;
+  grid-template-columns: 18px 1fr 1fr;
+  gap: 10px;
+  align-items: baseline;
+  padding: 9px 4px;
+  border-top: 1px solid var(--awd-border);
+  font-size: 13px;
+}
+.awd-qz-review-row:first-child { border-top: none; }
+.awd-qz-review-mark { font-size: 13px; line-height: 1; }
+.awd-qz-review-row.ok .awd-qz-review-mark { color: var(--awd-good); }
+.awd-qz-review-row.no .awd-qz-review-mark { color: var(--awd-due); }
+.awd-qz-review-given { color: var(--awd-subtle); }
+.awd-qz-review-row.no .awd-qz-review-given { color: var(--awd-due); }
+
+/* ---------- empty ---------- */
+.awd-qz-empty { text-align: center; display: flex; flex-direction: column; gap: 8px; }
+.awd-qz-empty-title { font-size: 16px; font-weight: 700; }
+.awd-qz-empty-body { font-size: 13px; color: var(--awd-subtle); line-height: 1.55; }

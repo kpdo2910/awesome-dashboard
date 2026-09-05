@@ -1,0 +1,354 @@
+/* ============================================================
+   preview.css — the deck's cards as a grid of flippable tiles,
+   drawn into the deck overview's own webview.
+
+   Two things this sheet has to fight, both from Anki's own
+   webview.css: `* { box-sizing: content-box }` and the block of
+   `button` rules (`margin: 0 4px`, `padding: 8px 10px`, a
+   `:hover` gradient at (0,1,1), an `:active` inset shadow).
+   They are reset once for `.awd-cp button` below — every rule
+   with a class in it is more specific, so the padding each
+   control sets for itself still stands.
+   ============================================================ */
+
+.awd-cp {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 26px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.awd-cp *, .awd-cp *::before, .awd-cp *::after { box-sizing: border-box; }
+
+.awd-cp button {
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  font: inherit;
+}
+.awd-cp button:active { box-shadow: none; }
+
+/* ---------- header ---------- */
+.awd-cp-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.awd-cp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 10px 5px 4px;
+  border-radius: 8px;
+  color: var(--awd-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s ease;
+}
+.awd-cp-back:hover { background: var(--awd-inset); }
+.awd-cp-back svg { width: 16px; height: 16px; }
+.awd-cp-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.awd-cp-count {
+  margin-left: auto;
+  flex: none;
+  font-size: 12px;
+  color: var(--awd-faint);
+}
+
+/* ---------- toolbar ---------- */
+.awd-cp-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--awd-border);
+  border-radius: 14px;
+  background: var(--awd-surface);
+}
+.awd-cp-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--awd-subtle);
+}
+.awd-cp-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 4px 22px 4px 8px;
+  border: 1px solid var(--awd-border);
+  border-radius: 8px;
+  background: var(--awd-bg);
+  color: var(--awd-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  /* The arrow is a background image because a `select` cannot hold a child,
+     and Anki's page has no icon font to borrow. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 11px;
+}
+.awd-cp-field select:focus { outline: 1px solid var(--awd-accent); }
+.awd-cp-field input[type="range"] {
+  width: 92px;
+  accent-color: var(--awd-accent);
+  cursor: pointer;
+}
+.awd-cp-flipall {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border: 1px solid var(--awd-border);
+  border-radius: 9px;
+  background: var(--awd-bg);
+  color: var(--awd-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+.awd-cp-flipall:hover {
+  background: var(--awd-bg);
+  border: 1px solid var(--awd-accent);
+  color: var(--awd-accent);
+}
+.awd-cp-flipall.on {
+  border: 1px solid var(--awd-accent);
+  color: var(--awd-accent);
+}
+.awd-cp-flipall svg { width: 14px; height: 14px; }
+
+/* ---------- grid ---------- */
+.awd-cp-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--awd-cp-cols, 4), minmax(0, 1fr));
+  gap: 14px;
+}
+/* The page size is a fixed number of tiles decided in Python, so a narrow
+   window drops columns rather than dropping cards — the page still holds
+   what the page count says it holds. */
+@media (max-width: 900px) {
+  .awd-cp-grid { grid-template-columns: repeat(min(var(--awd-cp-cols, 4), 3), minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .awd-cp-grid { grid-template-columns: repeat(min(var(--awd-cp-cols, 4), 2), minmax(0, 1fr)); }
+  .awd-cp { padding: 12px 14px 32px; }
+}
+
+/* `.awd-cp-inner` carries a transform, and a transformed ancestor becomes a
+   new backdrop root — a `backdrop-filter` inside one has nothing to sample and
+   paints as if it were absent. So a tile is opaque `--awd-bg`, never the
+   translucent `--awd-surface` the glass themes pair with a blur. */
+.awd-cp-tile {
+  position: relative;
+  aspect-ratio: var(--awd-cp-aspect, 1 / 1);
+  border: 1px solid var(--awd-border);
+  border-radius: 14px;
+  background: var(--awd-bg);
+  box-shadow: 0 1px 3px var(--awd-shadow);
+  overflow: hidden;
+  cursor: pointer;
+  perspective: 1200px;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.awd-cp-tile:hover {
+  border-color: var(--awd-accent);
+  transform: translateY(-2px);
+}
+/* Nothing happens on click in hover mode, so the cursor must not promise
+   that it will — a pointer over a control that does nothing reads as a
+   dead control. */
+.awd-cp.hoverflip .awd-cp-tile { cursor: default; }
+
+.awd-cp-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .55s cubic-bezier(.32, .75, .3, 1);
+}
+.awd-cp-tile.flipped .awd-cp-inner { transform: rotateY(180deg); }
+
+.awd-cp-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  /* `safe` because a face taller than its tile is centred by overflowing
+     in *both* directions, so the first line of a long answer is cut off
+     above the tile and the reader never sees where it starts. Plain
+     `center` first: an engine without `safe` drops the second line and
+     keeps the first. */
+  justify-content: center;
+  justify-content: safe center;
+  padding: 22px 14px 20px;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.4;
+  word-break: break-word;
+  /* The note type's own CSS is deliberately not loaded — it is written for
+     a full screen and falls apart in a tile — so the tile sets its own
+     type. See screens/preview.py. */
+  font-size: calc(13px * var(--awd-cp-font, 1));
+  color: var(--awd-text);
+}
+.awd-cp-face.back { transform: rotateY(180deg); }
+/* Long content fades out at the bottom instead of being cut mid-letter,
+   which reads as a rendering fault rather than as "there is more".
+   A gradient rather than `mask-image`: a mask forces its own compositing
+   layer, which is a poor neighbour for `backface-visibility: hidden`. */
+.awd-cp-face::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, var(--awd-bg));
+  pointer-events: none;
+}
+.awd-cp-face img {
+  max-width: 100%;
+  max-height: 62%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.awd-cp-face b, .awd-cp-face strong { font-weight: 700; }
+.awd-cp-face .cloze { color: var(--awd-accent); font-weight: 700; }
+.awd-cp-face hr { border: none; border-top: 1px solid var(--awd-border); margin: 8px 0; }
+.awd-cp-face .awd-skin-audio {
+  margin: 6px auto;
+  width: 28px;
+  height: 28px;
+}
+.awd-cp-face .awd-skin-audio svg { width: 12px; height: 12px; }
+
+.awd-cp-blank {
+  color: var(--awd-faint);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* ---------- tile chrome ---------- */
+.awd-cp-state {
+  position: absolute;
+  top: 9px;
+  left: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--awd-faint);
+  z-index: 2;
+}
+.awd-cp-state.new { background: var(--awd-new); }
+.awd-cp-state.learn { background: var(--awd-learn); }
+.awd-cp-state.due { background: var(--awd-due); }
+.awd-cp-state.suspended { background: #e0b53a; }
+.awd-cp-state.buried { background: var(--awd-faint); }
+
+.awd-cp-flag {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  z-index: 2;
+}
+.awd-cp-flag.f1 { background: #e2564a; }
+.awd-cp-flag.f2 { background: #e8a33d; }
+.awd-cp-flag.f3 { background: #4aa564; }
+.awd-cp-flag.f4 { background: #4a7fe2; }
+.awd-cp-flag.f5 { background: #c06ad6; }
+.awd-cp-flag.f6 { background: #3fb5b5; }
+.awd-cp-flag.f7 { background: #9a8f88; }
+
+.awd-cp-side {
+  position: absolute;
+  bottom: 7px;
+  right: 11px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--awd-faint);
+  z-index: 2;
+}
+
+/* ---------- pager ---------- */
+.awd-cp-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.awd-cp-pager button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--awd-border);
+  border-radius: 9px;
+  background: var(--awd-surface);
+  color: var(--awd-text);
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+.awd-cp-pager button:hover:not(:disabled) {
+  background: var(--awd-surface);
+  border: 1px solid var(--awd-accent);
+  color: var(--awd-accent);
+}
+.awd-cp-pager button:disabled {
+  background: var(--awd-surface);
+  opacity: .38;
+  cursor: default;
+}
+.awd-cp-pager button svg { width: 15px; height: 15px; }
+.awd-cp-pager-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--awd-subtle);
+  min-width: 96px;
+  text-align: center;
+}
+
+/* ---------- empty ---------- */
+.awd-cp-empty {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 48px 0;
+}
+.awd-cp-empty-title { font-size: 16px; font-weight: 700; }
+.awd-cp-empty-body { font-size: 13px; color: var(--awd-subtle); line-height: 1.55; }
+
+@media (prefers-reduced-motion: reduce) {
+  .awd-cp-inner { transition: none; }
+  .awd-cp-tile { transition: none; }
+  .awd-cp-tile:hover { transform: none; }
+}

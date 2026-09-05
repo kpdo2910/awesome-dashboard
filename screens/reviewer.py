@@ -10,9 +10,11 @@ import json
 
 from aqt import gui_hooks, mw
 
-from ..core import conf
+from ..core import conf, decks
 from ..core.translations import tr
 from ..features import pomodoro
+from ..features.autograde import controller as autograde
+from ..features.autograde import rules as ag_rules
 
 ICONS = {
     "back": '<path d="M15 5.5 8.5 12l6.5 6.5"/>',
@@ -20,6 +22,7 @@ ICONS = {
     "more": '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/>'
             '<circle cx="19" cy="12" r="1.6"/>',
     "skip": '<path d="M6 5.5 14 12l-8 6.5z"/><path d="M18 5.5v13"/>',
+    "undo": '<path d="M4 9h11a4.5 4.5 0 0 1 0 9h-6"/><path d="M8 5 4 9l4 4"/>',
 }
 
 
@@ -69,6 +72,9 @@ def chrome_html() -> str:
   <div class="awd-rev-title" id="awd-rev-title"></div>
   <div class="awd-rev-tools">
     {_pom_html() if _pom_enabled() else ""}
+    <button class="awd-rev-btn icon" id="awd-rev-undo" disabled
+            onclick="pycmd('awd:undo')"
+            title="{html.escape(tr("undo"))}">{_icon("undo")}</button>
     <button class="awd-rev-btn icon" onclick="pycmd('edit')"
             title="{html.escape(tr("edit_note"))}">{_icon("edit")}</button>
     <button class="awd-rev-btn icon" onclick="pycmd('more')"
@@ -80,6 +86,58 @@ def chrome_html() -> str:
   <div class="awd-rev-actions" id="awd-rev-actions"></div>
 </div>
 """
+
+
+def _undo_state() -> dict:
+    """Whether the header's ↶ is live, and what it would undo."""
+    fallback = {"can": False, "label": tr("undo")}
+    try:
+        from aqt.undo import UndoActionsInfo
+
+        info = UndoActionsInfo.from_undo_status(mw.col.undo_status())
+        return {"can": bool(info.can_undo), "label": str(info.undo_text)}
+    except Exception:
+        return fallback
+
+
+def _ag_question(settings: dict) -> dict:
+    """The countdown only: the question side keeps Anki's Show answer, which
+    is the press the clock is timing."""
+    return {
+        "seconds": settings["hardMax"],
+        "bands": [{"zone": zone, "width": width}
+                  for zone, width in ag_rules.bands(settings)],
+        "paused": tr("ag_paused"),
+    }
+
+
+def _ag_answer(card, pending: dict, buttons: list) -> dict:
+    """The verdict. Label and interval are the scheduler's own, read off the
+    button we are about to press."""
+    chosen = next((b for b in buttons if b["ease"] == pending["ease"]), None)
+    return {
+        "ease": int(pending["ease"]),
+        "zone": pending["zone"],
+        "seconds": round(pending["elapsed"] / 1000.0, 1),
+        "label": chosen["label"] if chosen else "",
+        "interval": chosen["interval"] if chosen else "",
+        "pick": tr("ag_pick"),
+        "keys": _ag_keys(card),
+    }
+
+
+def _ag_keys(card) -> str:
+    """The key legend, but only for decks the card skin does not cover — it
+    already prints one under the card."""
+    from . import card_skin
+
+    try:
+        if card_skin.skin_enabled_for_deck(decks.deck_id_for_card(card)):
+            return ""
+        return card_skin.keys_hint(card)
+    except Exception as e:
+        print(f"[Awesome Dashboard] key legend unavailable: {e}")
+        return ""
 
 
 def _counts():
@@ -116,6 +174,7 @@ def _state_payload() -> dict:
         "current": index,
         "showCounts": show_counts,
         "showAnswer": tr("show_answer"),
+        "undo": _undo_state(),
     }
     # Carried on every question/answer render so the pinned timer is correct the
     # moment the reviewer opens; per-second updates come from pomodoro.push().
@@ -166,9 +225,13 @@ def _eval(script: str) -> None:
 def on_show_question(card) -> None:
     if not enabled():
         return
+    payload = _state_payload()
+    settings = autograde.settings_for_card(card)
+    if settings is not None:
+        payload["autoGrade"] = _ag_question(settings)
     _eval(
         "typeof AwdRev !== 'undefined' && AwdRev.question("
-        f"{json.dumps(_state_payload())});"
+        f"{json.dumps(payload)});"
     )
 
 
@@ -177,6 +240,10 @@ def on_show_answer(card) -> None:
         return
     payload = _state_payload()
     payload["buttons"] = _answer_buttons()
+    settings = autograde.settings_for_card(card)
+    pending = autograde.session().pending
+    if settings is not None and pending:
+        payload["autoGrade"] = _ag_answer(card, pending, payload["buttons"])
     _eval(
         "typeof AwdRev !== 'undefined' && AwdRev.answer("
         f"{json.dumps(payload)});"
@@ -184,5 +251,10 @@ def on_show_answer(card) -> None:
 
 
 def install() -> None:
+    # Auto-grading first: it arms the clock that the render below reads back.
+    gui_hooks.reviewer_did_show_question.append(autograde.on_show_question)
     gui_hooks.reviewer_did_show_question.append(on_show_question)
+    gui_hooks.reviewer_did_show_answer.append(autograde.on_show_answer)
     gui_hooks.reviewer_did_show_answer.append(on_show_answer)
+    gui_hooks.state_shortcuts_will_change.append(autograde.guard_rating_shortcuts)
+    gui_hooks.state_did_change.append(autograde.on_state_change)

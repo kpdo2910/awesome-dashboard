@@ -1,0 +1,30 @@
+name: Translation
+description: Offer a new language, or fix wording in one that already ships.
+labels: ["i18n"]
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: Use the code Anki uses, so the file can be named to match — pt_BR, not pt-br.
+      placeholder: "pt_BR — Português (Brasil)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is this?
+      options:
+        - A new language
+        - A fix to an existing translation
+    validations:
+      required: true
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: Details
+      description: For a fix, say which string is wrong and what it should say. For a new language, saying you are willing to do it is enough — the English file is `i18n/en.json`.
+    validations:
+      required: true

@@ -55,9 +55,79 @@
     }
   };
 
+
+  /* ---------- auto-grading ---------- */
+
+  function gradeBar(ag) {
+    var bands = (ag.bands || [])
+      .map(function (band) {
+        return (
+          '<span class="awd-ag-band ' + band.zone +
+          '" style="width:' + band.width + '%"></span>'
+        );
+      })
+      .join("");
+    return (
+      '<div class="awd-ag-track">' + bands +
+      '<div class="awd-ag-spent" id="awd-ag-spent" style="animation-duration:' +
+      ag.seconds + 's"></div>' +
+      "</div>" +
+      // Outside the track: it clips, and a caption in a 7px box is sliced.
+      '<span class="awd-ag-paused">' + escapeHtml(ag.paused || "") + "</span>"
+    );
+  }
+
+  function answerGrade(data) {
+    var ag = data.autoGrade;
+    var interval = ag.interval
+      ? '<span class="awd-ag-int">' + escapeHtml(stripTags(ag.interval)) + "</span>"
+      : "";
+    return (
+      '<div class="awd-ag answered zone-' + ag.zone + '" id="awd-ag">' +
+      '<button class="awd-ag-pill" id="awd-ag-pill" title="' +
+      escapeHtml(ag.pick || "") + '">' +
+      '<span class="awd-ag-time">' + escapeHtml(String(ag.seconds)) + "s</span>" +
+      '<span class="awd-ag-sep">&#8594;</span>' +
+      '<span class="awd-ag-grade">' + escapeHtml(ag.label || "") + "</span>" +
+      interval +
+      "</button>" +
+      (ag.keys || "") +
+      "</div>"
+    );
+  }
+
+  AwdRev.gradePause = function (paused) {
+    var spent = el("awd-ag-spent");
+    if (spent) spent.style.animationPlayState = paused ? "paused" : "running";
+    var host = el("awd-ag");
+    if (host) host.classList.toggle("paused", !!paused);
+  };
+
+  /* Bound once on the footer: the bar is rebuilt per card, so a listener
+     added each render would stack up. */
+  function bindReveal() {
+    var actions = el("awd-rev-actions");
+    if (!actions || actions.dataset.awdBound) return;
+    actions.dataset.awdBound = "1";
+    actions.addEventListener("click", function (event) {
+      var pill = event.target.closest && event.target.closest(".awd-ag-pill");
+      if (!pill) return;
+      var host = el("awd-ag");
+      var rates = actions.querySelector(".awd-rev-rates");
+      if (host) host.hidden = true;
+      if (rates) rates.hidden = false;
+    });
+  }
+
   function renderShared(data) {
     var title = el("awd-rev-title");
     if (title) title.textContent = data.deck || "";
+
+    var undo = el("awd-rev-undo");
+    if (undo && data.undo) {
+      undo.disabled = !data.undo.can;
+      undo.title = data.undo.label || "";
+    }
 
     if (data.pom) AwdRev.pomRender(data.pom);
 
@@ -87,6 +157,8 @@
     var actions = el("awd-rev-actions");
     if (!actions) return;
     actions.innerHTML =
+      (data.autoGrade ? '<div class="awd-ag" id="awd-ag">' +
+                        gradeBar(data.autoGrade) + "</div>" : "") +
       '<button class="awd-rev-show" onclick="pycmd(\'ans\')">' +
       escapeHtml(data.showAnswer || "Show Answer") +
       "</button>";
@@ -101,8 +173,10 @@
       actions.innerHTML = "";
       return;
     }
+    var ag = data.autoGrade;
     actions.innerHTML =
-      '<div class="awd-rev-rates">' +
+      (ag ? answerGrade(data) : "") +
+      '<div class="awd-rev-rates"' + (ag ? " hidden" : "") + ">" +
       buttons
         .map(function (button) {
           // The interval string comes straight from the scheduler, so it
@@ -115,6 +189,7 @@
           return (
             '<button class="awd-rev-rate ease' +
             button.ease +
+            (ag && ag.ease === button.ease ? " chosen" : "") +
             '" onclick="pycmd(\'ease' +
             button.ease +
             "')\">" +
@@ -126,6 +201,7 @@
         })
         .join("") +
       "</div>";
+    if (ag) bindReveal();
   };
 
   function stripTags(text) {

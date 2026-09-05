@@ -193,6 +193,19 @@ def _render_congrats(self: Overview, deck) -> None:
     already carries the theme variables and overview.css.
     """
     name = html.escape(str(deck.get("name", "")).rsplit("::", 1)[-1])
+    # A finished deck is exactly when someone wants to look back over it, so
+    # the grid is reachable from here as well as from the counts page.
+    try:
+        finished_did = int(deck["id"])
+    except (KeyError, TypeError, ValueError):
+        finished_did = 0
+    preview_button = ""
+    if finished_did and conf.get().get("showPreview", True):
+        preview_button = (
+            f'<button class="awd-cg-secondary"'
+            f' onclick="pycmd(\'awd:cp:open:{finished_did}\')">'
+            f'{html.escape(tr("cp_title"))}</button>'
+        )
     # Confetti colours: the palette's own semantic set, so every theme keeps
     # its character instead of dropping generic party colours on top.
     confetti = "".join(
@@ -224,6 +237,7 @@ def _render_congrats(self: Overview, deck) -> None:
         <button class="awd-cg-secondary" onclick="pycmd('studymore')">
           {tr("custom_study")}
         </button>
+        {preview_button}
       </div>
     </div>
     """
@@ -240,6 +254,19 @@ def _render_congrats(self: Overview, deck) -> None:
 def render_page(self: Overview) -> None:
     if not mw.col:
         return
+
+    # A study-mode session and a preview grid both live in this webview, so
+    # they are checked before the redesign is: turning the overview redesign
+    # off mid-session must not leave the user looking at a screen with no way
+    # back. They are also checked before the finished screen, or a deck with
+    # nothing left due could not be opened at all.
+    from . import preview, quizlet
+
+    if preview.active():
+        return preview.render(self)
+    if quizlet.active():
+        return quizlet.render(self)
+
     if not conf.get().get("styleOverview", True):
         return _original_render_page(self)
 
@@ -293,6 +320,17 @@ def render_page(self: Overview) -> None:
             f'{tr("study_now")}</button>'
             f'<div class="awd-ov-study-hint">{tr("nothing_due")}</div>'
         )
+    extras = []
+    if conf.get().get("showQuizlet", True) and not deck.get("dyn"):
+        # Filtered decks are left out: their cards are on loan from elsewhere,
+        # and a Learn session keyed to this deck would empty itself the moment
+        # the filter was rebuilt.
+        extras.append(quizlet.button_html(did))
+    if conf.get().get("showPreview", True):
+        # Filtered decks are fine here — the grid only reads.
+        extras.append(preview.button_html(did))
+    if extras:
+        button += f'<div class="awd-ov-extras">{"".join(extras)}</div>'
 
     body = f"""
     <div class="awd-ov">

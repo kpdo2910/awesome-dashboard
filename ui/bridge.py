@@ -270,6 +270,14 @@ def handle_message(handled, message: str, context):
         conf.set_value("shownWelcome", True)
     elif command.startswith("habit:"):
         _habit_command(command[len("habit:"):])
+    elif command.startswith("qz:"):
+        from ..screens import quizlet
+
+        quizlet.command(command[len("qz:"):])
+    elif command.startswith("cp:"):
+        from ..screens import preview
+
+        preview.command(command[len("cp:"):])
     elif command.startswith("collapse:"):
         parts = command.split(":")
         if len(parts) == 3:
@@ -285,6 +293,10 @@ def handle_message(handled, message: str, context):
         if mode in ("full", "compact", "hidden"):
             # The page already switched client-side; just persist the choice.
             conf.set_value("sidebarMode", mode)
+    elif command == "undo":
+        from ..features.autograde import controller as autograde
+
+        autograde.undo()
     elif command == "pom:toggle":
         pomodoro.get().toggle_pause()
     elif command == "pom:reset":
