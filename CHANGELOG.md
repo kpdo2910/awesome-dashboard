@@ -7,6 +7,11 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- **Study modes** are reachable from the deck-finished screen, next to Cards
+  preview — a deck with nothing left due today can still be practised.
+
 ## [1.6.0] - 2026-09-05
 
 ### Added
