@@ -193,19 +193,32 @@ def _render_congrats(self: Overview, deck) -> None:
     already carries the theme variables and overview.css.
     """
     name = html.escape(str(deck.get("name", "")).rsplit("::", 1)[-1])
-    # A finished deck is exactly when someone wants to look back over it, so
-    # the grid is reachable from here as well as from the counts page.
+    # A finished deck is exactly when someone wants to keep going over it by
+    # some other route, so the study modes and the grid are reachable from here
+    # as well as from the counts page. Neither reads the scheduler's counts, so
+    # both work with nothing left due.
     try:
         finished_did = int(deck["id"])
     except (KeyError, TypeError, ValueError):
         finished_did = 0
-    preview_button = ""
-    if finished_did and conf.get().get("showPreview", True):
-        preview_button = (
-            f'<button class="awd-cg-secondary"'
-            f' onclick="pycmd(\'awd:cp:open:{finished_did}\')">'
-            f'{html.escape(tr("cp_title"))}</button>'
-        )
+    extra_buttons = ""
+    if finished_did:
+        settings = conf.get()
+        if settings.get("showQuizlet", True) and not deck.get("dyn"):
+            # Filtered decks are left out for the same reason as on the counts
+            # page: a session keyed to this deck empties itself when the filter
+            # is rebuilt.
+            extra_buttons += (
+                f'<button class="awd-cg-secondary"'
+                f' onclick="pycmd(\'awd:qz:open:{finished_did}\')">'
+                f'{html.escape(tr("qz_title"))}</button>'
+            )
+        if settings.get("showPreview", True):
+            extra_buttons += (
+                f'<button class="awd-cg-secondary"'
+                f' onclick="pycmd(\'awd:cp:open:{finished_did}\')">'
+                f'{html.escape(tr("cp_title"))}</button>'
+            )
     # Confetti colours: the palette's own semantic set, so every theme keeps
     # its character instead of dropping generic party colours on top.
     confetti = "".join(
@@ -237,7 +250,7 @@ def _render_congrats(self: Overview, deck) -> None:
         <button class="awd-cg-secondary" onclick="pycmd('studymore')">
           {tr("custom_study")}
         </button>
-        {preview_button}
+        {extra_buttons}
       </div>
     </div>
     """
