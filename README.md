@@ -30,6 +30,12 @@ The sidebar is optional and comes in two widths — full, or a compact icon rail
 While it is shown, the deck list and the header card move into it, with deck
 search and a tinted icon per deck.
 
+Decks nest by drag and drop, as in Anki's own deck browser: hold a deck for a
+moment, drag it onto another and drop. To move one back to the top level, drop
+it on the list header or on the band that appears under the list. Every row
+also carries Anki's gear, which opens the deck's own menu: rename, options,
+export, delete.
+
 ## ✅ Habits
 
 A strip of habits under the stat cards: one click ticks today off, and the
@@ -131,6 +137,12 @@ in **Settings → Decks**.
 Beside the edit button, an **undo** control puts back the card you just
 answered, and Anki's own toast confirming it is drawn in the theme's colours.
 
+**Skip** — the button at the right of the bottom bar, or **C** — sets the
+current card aside for the rest of the session: it is buried, and comes back
+the moment you leave the review screen, so a card you cannot deal with right
+now is never pushed to tomorrow. The key can be changed in **Settings →
+Decks**.
+
 ## ⚙️ Settings
 
 Eight pages, laid out like macOS System Settings:
@@ -139,7 +151,7 @@ Eight pages, laid out like macOS System Settings:
 | --- | --- |
 | 📋 General | Name, greeting, language, sidebar mode, dashboard sections, Pomodoro lengths |
 | 🎨 Appearance | Theme, light/dark mode, which screens to theme, hiding Anki's native bars |
-| 🗂️ Decks | Per-deck card skin and auto-grading, answer-time thresholds, and rename / options / export / delete |
+| 🗂️ Decks | Per-deck card skin and auto-grading, answer-time thresholds, the skip-card key, and rename / options / export / delete |
 | 🧠 FSRS | Enable FSRS, desired retention, optimise and evaluate parameters |
 | 🎯 Study modes | Whether the study modes and the cards preview appear, and whether a study mode may grade cards |
 | 📅 Events | Exam countdown list |

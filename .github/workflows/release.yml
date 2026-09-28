@@ -87,9 +87,10 @@ jobs:
 
       - name: Build the add-on
         if: steps.gate.outputs.fresh == 'yes'
-        env:
-          VERSION: ${{ steps.gate.outputs.version }}
-        run: tools/build_addon.sh "dist/awesome_dashboard-${VERSION}.ankiaddon"
+        # A fixed asset name, so every release exposes the same permanent
+        # download URL under /releases/latest/download/. The version is in the
+        # tag, the release title and the manifest already.
+        run: tools/build_addon.sh dist/awesome_dashboard.ankiaddon
 
       - name: Release notes from the CHANGELOG
         if: steps.gate.outputs.fresh == 'yes'
@@ -119,8 +120,8 @@ jobs:
         run: |
           set -euo pipefail
           gh release create "v$VERSION" \
-              "dist/awesome_dashboard-${VERSION}.ankiaddon" \
-              --title "v$VERSION" \
+              dist/awesome_dashboard.ankiaddon \
+              --title "Version $VERSION" \
               --notes-file dist/notes.md
 
       # The tag is pushed before the release exists, so a failure in between would

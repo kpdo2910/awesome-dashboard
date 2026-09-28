@@ -24,6 +24,7 @@ except ImportError:
     TopToolbar = BottomToolbar = None
 
 from .core import background, conf, stats, themes
+from .features import skip
 from .features.habits import store as habit_store
 from .features.quizlet import store as quizlet_store
 from .screens import card_skin, dashboard, overview, preview, quizlet, reviewer
@@ -58,6 +59,9 @@ qt_theme.install_custom_study_hook()
 card_skin.install_space_toggle()
 
 toast.install()
+
+# Skip a card: the key, and the un-bury on the way out of the review screen.
+skip.install()
 
 # Habit ticks and study-mode sessions are written behind a debounce, so every
 # way out of a profile has to flush. Registering the hooks is safe here;

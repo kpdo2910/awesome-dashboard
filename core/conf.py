@@ -33,6 +33,9 @@ DEFAULTS = {
     # The fallback for decks with no entry of their own, which is every deck
     # added after the add-on was installed.
     "cardSkinDefault": True,
+    # The review screen's skip-card key, in Qt's portable spelling ("C",
+    # "Alt+C"). Empty keeps the button and drops the key.
+    "skipKey": "C",
     "styleToolbar": True,
     "styleSystemScreens": True,
     # Filename inside user_files/, not a path — see core/background.py.

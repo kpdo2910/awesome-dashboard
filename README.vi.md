@@ -30,6 +30,11 @@ Thanh bên là tuỳ chọn và có hai dạng — đầy đủ hoặc rail icon
 bên hiện, danh sách bộ thẻ và phần header chuyển hẳn vào đó, kèm ô tìm bộ thẻ
 và icon màu riêng cho từng bộ.
 
+Lồng bộ thẻ bằng kéo-thả như trong màn hình gốc của Anki: giữ một bộ thẻ một
+lát, kéo thả vào bộ khác. Muốn đưa ra lại cấp ngoài cùng thì thả vào tiêu đề
+danh sách hoặc vào dải xuất hiện phía dưới danh sách. Mỗi hàng còn có bánh răng
+của Anki, mở đúng menu của bộ thẻ đó: đổi tên, tuỳ chọn, xuất, xoá.
+
 ## ✅ Thói quen
 
 Một dải thói quen nằm dưới các thẻ thống kê: một cú nhấp là đánh dấu xong cho
@@ -126,6 +131,11 @@ gian — chung hoặc theo từng bộ thẻ — trong **Cài đặt → Bộ th
 Cạnh nút sửa còn có nút **hoàn tác**, trả lại thẻ bạn vừa trả lời; thông báo
 xác nhận của Anki cũng được vẽ theo màu của theme.
 
+**Bỏ qua** — nút ở góc phải thanh dưới, hoặc phím **C** — gác thẻ hiện tại lại
+cho tới hết phiên: thẻ được chôn và quay lại ngay khi bạn rời màn ôn thẻ, nên
+thẻ chưa muốn xử lý lúc này không bao giờ bị đẩy sang ngày mai. Đổi phím trong
+**Cài đặt → Bộ thẻ**.
+
 ## ⚙️ Cài đặt trong add-on
 
 Tám trang, bố cục theo kiểu macOS System Settings:
@@ -134,7 +144,7 @@ Tám trang, bố cục theo kiểu macOS System Settings:
 | --- | --- |
 | 📋 Chung | Tên, lời chào, ngôn ngữ, chế độ thanh bên, các khối trên dashboard, độ dài Pomodoro |
 | 🎨 Giao diện | Chủ đề, chế độ sáng/tối, chọn màn hình được áp theme, ẩn thanh gốc của Anki |
-| 🗂️ Bộ thẻ | Giao diện thẻ và chấm tự động theo từng bộ, mốc thời gian trả lời, và đổi tên / tuỳ chọn / xuất / xoá |
+| 🗂️ Bộ thẻ | Giao diện thẻ và chấm tự động theo từng bộ, mốc thời gian trả lời, phím bỏ qua thẻ, và đổi tên / tuỳ chọn / xuất / xoá |
 | 🧠 FSRS | Bật FSRS, mức ghi nhớ mong muốn, tối ưu và đánh giá tham số |
 | 🎯 Chế độ học | Có hiện chế độ học và xem trước thẻ hay không, và có cho phép chấm điểm thẻ hay không |
 | 📅 Sự kiện | Danh sách đếm ngược kỳ thi |

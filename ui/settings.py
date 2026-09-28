@@ -19,6 +19,8 @@ from aqt.qt import (
     QFrame,
     QHBoxLayout,
     QIcon,
+    QKeySequence,
+    QKeySequenceEdit,
     QLabel,
     QListWidget,
     QPushButton,
@@ -319,6 +321,24 @@ def _offer_anki_language(code: str, previous: str) -> None:
 
 THEME_ORDER = ["glass", "terracotta", "matcha", "aurora", "sunset", "sakura"]
 SIDEBAR_ORDER = ["full", "compact", "hidden"]
+
+
+def _review_keys() -> set:
+    """Every key the review screen already answers to, in Qt's portable
+    spelling: Anki's own bindings — the rating keys included, whatever they
+    were remapped to — and the card skin's arrows. A second handler on any of
+    them makes the shortcut ambiguous, and Qt then fires neither."""
+    keys = {"Left", "Right", "Up", "Down"}
+    try:
+        for key, _handler in mw.reviewer._shortcutKeys():
+            keys.add(_portable_key(key))
+    except Exception as e:
+        print(f"[Awesome Dashboard] reviewer shortcuts unavailable: {e}")
+    return keys
+
+
+def _portable_key(text: str) -> str:
+    return QKeySequence(str(text)).toString(QKeySequence.SequenceFormat.PortableText)
 
 
 def _anki_theme_map():
@@ -1182,6 +1202,33 @@ class AwdSettingsDialog(QDialog):
         self._block(box, tr("auto_grade_section"), *grade_rows, hint=hint)
         self._sync_grade_order()
 
+        self.skip_key_edit = QKeySequenceEdit()
+        self.skip_key_edit.setFixedWidth(150)
+        for name, arg in (("setMaximumSequenceLength", 1),
+                          ("setClearButtonEnabled", True)):
+            method = getattr(self.skip_key_edit, name, None)
+            if method is not None:
+                method(arg)
+        self.skip_key_edit.setKeySequence(
+            QKeySequence(str(config.get("skipKey") or ""))
+        )
+        self.skip_key_error = QLabel()
+        self.skip_key_error.setObjectName("awdFieldError")
+        self.skip_key_error.hide()
+        key_box = QWidget()
+        key_layout = QVBoxLayout(key_box)
+        key_layout.setContentsMargins(0, 0, 0, 0)
+        key_layout.setSpacing(3)
+        key_layout.addWidget(self.skip_key_edit, 0, Qt.AlignmentFlag.AlignRight)
+        key_layout.addWidget(self.skip_key_error, 0, Qt.AlignmentFlag.AlignRight)
+        self.skip_key_edit.keySequenceChanged.connect(self._check_skip_key)
+        self._block(
+            box,
+            tr("skip_section"),
+            self._row(tr("skip_key"), key_box),
+            hint=tr("skip_key_hint"),
+        )
+
         self.card_skin_default = self._switch(
             bool(config.get("cardSkinDefault", True))
         )
@@ -1229,6 +1276,22 @@ class AwdSettingsDialog(QDialog):
 
         box.addStretch(1)
         return self._wrap_page(page)
+
+    def _skip_key_text(self) -> str:
+        text = self.skip_key_edit.keySequence().toString(
+            QKeySequence.SequenceFormat.PortableText
+        )
+        # One chord only: a reviewer shortcut cannot be a multi-key sequence.
+        return text.split(", ")[0].strip()
+
+    def _check_skip_key(self, *_args) -> bool:
+        """Refuse a key the review screen already binds — and say so, since a
+        field that silently keeps the old value reads as a dead control."""
+        key = self._skip_key_text()
+        taken = bool(key) and key in _review_keys()
+        self.skip_key_error.setText(tr("skip_key_taken") if taken else "")
+        self.skip_key_error.setVisible(taken)
+        return not taken
 
     def _column_caption(self, text: str) -> QLabel:
         label = QLabel(text)
@@ -1631,6 +1694,10 @@ class AwdSettingsDialog(QDialog):
                 "events": self._events,
                 "cardSkinDecks": skin_map,
                 "cardSkinDefault": self.card_skin_default.isChecked(),
+                "skipKey": (
+                    self._skip_key_text() if self._check_skip_key()
+                    else config.get("skipKey", "C")
+                ),
                 "autoGrade": self.auto_grade.isChecked(),
                 "autoGradeEasyMax": self.grade_spins["easyMax"].value(),
                 "autoGradeGoodMax": self.grade_spins["goodMax"].value(),
