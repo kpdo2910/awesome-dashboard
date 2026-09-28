@@ -392,6 +392,232 @@
     }
   };
 
+  /* ---------- drag a deck onto another to nest it ----------
+     Anki's own protocol: `drag:<deck>,<new parent>` is the native pycmd, an
+     empty parent meaning top level, so Python has nothing to add — only the
+     gesture is ours. Pointer events rather than HTML5 drag and drop, which
+     would hand the gesture to the OS through Qt: this stays in the page, like
+     the jQuery UI drag the native screen uses, and holds for the same 200 ms
+     before a press becomes a drag, so a click stays a click. */
+
+  var DND_ROWS = ".awd-deck-row, .awd-sd-row";
+  var DND_HOLD_MS = 200;
+  var DND_MOVE_PX = 4;
+  var DND_EDGE_PX = 48;
+  var DND_GHOST_MAX = 360;
+
+  var dnd = null;
+  var dndSwallowClick = false;
+
+  function dndRow(target) {
+    return target && target.closest ? target.closest(DND_ROWS) : null;
+  }
+
+  function dndMoved(state) {
+    return (
+      Math.abs(state.lastX - state.x) + Math.abs(state.lastY - state.y) >=
+      DND_MOVE_PX
+    );
+  }
+
+  document.addEventListener("pointerdown", function (event) {
+    if (dnd || event.button !== 0) return;
+    if (event.target.closest("button, a, input")) return;
+    var row = dndRow(event.target);
+    if (!row || !row.dataset.did) return;
+    // Measured now, against the same layout the press landed on: by the time
+    // the hold elapses the row may have moved (a collapse animation above it).
+    var rect = row.getBoundingClientRect();
+    var state = {
+      pointerId: event.pointerId,
+      row: row,
+      did: row.dataset.did,
+      parent: row.dataset.parent || "0",
+      x: event.clientX,
+      y: event.clientY,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      width: Math.min(rect.width, DND_GHOST_MAX),
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+      armed: false,
+      dragging: false,
+      descendants: {},
+      over: null,
+      ghost: null,
+      zones: [],
+      timer: 0,
+      raf: 0,
+    };
+    // A deck cannot go inside itself. Either list carries the whole tree, so
+    // this row's own group names every deck below it.
+    var group = row.closest(".awd-deck-group, .awd-sd-group");
+    if (group) {
+      group.querySelectorAll("[data-did]").forEach(function (el) {
+        state.descendants[el.dataset.did] = true;
+      });
+    }
+    state.timer = setTimeout(function () {
+      state.armed = true;
+      // Already moved while waiting: start now rather than on the next move.
+      if (dnd === state && !state.dragging && dndMoved(state)) {
+        dndStart(state);
+        dndTrack(state);
+      }
+    }, DND_HOLD_MS);
+    dnd = state;
+  });
+
+  document.addEventListener("pointermove", function (event) {
+    var state = dnd;
+    if (!state || event.pointerId !== state.pointerId) return;
+    state.lastX = event.clientX;
+    state.lastY = event.clientY;
+    if (!state.dragging) {
+      if (!state.armed || !dndMoved(state)) return;
+      dndStart(state);
+    }
+    dndTrack(state);
+  });
+
+  document.addEventListener("pointerup", function (event) {
+    if (dnd && event.pointerId === dnd.pointerId) dndFinish(dnd, true);
+  });
+  document.addEventListener("pointercancel", function (event) {
+    if (dnd && event.pointerId === dnd.pointerId) dndFinish(dnd, false);
+  });
+  window.addEventListener("blur", function () {
+    if (dnd) dndFinish(dnd, false);
+  });
+
+  // The click that follows a drop would open the deck it landed on. Capture
+  // phase, because the rows' handlers are inline onclick attributes.
+  document.addEventListener(
+    "click",
+    function (event) {
+      if (!dndSwallowClick) return;
+      event.stopPropagation();
+      event.preventDefault();
+    },
+    true
+  );
+
+  function dndStart(state) {
+    state.dragging = true;
+    // The ghost is capped narrower than a full-width row, so a grab near the
+    // right end is pulled back under the pointer.
+    state.offsetX = Math.max(12, Math.min(state.offsetX, state.width - 24));
+
+    var ghost = state.row.cloneNode(true);
+    ghost.classList.add("awd-drag-ghost");
+    ghost.classList.remove("awd-drag-source", "awd-drop-hover");
+    ghost.removeAttribute("data-did");
+    ghost.removeAttribute("onclick");
+    ghost.style.width = state.width + "px";
+    ghost.style.setProperty("--depth", "0");
+    ghost.style.setProperty("--sd", "0");
+    // Body level, outside .awd: a transformed ancestor would trap a fixed
+    // element inside the card grid.
+    document.body.appendChild(ghost);
+    state.ghost = ghost;
+
+    state.row.classList.add("awd-drag-source");
+    document.documentElement.classList.add("awd-dnd");
+
+    // Only a nested deck has anywhere "up" to go.
+    if (state.parent !== "0") {
+      [".awd-deck-list", "#awd-side-decks"].forEach(function (selector) {
+        var host = document.querySelector(selector);
+        if (!host) return;
+        var zone = document.createElement("div");
+        zone.className =
+          "awd-drop-top" + (selector === "#awd-side-decks" ? " sd" : "");
+        zone.dataset.drop = "top";
+        zone.textContent = i18n("dropTop");
+        host.appendChild(zone);
+        state.zones.push(zone);
+      });
+    }
+
+    var tick = function () {
+      dndAutoScroll(state);
+      state.raf = requestAnimationFrame(tick);
+    };
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  function dndTarget(state) {
+    var el = document.elementFromPoint(state.lastX, state.lastY);
+    if (!el || !el.closest) return null;
+    var top = el.closest('[data-drop="top"]');
+    if (top) return state.parent === "0" ? null : top;
+    var row = dndRow(el);
+    if (!row) return null;
+    var did = row.dataset.did;
+    if (!did || did === state.parent || state.descendants[did]) return null;
+    if (row.dataset.filtered) return null;
+    return row;
+  }
+
+  function dndTrack(state) {
+    state.ghost.style.transform =
+      "translate(" + (state.lastX - state.offsetX) + "px," +
+      (state.lastY - state.offsetY) + "px)";
+    var target = dndTarget(state);
+    if (target === state.over) return;
+    if (state.over) state.over.classList.remove("awd-drop-hover");
+    if (target) target.classList.add("awd-drop-hover");
+    state.over = target;
+  }
+
+  /* Near the top or bottom edge, scroll whatever is under the pointer: the
+     sidebar's own list, or the page. */
+  function dndAutoScroll(state) {
+    var el = document.elementFromPoint(state.lastX, state.lastY);
+    var pane = el && el.closest ? el.closest("#awd-side-decks") : null;
+    var top = 0;
+    var bottom = window.innerHeight;
+    if (pane) {
+      var rect = pane.getBoundingClientRect();
+      top = rect.top;
+      bottom = rect.bottom;
+    }
+    var step = 0;
+    if (state.lastY < top + DND_EDGE_PX) {
+      step = -Math.ceil((top + DND_EDGE_PX - state.lastY) / 4);
+    } else if (state.lastY > bottom - DND_EDGE_PX) {
+      step = Math.ceil((state.lastY - (bottom - DND_EDGE_PX)) / 4);
+    }
+    if (!step) return;
+    step = Math.max(-24, Math.min(24, step));
+    if (pane) pane.scrollTop += step;
+    else window.scrollBy(0, step);
+    dndTrack(state);
+  }
+
+  function dndFinish(state, drop) {
+    clearTimeout(state.timer);
+    dnd = null;
+    if (!state.dragging) return;
+    cancelAnimationFrame(state.raf);
+    var target = drop ? state.over : null;
+    if (state.over) state.over.classList.remove("awd-drop-hover");
+    state.ghost.remove();
+    state.zones.forEach(function (zone) {
+      zone.remove();
+    });
+    state.row.classList.remove("awd-drag-source");
+    document.documentElement.classList.remove("awd-dnd");
+    dndSwallowClick = true;
+    setTimeout(function () {
+      dndSwallowClick = false;
+    }, 60);
+    if (!target || typeof pycmd !== "function") return;
+    var parent = target.dataset.drop === "top" ? "" : target.dataset.did;
+    Awd.saveScroll();
+    pycmd("drag:" + state.did + "," + parent);
+  }
+
   /* ---------- init ---------- */
 
   function init() {

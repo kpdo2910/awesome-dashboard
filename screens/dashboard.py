@@ -51,6 +51,16 @@ ICONS = {
     "grid": '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/>'
             '<rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>',
     "check": '<path d="M4.5 12.5l4.8 4.8L19.5 7"/>',
+    "gear": '<circle cx="12" cy="12" r="3"/>'
+            '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06'
+            'a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09'
+            'A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83'
+            'l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09'
+            'A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83'
+            'l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09'
+            'a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83'
+            'l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4'
+            'h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
 }
 
 
@@ -59,6 +69,17 @@ def icon(name: str, cls: str = "") -> str:
         f'<svg class="awd-icon {cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
         f' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
         f' aria-hidden="true">{ICONS[name]}</svg>'
+    )
+
+
+def _gear_html(did: int, cls: str) -> str:
+    """Anki's own deck menu — rename, options, export, delete, plus whatever
+    other add-ons hang on `deck_browser_will_show_options_menu`. `opts:` is
+    the native pycmd, so the menu is Anki's and nothing here has to be."""
+    return (
+        f'<button class="{cls}" title="{html.escape(tr("deck_gear_tip"))}"'
+        f' onclick="event.stopPropagation(); pycmd(\'opts:{did}\')">'
+        f'{icon("gear")}</button>'
     )
 
 
@@ -288,10 +309,11 @@ def _count_pills(node) -> str:
     return "".join(parts)
 
 
-def _deck_row_html(node, depth: int) -> str:
+def _deck_row_html(node, depth: int, parent: int) -> str:
     did = int(node.deck_id)
     name = html.escape(node.name)
     has_children = bool(node.children)
+    filtered = bool(getattr(node, "filtered", False))
     if has_children:
         chevron_cls = "awd-caret" + (" closed" if node.collapsed else "")
         caret = (
@@ -300,32 +322,37 @@ def _deck_row_html(node, depth: int) -> str:
         )
     else:
         caret = '<span class="awd-caret spacer"></span>'
-    if getattr(node, "filtered", False):
+    if filtered:
         deck_icon = icon("funnel", "awd-deck-glyph filtered")
     elif has_children:
         deck_icon = icon("folder", "awd-deck-glyph")
     else:
         deck_icon = icon("card", "awd-deck-glyph")
+    # data-parent and data-filtered are for drag-and-drop nesting: a deck's
+    # current parent is a no-op target and a filtered deck cannot hold decks.
+    flags = ' data-filtered="1"' if filtered else ""
     return f"""
-    <div class="awd-deck-row" data-did="{did}" style="--depth:{depth}"
-         onclick="pycmd('open:{did}')">
+    <div class="awd-deck-row" data-did="{did}" data-parent="{parent}"{flags}
+         style="--depth:{depth}" onclick="pycmd('open:{did}')">
       {caret}
       {deck_icon}
       <span class="awd-deck-name">{name}</span>
       <span class="awd-counts">{_count_pills(node)}</span>
+      {_gear_html(did, "awd-deck-gear")}
     </div>
     """
 
 
-def _deck_group_html(node, depth: int) -> str:
+def _deck_group_html(node, depth: int, parent: int) -> str:
     """A deck row plus its children, which stay in the DOM even when collapsed —
     expanding is a class toggle, not a re-render.
     """
-    row = _deck_row_html(node, depth)
+    row = _deck_row_html(node, depth, parent)
     if not node.children:
         return f'<div class="awd-deck-group">{row}</div>'
     closed = " closed" if node.collapsed else ""
-    inner = "".join(_deck_group_html(child, depth + 1) for child in node.children)
+    did = int(node.deck_id)
+    inner = "".join(_deck_group_html(child, depth + 1, did) for child in node.children)
     return (
         f'<div class="awd-deck-group">{row}'
         f'<div class="awd-deck-children{closed}">'
@@ -335,7 +362,8 @@ def _deck_group_html(node, depth: int) -> str:
 
 
 def _deck_rows_html(node, depth: int = 0) -> str:
-    return "".join(_deck_group_html(child, depth) for child in node.children)
+    parent = int(node.deck_id)
+    return "".join(_deck_group_html(child, depth, parent) for child in node.children)
 
 
 def _decks_card_html(tree) -> str:
@@ -349,7 +377,7 @@ def _decks_card_html(tree) -> str:
         """
     return f"""
     <section class="awd-card awd-decks">
-      <div class="awd-card-head">
+      <div class="awd-card-head" data-drop="top">
         <span class="awd-chip">{tr("decks")}</span>
         <span class="awd-decks-hint">{tr("deck_header_hint")}</span>
       </div>
@@ -412,11 +440,12 @@ def _side_counts(node) -> str:
     return "".join(parts)
 
 
-def _side_deck_group(node, depth: int) -> str:
+def _side_deck_group(node, depth: int, parent: int) -> str:
     did = int(node.deck_id)
     name = html.escape(node.name)
     tint = _deck_tint(did)
     has_children = bool(node.children)
+    flags = ' data-filtered="1"' if getattr(node, "filtered", False) else ""
     if has_children:
         caret_cls = "awd-sd-caret" + (" closed" if node.collapsed else "")
         caret = (
@@ -426,19 +455,20 @@ def _side_deck_group(node, depth: int) -> str:
     else:
         caret = '<span class="awd-sd-caret spacer"></span>'
     row = f"""
-    <div class="awd-sd-row" data-did="{did}" style="--sd:{depth}"
-         onclick="pycmd('open:{did}')">
+    <div class="awd-sd-row" data-did="{did}" data-parent="{parent}"{flags}
+         style="--sd:{depth}" onclick="pycmd('open:{did}')">
       {caret}
       <span class="awd-sd-ic" style="--awd-tint:{tint};color:{tint}">{_deck_glyph(node.name)}</span>
       <span class="awd-sd-name">{name}</span>
       <span class="awd-sd-counts">{_side_counts(node)}</span>
+      {_gear_html(did, "awd-sd-gear")}
     </div>
     """
     lower_name = html.escape(node.name.lower(), quote=True)
     if not has_children:
         return f'<div class="awd-sd-group" data-name="{lower_name}">{row}</div>'
     closed = " closed" if node.collapsed else ""
-    inner = "".join(_side_deck_group(child, depth + 1) for child in node.children)
+    inner = "".join(_side_deck_group(child, depth + 1, did) for child in node.children)
     return (
         f'<div class="awd-sd-group" data-name="{lower_name}">{row}'
         f'<div class="awd-sd-children{closed}">'
@@ -467,7 +497,9 @@ def _side_nav_items() -> str:
 
 def _sidebar_html(config: dict, tree, due_total: int) -> str:
     name = _display_name(config)
-    rows = "".join(_side_deck_group(child, 0) for child in tree.children)
+    rows = "".join(
+        _side_deck_group(child, 0, int(tree.deck_id)) for child in tree.children
+    )
     if not rows:
         rows = f'<div class="awd-sd-empty">{tr("empty_title")}</div>'
     footer_items = [
@@ -919,6 +951,7 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
             "dueLabel": tr("due_label"),
             "sessions": tr("sessions_today"),
             "mon": tr("mon"), "wed": tr("wed"), "fri": tr("fri"),
+            "dropTop": tr("drop_top_level"),
         },
         "months": [month_name(m) for m in range(1, 13)],
         "dayMonthFormat": day_month_format(),

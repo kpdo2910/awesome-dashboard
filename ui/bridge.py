@@ -297,6 +297,10 @@ def handle_message(handled, message: str, context):
         from ..features.autograde import controller as autograde
 
         autograde.undo()
+    elif command == "skip":
+        from ..features import skip
+
+        skip.skip_current()
     elif command == "pom:toggle":
         pomodoro.get().toggle_pause()
     elif command == "pom:reset":

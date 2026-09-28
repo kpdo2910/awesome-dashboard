@@ -12,7 +12,7 @@ from aqt import gui_hooks, mw
 
 from ..core import conf, decks
 from ..core.translations import tr
-from ..features import pomodoro
+from ..features import pomodoro, skip
 from ..features.autograde import controller as autograde
 from ..features.autograde import rules as ag_rules
 
@@ -23,6 +23,7 @@ ICONS = {
             '<circle cx="19" cy="12" r="1.6"/>',
     "skip": '<path d="M6 5.5 14 12l-8 6.5z"/><path d="M18 5.5v13"/>',
     "undo": '<path d="M4 9h11a4.5 4.5 0 0 1 0 9h-6"/><path d="M8 5 4 9l4 4"/>',
+    "next": '<path d="m6 5.5 6.5 6.5L6 18.5"/><path d="m13 5.5 6.5 6.5-6.5 6.5"/>',
 }
 
 
@@ -61,6 +62,20 @@ def _pom_html() -> str:
     </div>"""
 
 
+def _skip_html() -> str:
+    """Skip, at the right of the counts row: a study action, so it lives in the
+    answer bar rather than among the header's note tools, and static because
+    both sides of the card offer it."""
+    bound = skip.key()
+    title = tr("skip_card") + (f" ({bound})" if bound else "")
+    kbd = f"<kbd>{html.escape(bound)}</kbd>" if bound else ""
+    return (
+        '<button class="awd-rev-skip" id="awd-rev-skip" onclick="pycmd(\'awd:skip\')"'
+        f' title="{html.escape(title)}">{_icon("next")}'
+        f'<span>{html.escape(tr("skip"))}</span>{kbd}</button>'
+    )
+
+
 def chrome_html() -> str:
     """Static shell appended to the reviewer page; JS fills in the state."""
     return f"""
@@ -82,7 +97,11 @@ def chrome_html() -> str:
   </div>
 </div>
 <div class="awd-rev-bottom" id="awd-rev-bottom">
-  <div class="awd-rev-counts" id="awd-rev-counts"></div>
+  <div class="awd-rev-meta">
+    <span></span>
+    <div class="awd-rev-counts" id="awd-rev-counts"></div>
+    {_skip_html()}
+  </div>
   <div class="awd-rev-actions" id="awd-rev-actions"></div>
 </div>
 """
