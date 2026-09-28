@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-09-29
+
 ### Added
 
 - **Drag a deck onto another to nest it**, in the deck list and in the sidebar,
@@ -230,7 +232,8 @@ First public release. Tested on Anki 26.08.
   that also retints Anki's own screens.
 - English, Tiếng Việt and 日本語, following Anki's language by default.
 
-[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.7.0
 [1.6.1]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.6.1
 [1.6.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.6.0
 [1.5.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.5.0
