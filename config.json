@@ -23,6 +23,7 @@
     "autoGradeHardMax": 15,
     "autoGradeDecks": {},
     "cardSkinDefault": true,
+    "skipKey": "C",
     "styleToolbar": true,
     "styleSystemScreens": true,
     "backgroundImage": "",

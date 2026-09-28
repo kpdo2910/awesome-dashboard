@@ -87,6 +87,12 @@ what each feature does.
   "easyMax": 3}}`. Partial: anything the entry does not name is inherited from
   the parent deck, and from these global values above it. Set from
   **Settings → Decks**.
+- `skipKey` — the review screen's skip-card shortcut, `"C"` by default; any
+  key name Qt understands works (`"Alt+C"`). Skip buries the current card and
+  brings it back the moment you leave the review screen, so it is set aside
+  for the session rather than lost to tomorrow. Empty keeps the Skip button
+  with no key. Set from **Settings → Decks**, which refuses a key the review
+  screen already uses — two handlers on one key would leave both dead.
 
 FSRS itself is stored by Anki, not here: the global switch lives in the
 collection config and desired retention plus parameters live on each deck

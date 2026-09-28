@@ -7,6 +7,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- **Drag a deck onto another to nest it**, in the deck list and in the sidebar,
+  the way Anki's own deck browser does: hold for a moment, drag, drop. Drop on
+  the list header, or on the *Move to top level* band that appears under the
+  list, to un-nest one.
+- **Skip a card** — a **Skip** button at the right of the review screen's
+  bottom bar, and **C** on the keyboard. The card is set aside for the rest of
+  the session and comes back the moment you leave the review screen, so
+  skipping never pushes a card to tomorrow. The key can be changed, or
+  cleared, in **Settings → Decks**, and works with the review chrome off too.
+- **The gear is back** on every deck row, in the list and in the sidebar: it
+  opens Anki's own deck menu — rename, options, export, delete, and whatever
+  other add-ons add to it.
+
 ## [1.6.1] - 2026-09-19
 
 ### Added

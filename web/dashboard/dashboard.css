@@ -428,6 +428,32 @@ body {
 .awd-count.due   { color: var(--awd-due);   background: var(--awd-due-soft); }
 .awd-count.zero  { color: var(--awd-faint); background: var(--awd-inset); font-weight: 500; }
 
+/* Anki's gear, shown on hover as in the native deck browser. The slot is
+   always reserved so the counts do not jump when it appears. */
+.awd-deck-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--awd-faint);
+  cursor: pointer;
+  flex: 0 0 auto;
+  opacity: 0;
+  transition: opacity .15s ease, background .15s ease, color .15s ease;
+}
+.awd-deck-row:hover .awd-deck-gear,
+.awd-deck-gear:focus-visible { opacity: 1; }
+.awd-deck-gear:hover { background: var(--awd-border); border: none; color: var(--awd-subtle); }
+.awd-deck-gear:active { box-shadow: none; }
+.awd-deck-gear .awd-icon { width: 15px; height: 15px; }
+
 .awd-empty { text-align: center; padding: 34px 10px; }
 .awd-empty-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
 .awd-empty-hint { font-size: 13px; color: var(--awd-subtle); }
@@ -474,7 +500,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .awd-card, .awd-footer { animation: none; }
   .awd-caret .awd-icon, .awd-progress i, .awd-ring-fill,
-  .awd-deck-children { transition: none; }
+  .awd-deck-children, .awd-deck-gear, .awd-sd-gear { transition: none; }
 }
 
 /* Older Qt WebEngine without color-mix(): approximate levels with opacity. */
@@ -752,6 +778,29 @@ body {
 .awd-sd-count.learn { color: var(--awd-learn); background: var(--awd-learn-soft); }
 .awd-sd-count.due   { color: var(--awd-due);   background: var(--awd-due-soft); }
 .awd-sd-check { width: 12px; height: 12px; color: var(--awd-faint); }
+.awd-sd-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--awd-faint);
+  cursor: pointer;
+  flex: 0 0 auto;
+  opacity: 0;
+  transition: opacity .15s ease, color .15s ease;
+}
+.awd-sd-row:hover .awd-sd-gear,
+.awd-sd-gear:focus-visible { opacity: 1; }
+.awd-sd-gear:hover { background: var(--awd-border); border: none; color: var(--awd-subtle); }
+.awd-sd-gear:active { box-shadow: none; }
+.awd-sd-gear .awd-icon { width: 12px; height: 12px; }
 
 .awd-sd-children {
   display: grid;
@@ -836,4 +885,59 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .awd-side, .awd-side-mini { animation: none; }
   .awd-main, .awd-sd-children { transition: none; }
+}
+
+/* ---------- drag a deck onto another to nest it ----------
+   The row under the pointer is the target; a nested deck also gets the list
+   header and a band under each list as "top level". The hover class is
+   compounded with the row class so it outranks the row's own :hover — which
+   is exactly where the pointer is while dragging. */
+.awd-deck-row, .awd-sd-row { -webkit-user-select: none; user-select: none; }
+html.awd-dnd, html.awd-dnd * { cursor: grabbing !important; }
+.awd-drag-source { opacity: .35; }
+.awd-drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9998;
+  box-sizing: border-box;
+  pointer-events: none;
+  background: var(--awd-bg);
+  border: 1px solid var(--awd-border);
+  box-shadow: 0 16px 40px var(--awd-shadow);
+  opacity: .94;
+  will-change: transform;
+}
+.awd-deck-row.awd-drop-hover,
+.awd-sd-row.awd-drop-hover {
+  background: var(--awd-accent-soft);
+  box-shadow: inset 0 0 0 2px var(--awd-accent);
+}
+.awd-card-head[data-drop] { border-radius: 12px; }
+.awd-card-head.awd-drop-hover {
+  outline: 2px dashed var(--awd-accent);
+  outline-offset: 6px;
+}
+.awd-card-head.awd-drop-hover .awd-chip,
+.awd-card-head.awd-drop-hover .awd-decks-hint { color: var(--awd-accent); }
+.awd-drop-top {
+  margin-top: 8px;
+  padding: 11px 12px;
+  border: 2px dashed var(--awd-border);
+  border-radius: 14px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--awd-faint);
+}
+.awd-drop-top.sd {
+  margin: 6px 0 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 11.5px;
+}
+.awd-drop-top.awd-drop-hover {
+  border-color: var(--awd-accent);
+  background: var(--awd-accent-soft);
+  color: var(--awd-accent);
 }
