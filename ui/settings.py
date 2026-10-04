@@ -87,6 +87,12 @@ def _webview_label() -> str:
     return f"{name} · {tr('about_webview_old')}"
 
 
+def _driver_label() -> str:
+    from ..core import webfeatures
+
+    return webfeatures.driver_label()
+
+
 class _DeckResetDialog(QDialog):
     """Deck picker for the progress reset, with each deck's card count."""
 
@@ -619,12 +625,16 @@ class AwdSettingsDialog(QDialog):
             ],
             sidebar_mode,
         )
-        self.show_stats = self._switch(bool(config.get("showStats", True)))
-        self.show_heatmap = self._switch(bool(config.get("showHeatmap", True)))
-        self.show_pomodoro = self._switch(bool(config.get("showPomodoro", True)))
-        self.show_habits = self._switch(bool(config.get("showHabits", True)))
-        # No "manage habits" button: this row is only whether the block is
-        # drawn, and the habits themselves are the Habits page in the nav.
+        # The switches read the widget layout: a group is on while any of its
+        # widgets is shown, and switching it on shows them all. Order and size
+        # are the dashboard's own edit mode, not a page here.
+        from ..features import layout as widget_layout
+
+        entries = widget_layout.from_config(config)
+        self.show_stats = self._switch(widget_layout.any_visible(entries, widget_layout.STATS))
+        self.show_heatmap = self._switch(widget_layout.any_visible(entries, ("heatmap",)))
+        self.show_pomodoro = self._switch(widget_layout.any_visible(entries, ("pomodoro",)))
+        self.show_habits = self._switch(widget_layout.any_visible(entries, ("habits",)))
         self._block(
             box,
             tr("dashboard"),
@@ -633,6 +643,7 @@ class AwdSettingsDialog(QDialog):
             self._row(tr("show_heatmap"), self.show_heatmap),
             self._row(tr("show_pomodoro"), self.show_pomodoro),
             self._row(tr("show_habits"), self.show_habits),
+            hint=tr("widgets_hint"),
         )
 
         self.focus_minutes = QSpinBox()
@@ -760,30 +771,46 @@ class AwdSettingsDialog(QDialog):
 
         self.card_opacity = None
         self.card_blur = None
-        if not webfeatures.supports_color_mix():
-            return
+        if webfeatures.supports_color_mix():
+            # Its own block, and never disabled: translucent blocks are just as
+            # useful over a plain theme background as over an image.
+            self.card_opacity = QSpinBox()
+            self.card_opacity.setRange(0, 100)
+            self.card_opacity.setSingleStep(5)
+            self.card_opacity.setSuffix("%")
+            self.card_opacity.setValue(int(config.get("cardOpacity", 100)))
 
-        # Its own block, and never disabled: translucent blocks are just as
-        # useful over a plain theme background as over an image.
-        self.card_opacity = QSpinBox()
-        self.card_opacity.setRange(0, 100)
-        self.card_opacity.setSingleStep(5)
-        self.card_opacity.setSuffix("%")
-        self.card_opacity.setValue(int(config.get("cardOpacity", 100)))
+            self.card_blur = QSpinBox()
+            self.card_blur.setRange(0, 40)
+            self.card_blur.setSingleStep(2)
+            self.card_blur.setSuffix(" px")
+            self.card_blur.setValue(int(config.get("cardBlur", 18)))
 
-        self.card_blur = QSpinBox()
-        self.card_blur.setRange(0, 40)
-        self.card_blur.setSingleStep(2)
-        self.card_blur.setSuffix(" px")
-        self.card_blur.setValue(int(config.get("cardBlur", 18)))
+            self._block(
+                box,
+                tr("cards_section"),
+                self._row(tr("card_opacity"), self.card_opacity, tr("card_opacity_hint")),
+                self._row(tr("card_blur"), self.card_blur, tr("card_blur_hint")),
+                hint=tr("cards_hint"),
+            )
 
+        # Shows the value in force, automatic or chosen, so the switch never
+        # reads "off" over a page that is plainly running without effects.
+        self.reduce_effects = self._switch(webfeatures.effects_reduced(config))
         self._block(
             box,
-            tr("cards_section"),
-            self._row(tr("card_opacity"), self.card_opacity, tr("card_opacity_hint")),
-            self._row(tr("card_blur"), self.card_blur, tr("card_blur_hint")),
-            hint=tr("cards_hint"),
+            tr("effects_section"),
+            self._row(tr("reduce_effects"), self.reduce_effects, tr("reduce_effects_hint")),
+            hint=tr("reduce_effects_auto", driver=webfeatures.driver_label()),
         )
+
+    def _reduce_effects_value(self):
+        """The switch's answer — or None when it matches the automatic one, so a
+        user who never disagreed with it keeps following the video driver."""
+        from ..core import webfeatures
+
+        chosen = self.reduce_effects.isChecked()
+        return None if chosen == webfeatures.software_renderer() else chosen
 
     def _refresh_background_row(self) -> None:
         """Show the pending choice if there is one, else what is stored."""
@@ -1402,6 +1429,8 @@ class AwdSettingsDialog(QDialog):
             # Which webview is running decides whether the Blocks controls show
             # up at all, so it belongs somewhere the user can read it.
             value_row(tr("about_webview"), _webview_label()),
+            # Decides whether "Reduce visual effects" is on by itself.
+            value_row(tr("about_video_driver"), _driver_label()),
             value_row(tr("about_licence"), "MIT"),
         )
         self._block(
@@ -1572,10 +1601,7 @@ class AwdSettingsDialog(QDialog):
         "customGreeting",
         "language",
         "sidebarMode",
-        "showStats",
-        "showHeatmap",
-        "showPomodoro",
-        "showHabits",
+        "dashboardLayout",
         "showQuizlet",
         "showPreview",
         "hideNativeBottomBar",
@@ -1590,6 +1616,7 @@ class AwdSettingsDialog(QDialog):
         "backgroundDim",
         "cardOpacity",
         "cardBlur",
+        "reduceEffects",
         "events",
     )
 
@@ -1667,10 +1694,6 @@ class AwdSettingsDialog(QDialog):
                 "customAccent": self.theme_picker.accent(),
                 "language": self.lang_box.currentData(),
                 "sidebarMode": self._seg_value(self.sidebar_seg, "hidden"),
-                "showStats": self.show_stats.isChecked(),
-                "showHeatmap": self.show_heatmap.isChecked(),
-                "showPomodoro": self.show_pomodoro.isChecked(),
-                "showHabits": self.show_habits.isChecked(),
                 "pomodoroFocusMinutes": self.focus_minutes.value(),
                 "pomodoroBreakMinutes": self.break_minutes.value(),
                 "hideNativeBottomBar": self.hide_bottom.isChecked(),
@@ -1691,6 +1714,7 @@ class AwdSettingsDialog(QDialog):
                     self.card_blur.value() if self.card_blur is not None
                     else config.get("cardBlur", 18)
                 ),
+                "reduceEffects": self._reduce_effects_value(),
                 "events": self._events,
                 "cardSkinDecks": skin_map,
                 "cardSkinDefault": self.card_skin_default.isChecked(),
@@ -1711,6 +1735,21 @@ class AwdSettingsDialog(QDialog):
                 "settingsPage": self._page_keys[self._stack.currentIndex()],
             }
         )
+        # The group switches fold into the widget layout; an untouched switch
+        # leaves each widget's own state alone.
+        from ..features import layout as widget_layout
+
+        entries = widget_layout.from_config(config)
+        for ids, switch in (
+            (widget_layout.STATS, self.show_stats),
+            (("heatmap",), self.show_heatmap),
+            (("pomodoro",), self.show_pomodoro),
+            (("habits",), self.show_habits),
+        ):
+            if switch.isChecked() != widget_layout.any_visible(entries, ids):
+                widget_layout.set_hidden(entries, ids, not switch.isChecked())
+        config["dashboardLayout"] = entries
+        widget_layout.strip_legacy(config)
         # Copies or deletes the file, then writes the filename into `config` so
         # it lands in the same conf.save as everything else.
         self._commit_background(config)

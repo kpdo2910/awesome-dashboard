@@ -27,15 +27,26 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Fifteen tracks: a widget is a fifth (xs), a third (s), two thirds (m) or
+   the row (l), so five stat cards fill a row as exactly as a heatmap beside
+   a Pomodoro. Order and size are the `.awd-widget` wrappers' data attributes,
+   set from `dashboardLayout` and changed in place by layout.js. */
 .awd {
   max-width: 1060px;
   margin: 0 auto;
   padding: 26px 22px 40px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(15, minmax(0, 1fr));
   gap: 16px;
   box-sizing: border-box;
 }
+.awd > * { grid-column: 1 / -1; min-width: 0; }
+.awd-widget { display: grid; position: relative; min-width: 0; }
+.awd-widget[hidden] { display: none; }
+.awd-widget[data-size="xs"] { grid-column: span 3; }
+.awd-widget[data-size="s"] { grid-column: span 5; }
+.awd-widget[data-size="m"] { grid-column: span 10; }
+.awd-widget[data-size="l"] { grid-column: 1 / -1; }
 
 /* ---------- cards ---------- */
 .awd-card {
@@ -46,12 +57,17 @@ body {
   padding: 22px 24px;
   box-sizing: border-box;
   animation: awdFadeUp .45s ease both;
+  /* Staggered by the grid child's position; a widget wrapper hands its
+     index down as a custom property. The header is child 2 (the bare
+     greeting is 1). */
+  animation-delay: calc(min(var(--awd-i, 0), 6) * .05s);
 }
-.awd > *:nth-child(1) { animation-delay: 0s; }
-.awd > *:nth-child(2) { animation-delay: .06s; }
-.awd > *:nth-child(3) { animation-delay: .12s; }
-.awd > *:nth-child(4) { animation-delay: .18s; }
-.awd > *:nth-child(5) { animation-delay: .24s; }
+.awd > :nth-child(3) { --awd-i: 1; }
+.awd > :nth-child(4) { --awd-i: 2; }
+.awd > :nth-child(5) { --awd-i: 3; }
+.awd > :nth-child(6) { --awd-i: 4; }
+.awd > :nth-child(7) { --awd-i: 5; }
+.awd > :nth-child(n+8) { --awd-i: 6; }
 
 @keyframes awdFadeUp {
   from { transform: translateY(12px); opacity: 0; }
@@ -156,11 +172,6 @@ body {
 .awd-event.soon, .awd-event.soon b { color: var(--awd-accent); }
 
 /* ---------- stat cards ---------- */
-.awd-stats {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-}
 .awd-stat { padding: 16px 18px; border-radius: 20px; display: flex; flex-direction: column; gap: 10px; }
 .awd-stat-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .awd-stat-label {
@@ -217,9 +228,7 @@ body {
   transition: width .4s ease;
 }
 
-/* ---------- middle row: heatmap + pomodoro ---------- */
-.awd-middle { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.awd-middle.both { grid-template-columns: minmax(0, 1.9fr) minmax(260px, 1fr); }
+/* ---------- heatmap + pomodoro ---------- */
 
 /* heatmap */
 .awd-heatmap-card {
@@ -372,8 +381,11 @@ body {
   padding-left: calc(12px + var(--depth, 0) * 26px);
   border-radius: 14px;
   cursor: pointer;
-  transition: background .15s ease;
 }
+/* Instant, like the native list, and so is the gear below: a 150 ms fade
+   turned one row crossing into ten composited frames (measured 283 against
+   27 for a sweep down the list), which a webview without a GPU feels as the
+   pointer lagging. */
 .awd-deck-row:hover { background: var(--awd-inset); }
 
 .awd-caret {
@@ -446,7 +458,6 @@ body {
   cursor: pointer;
   flex: 0 0 auto;
   opacity: 0;
-  transition: opacity .15s ease, background .15s ease, color .15s ease;
 }
 .awd-deck-row:hover .awd-deck-gear,
 .awd-deck-gear:focus-visible { opacity: 1; }
@@ -471,6 +482,8 @@ body {
 /* ---------- tooltip ---------- */
 .awd-tooltip {
   position: fixed;
+  top: 0;
+  left: 0;
   z-index: 9999;
   pointer-events: none;
   background: var(--awd-text);
@@ -487,20 +500,23 @@ body {
 
 /* ---------- responsive ---------- */
 @media (max-width: 950px) {
-  .awd-stats { grid-template-columns: repeat(3, 1fr); }
-  .awd-middle.both { grid-template-columns: 1fr; }
+  .awd { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .awd-widget[data-size="xs"] { grid-column: span 2; }
+  .awd-widget[data-size="s"] { grid-column: span 3; }
+  .awd-widget[data-size="m"] { grid-column: 1 / -1; }
 }
 @media (max-width: 620px) {
   .awd { padding: 16px 12px 30px; }
   .awd-card { padding: 18px; border-radius: 20px; }
-  .awd-stats { grid-template-columns: repeat(2, 1fr); }
+  .awd-widget[data-size="xs"] { grid-column: span 3; }
+  .awd-widget[data-size="s"] { grid-column: 1 / -1; }
   .awd-greeting { font-size: 24px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .awd-card, .awd-footer { animation: none; }
   .awd-caret .awd-icon, .awd-progress i, .awd-ring-fill,
-  .awd-deck-children, .awd-deck-gear, .awd-sd-gear { transition: none; }
+  .awd-deck-children { transition: none; }
 }
 
 /* Older Qt WebEngine without color-mix(): approximate levels with opacity. */
@@ -555,8 +571,8 @@ body {
 .awd-shell.mode-compact .awd-side { display: none; }
 .awd-shell.mode-full .awd-header,
 .awd-shell.mode-compact .awd-header,
-.awd-shell.mode-full .awd-decks,
-.awd-shell.mode-compact .awd-decks,
+.awd-shell.mode-full .awd-widget[data-widget="decks"],
+.awd-shell.mode-compact .awd-widget[data-widget="decks"],
 .awd-shell.mode-full .awd-footer,
 .awd-shell.mode-compact .awd-footer { display: none; }
 .awd-shell.mode-full .awd-main { padding-left: 288px; }
@@ -794,7 +810,6 @@ body {
   cursor: pointer;
   flex: 0 0 auto;
   opacity: 0;
-  transition: opacity .15s ease, color .15s ease;
 }
 .awd-sd-row:hover .awd-sd-gear,
 .awd-sd-gear:focus-visible { opacity: 1; }
@@ -941,3 +956,156 @@ html.awd-dnd, html.awd-dnd * { cursor: grabbing !important; }
   background: var(--awd-accent-soft);
   color: var(--awd-accent);
 }
+
+/* ---------- edit widgets ----------
+   The jiggle is on the card, not its wrapper: a transformed wrapper would
+   take the blur off a translucent card inside it (see CLAUDE.md), and the
+   badges keep still on the wrapper's corners. In lite mode every duration is
+   zero, which leaves a static outline — the right edit mode for a webview
+   without a GPU. */
+/* Room under the last widget: its size pill hangs 12px below it, and the
+   floating bar covers the bottom 76px of the window — with the sidebar on
+   there is no footer in between, so the pill was unreachable. */
+html.awd-edit .awd { padding-bottom: 160px; }
+html.awd-edit .awd-widget {
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+html.awd-edit .awd-widget > .awd-card {
+  outline: 2px dashed color-mix(in srgb, var(--awd-accent) 60%, transparent);
+  outline-offset: 5px;
+  animation: awdFadeUp .45s ease both, awdJiggle .28s ease-in-out infinite alternate;
+}
+html.awd-edit .awd-widget:nth-child(even) > .awd-card { animation-delay: 0s, -.14s; }
+@keyframes awdJiggle {
+  from { transform: rotate(-.3deg) translateY(-.6px); }
+  to   { transform: rotate(.3deg)  translateY(.6px); }
+}
+/* One sheet over each widget: the content sleeps while editing, and the
+   whole widget is the drag handle. */
+html.awd-edit .awd-widget::after { content: ""; position: absolute; inset: 0; z-index: 6; }
+
+.awd-w-remove, .awd-w-size { display: none; position: absolute; z-index: 7; }
+html.awd-edit .awd-w-remove, html.awd-edit .awd-w-size { display: inline-flex; }
+.awd .awd-w-remove {
+  top: -11px;
+  left: -11px;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  background: var(--awd-text);
+  color: var(--awd-bg);
+  box-shadow: 0 0 0 1px var(--awd-border), 0 6px 16px var(--awd-shadow);
+  cursor: pointer;
+}
+.awd .awd-w-remove:hover { background: var(--awd-due); color: #ffffff; border: none; }
+.awd .awd-w-remove:active { box-shadow: none; }
+/* Straddles the bottom edge like a tab, so it never sits on the content. */
+.awd-w-size {
+  left: 50%;
+  bottom: -12px;
+  transform: translateX(-50%);
+  gap: 2px;
+  padding: 3px;
+  border-radius: 99px;
+  background: var(--awd-bg);
+  box-shadow: 0 0 0 1px var(--awd-border), 0 6px 16px var(--awd-shadow);
+}
+.awd-w-size b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 20px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--awd-subtle);
+  cursor: pointer;
+}
+.awd-w-size b.on { background: var(--awd-accent); color: var(--awd-on-accent, #ffffff); }
+.awd-w-size b.off { opacity: .3; cursor: default; }
+
+/* body level, like the tooltip: a transformed card would trap a fixed box */
+.awd-editbar {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 9000;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 99px;
+  background: var(--awd-bg);
+  box-shadow: 0 0 0 1px var(--awd-border), 0 16px 40px var(--awd-shadow);
+}
+html.awd-edit .awd-editbar { display: flex; }
+.awd-gallery {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  z-index: 9000;
+  width: min(560px, calc(100vw - 32px));
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--awd-bg);
+  box-shadow: 0 0 0 1px var(--awd-border), 0 24px 60px var(--awd-shadow);
+}
+.awd-gallery.open { display: block; }
+.awd-gallery h3 {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--awd-faint);
+}
+.awd-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.awd-gallery .awd-gallery-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 12px;
+  border: none;
+  border-radius: 14px;
+  box-shadow: none;
+  background: var(--awd-inset);
+  color: var(--awd-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.awd-gallery .awd-gallery-item:hover { background: var(--awd-accent-soft); border: none; }
+.awd-gallery .awd-gallery-item[disabled] { opacity: .5; cursor: default; }
+.awd-gallery-ic { font-size: 20px; line-height: 1; }
+.awd-gallery-item b { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: var(--awd-accent); }
+.awd-gallery-item span:not(.awd-gallery-ic) { font-size: 11px; color: var(--awd-subtle); }
+.awd-gallery-empty { font-size: 12.5px; color: var(--awd-faint); padding: 6px 2px; }
+
+/* drag to reorder: the source stays put as the placeholder, the ghost is the
+   card itself, and the others slide over with a FLIP on the wrapper */
+.awd-widget.awd-drag-source > .awd-card { opacity: .35; animation: none; outline-style: solid; }
+.awd-widget-ghost { padding: 0; border: none; background: none; box-shadow: none; opacity: 1; }
+.awd-widget-ghost > .awd-card {
+  width: 100%;
+  height: 100%;
+  animation: none;
+  box-shadow: 0 24px 60px var(--awd-shadow);
+  transform: scale(1.03);
+}
+.awd-widget.awd-flip { transition: transform .22s ease; }

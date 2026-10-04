@@ -15,8 +15,17 @@ what each feature does.
 
 - `sidebarMode` — `full`, `compact` or `hidden`. While the sidebar is shown,
   the deck list and header card move into it.
-- `showStats` / `showHeatmap` / `showPomodoro` / `showHabits` — toggle dashboard
-  sections.
+- `dashboardLayout` — the widgets, in order, each `{"id": "heatmap", "size":
+  "m", "hidden": false}`. Ids: `studied`, `time`, `streak`, `retention`, `due`
+  (the five stat cards), `habits`, `heatmap`, `pomodoro`, `decks`. Sizes are
+  `xs` (a fifth of the row), `s` (a third), `m` (two thirds), `l` (the whole
+  row); each widget offers a subset and falls back to its default when given
+  another. Edit it with **Edit widgets** at the bottom of the dashboard —
+  remove, resize, drag, add back — rather than by hand; an unknown id is
+  dropped and a
+  missing widget is appended. `null` is the default layout. The switches this
+  replaced (`showStats`, `showHeatmap`, `showPomodoro`, `showHabits`) are read
+  once more on upgrade so a block that was off stays off, then removed.
 - `pomodoroFocusMinutes` / `pomodoroBreakMinutes` — session lengths in minutes.
 - `events` — exam countdowns, each `{"name": "JLPT N2", "date": "2026-12-06"}`.
 
@@ -64,6 +73,12 @@ what each feature does.
 - `cardBlur` — 0–40 px. Blur applied to whatever shows through a translucent
   card. Higher smears the background into colour; **0 leaves it sharp**, which is
   the only setting where a picture can actually be made out through a card.
+- `reduceEffects` — `null`, `true` or `false`. No blur behind translucent
+  blocks, no animations, no fades. `null` is automatic: on when Anki's video
+  driver is *Software* (Preferences → Appearance), where a blurred block was
+  measured at over 100 ms per frame, off otherwise. **Settings → Appearance →
+  Effects** shows the value in force and stores an explicit answer only when it
+  differs from the automatic one.
 - `styleToolbar` — theme Anki's top toolbar.
 - `styleSystemScreens` — theme Anki's other screens (webview CSS variables plus
   the Qt palette). Turning this off needs a restart to fully revert.

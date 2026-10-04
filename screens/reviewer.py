@@ -32,8 +32,10 @@ def enabled() -> bool:
 
 
 def _pom_enabled() -> bool:
-    """The pinned timer follows the same switch as the dashboard card."""
-    return bool(conf.get().get("showPomodoro", True))
+    """The pinned timer follows the dashboard widget: removed there, gone here."""
+    from ..features import layout
+
+    return not layout.is_hidden(layout.from_config(conf.get()), "pomodoro")
 
 
 def _icon(name: str) -> str:

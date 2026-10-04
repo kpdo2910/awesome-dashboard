@@ -7,6 +7,31 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-05
+
+### Added
+
+- **Edit widgets.** The dashboard is now a grid of widgets — the five stat
+  cards, habits, activity, Pomodoro and the deck list — and *Edit widgets* at
+  the bottom of the page works the way it does on iOS and macOS: drag them
+  into any order, resize them (a fifth, a third, two thirds or the whole
+  row), remove one, add it back from a gallery. Everything saves as you go.
+- **Reduce visual effects** (Settings → Appearance → Effects): no blur behind
+  translucent blocks, no animations, no fades. Switches itself on when Anki's
+  video driver is *Software*, where a blurred block was measured at over
+  100 ms per frame; the About page now shows which driver is running.
+
+### Changed
+
+- The dashboard switches in Settings → General now show or hide whole
+  groups of widgets; the old `showStats`/`showHeatmap`/`showPomodoro`/
+  `showHabits` config keys are migrated into the new layout once.
+- **Hovering the deck list and the heatmap is lighter.** Rows highlight
+  instantly, like Anki's own list, and the heatmap tooltip sits above the day
+  rather than following the pointer — a sweep now draws a tenth of the
+  frames it used to, which is what a webview without GPU acceleration felt
+  as lag.
+
 ## [1.7.0] - 2026-09-29
 
 ### Added
@@ -232,7 +257,8 @@ First public release. Tested on Anki 26.08.
   that also retints Anki's own screens.
 - English, Tiếng Việt and 日本語, following Anki's language by default.
 
-[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/kpdo2910/awesome-dashboard/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.8.0
 [1.7.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.7.0
 [1.6.1]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.6.1
 [1.6.0]: https://github.com/kpdo2910/awesome-dashboard/releases/tag/v1.6.0
