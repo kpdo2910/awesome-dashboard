@@ -64,6 +64,12 @@ what each feature does.
 - `cardBlur` — 0–40 px. Blur applied to whatever shows through a translucent
   card. Higher smears the background into colour; **0 leaves it sharp**, which is
   the only setting where a picture can actually be made out through a card.
+- `reduceEffects` — `null`, `true` or `false`. No blur behind translucent
+  blocks, no animations, no fades. `null` is automatic: on when Anki's video
+  driver is *Software* (Preferences → Appearance), where a blurred block was
+  measured at over 100 ms per frame, off otherwise. **Settings → Appearance →
+  Effects** shows the value in force and stores an explicit answer only when it
+  differs from the automatic one.
 - `styleToolbar` — theme Anki's top toolbar.
 - `styleSystemScreens` — theme Anki's other screens (webview CSS variables plus
   the Qt palette). Turning this off needs a restart to fully revert.

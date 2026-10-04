@@ -286,8 +286,7 @@
 
   /* What a cell has to say: reviews done for past days, booked due cards for
      future ones. Padding cells carry no day; an empty future day is nothing. */
-  function cellInfo(target) {
-    var cell = target.closest(".awd-hm-cell");
+  function cellInfo(cell) {
     if (!cell || !cell.dataset.day) return null;
     var day = parseInt(cell.dataset.day, 10);
     if (cell.classList.contains("future")) {
@@ -308,33 +307,47 @@
     if (host.__awdBound) return;
     host.__awdBound = true;
     var tip = document.getElementById("awd-tooltip");
+    var shown = null;
 
+    function hide() {
+      if (tip) tip.hidden = true;
+      shown = null;
+    }
+
+    // Anchored to the cell rather than following the pointer: the tooltip
+    // then only changes when the pointer crosses into another cell, so a
+    // sweep along a row commits one frame per cell instead of one per mouse
+    // event (measured 115 against 555) — the difference between a webview
+    // without a GPU keeping up and the pointer trailing seconds behind.
     host.addEventListener("mousemove", function (event) {
       if (!tip) return;
-      var info = cellInfo(event.target);
+      var cell = event.target.closest(".awd-hm-cell");
+      if (cell === shown) return;
+      shown = cell;
+      var info = cellInfo(cell);
       if (!info) {
         tip.hidden = true;
         return;
       }
       tip.textContent = formatTooltip(info.day, info.future ? info.count : null);
       tip.hidden = false;
-      var x = event.clientX + 12;
-      var y = event.clientY - 30;
-      if (x + tip.offsetWidth > window.innerWidth - 8) {
-        x = event.clientX - tip.offsetWidth - 12;
-      }
-      tip.style.left = x + "px";
-      tip.style.top = Math.max(4, y) + "px";
+      var rect = cell.getBoundingClientRect();
+      var width = tip.offsetWidth;
+      var x = Math.round(rect.left + rect.width / 2 - width / 2);
+      x = Math.max(8, Math.min(x, window.innerWidth - width - 8));
+      var y = Math.round(rect.top - tip.offsetHeight - 8);
+      if (y < 4) y = Math.round(rect.bottom + 8);
+      tip.style.transform = "translate(" + x + "px," + y + "px)";
     });
-    host.addEventListener("mouseleave", function () {
-      if (tip) tip.hidden = true;
-    });
+    host.addEventListener("mouseleave", hide);
+    // The grid scrolls sideways under the fixed tooltip, taking its anchor.
+    host.addEventListener("scroll", hide, { passive: true });
 
     // A day with something behind it opens the Browser on exactly that day.
     // Python picks the search, so every date rule stays on one side of the
     // bridge; the payload is the day key itself, never an index.
     host.addEventListener("click", function (event) {
-      var info = cellInfo(event.target);
+      var info = cellInfo(event.target.closest(".awd-hm-cell"));
       if (!info || !info.count || typeof pycmd !== "function") return;
       pycmd("awd:hm:browse:" + dayKey(info.day));
     });

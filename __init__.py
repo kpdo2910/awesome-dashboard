@@ -23,7 +23,7 @@ try:
 except ImportError:
     TopToolbar = BottomToolbar = None
 
-from .core import background, conf, stats, themes
+from .core import background, conf, stats, themes, webfeatures
 from .features import skip
 from .features.habits import store as habit_store
 from .features.quizlet import store as quizlet_store
@@ -135,6 +135,13 @@ def _background_layer(config: dict) -> str:
     )
 
 
+def _lite_layer(config: dict) -> str:
+    """No blur, no motion — asked for, or forced by a webview without a GPU."""
+    if not webfeatures.effects_reduced(config):
+        return ""
+    return _css("shared", "lite.css") + _add_classes("awd-lite")
+
+
 def _night_mode() -> bool:
     try:
         from aqt.theme import theme_manager
@@ -163,6 +170,7 @@ def on_webview_will_set_content(web_content, context) -> None:
             web_content.head += _css("shared", "switch.css")
             web_content.head += _css("habits", "habits.css")
         web_content.head += _background_layer(config)
+        web_content.head += _lite_layer(config)
         # heatmap.js before dashboard.js: the activity grid is built from it.
         web_content.head += _js("shared", "heatmap.js")
         web_content.head += _js("dashboard", "dashboard.js")
@@ -186,6 +194,7 @@ def on_webview_will_set_content(web_content, context) -> None:
             web_content.head += _add_classes("awd-overview")
             web_content.head += _css("overview", "overview.css")
             web_content.head += _background_layer(config)
+            web_content.head += _lite_layer(config)
         show_quizlet = config.get("showQuizlet", True)
         show_preview = config.get("showPreview", True)
         if show_quizlet or show_preview:
@@ -206,6 +215,7 @@ def on_webview_will_set_content(web_content, context) -> None:
         web_content.head += _theme_shell(theme_vars)
         web_content.head += _css("reviewer", "card_skin.css")
         web_content.head += _js("reviewer", "card_skin.js")
+        web_content.head += _lite_layer(config)
         if config.get("styleReviewer", True):
             web_content.head += _add_classes("awd-reviewer", "awd-rev-chrome")
             web_content.head += _css("reviewer", "backdrop.css")
@@ -220,6 +230,7 @@ def on_webview_will_set_content(web_content, context) -> None:
                 web_content.head += _theme_shell(theme_vars)
                 web_content.head += _add_classes("awd-reviewer-bar")
                 web_content.head += _css("reviewer", "backdrop.css")
+                web_content.head += _lite_layer(config)
             return
         is_bar = isinstance(context, TOOLBAR_CONTEXTS) or ctx_name in (
             "DeckBrowserBottomBar",
@@ -229,6 +240,7 @@ def on_webview_will_set_content(web_content, context) -> None:
             web_content.head += _theme_shell(theme_vars)
             web_content.head += _add_classes("awd-toolbar")
             web_content.head += _css("dashboard", "toolbar.css")
+            web_content.head += _lite_layer(config)
 
 
 def on_state_change(new_state: str, old_state: str) -> None:

@@ -87,6 +87,12 @@ def _webview_label() -> str:
     return f"{name} · {tr('about_webview_old')}"
 
 
+def _driver_label() -> str:
+    from ..core import webfeatures
+
+    return webfeatures.driver_label()
+
+
 class _DeckResetDialog(QDialog):
     """Deck picker for the progress reset, with each deck's card count."""
 
@@ -760,30 +766,46 @@ class AwdSettingsDialog(QDialog):
 
         self.card_opacity = None
         self.card_blur = None
-        if not webfeatures.supports_color_mix():
-            return
+        if webfeatures.supports_color_mix():
+            # Its own block, and never disabled: translucent blocks are just as
+            # useful over a plain theme background as over an image.
+            self.card_opacity = QSpinBox()
+            self.card_opacity.setRange(0, 100)
+            self.card_opacity.setSingleStep(5)
+            self.card_opacity.setSuffix("%")
+            self.card_opacity.setValue(int(config.get("cardOpacity", 100)))
 
-        # Its own block, and never disabled: translucent blocks are just as
-        # useful over a plain theme background as over an image.
-        self.card_opacity = QSpinBox()
-        self.card_opacity.setRange(0, 100)
-        self.card_opacity.setSingleStep(5)
-        self.card_opacity.setSuffix("%")
-        self.card_opacity.setValue(int(config.get("cardOpacity", 100)))
+            self.card_blur = QSpinBox()
+            self.card_blur.setRange(0, 40)
+            self.card_blur.setSingleStep(2)
+            self.card_blur.setSuffix(" px")
+            self.card_blur.setValue(int(config.get("cardBlur", 18)))
 
-        self.card_blur = QSpinBox()
-        self.card_blur.setRange(0, 40)
-        self.card_blur.setSingleStep(2)
-        self.card_blur.setSuffix(" px")
-        self.card_blur.setValue(int(config.get("cardBlur", 18)))
+            self._block(
+                box,
+                tr("cards_section"),
+                self._row(tr("card_opacity"), self.card_opacity, tr("card_opacity_hint")),
+                self._row(tr("card_blur"), self.card_blur, tr("card_blur_hint")),
+                hint=tr("cards_hint"),
+            )
 
+        # Shows the value in force, automatic or chosen, so the switch never
+        # reads "off" over a page that is plainly running without effects.
+        self.reduce_effects = self._switch(webfeatures.effects_reduced(config))
         self._block(
             box,
-            tr("cards_section"),
-            self._row(tr("card_opacity"), self.card_opacity, tr("card_opacity_hint")),
-            self._row(tr("card_blur"), self.card_blur, tr("card_blur_hint")),
-            hint=tr("cards_hint"),
+            tr("effects_section"),
+            self._row(tr("reduce_effects"), self.reduce_effects, tr("reduce_effects_hint")),
+            hint=tr("reduce_effects_auto", driver=webfeatures.driver_label()),
         )
+
+    def _reduce_effects_value(self):
+        """The switch's answer — or None when it matches the automatic one, so a
+        user who never disagreed with it keeps following the video driver."""
+        from ..core import webfeatures
+
+        chosen = self.reduce_effects.isChecked()
+        return None if chosen == webfeatures.software_renderer() else chosen
 
     def _refresh_background_row(self) -> None:
         """Show the pending choice if there is one, else what is stored."""
@@ -1402,6 +1424,8 @@ class AwdSettingsDialog(QDialog):
             # Which webview is running decides whether the Blocks controls show
             # up at all, so it belongs somewhere the user can read it.
             value_row(tr("about_webview"), _webview_label()),
+            # Decides whether "Reduce visual effects" is on by itself.
+            value_row(tr("about_video_driver"), _driver_label()),
             value_row(tr("about_licence"), "MIT"),
         )
         self._block(
@@ -1590,6 +1614,7 @@ class AwdSettingsDialog(QDialog):
         "backgroundDim",
         "cardOpacity",
         "cardBlur",
+        "reduceEffects",
         "events",
     )
 
@@ -1691,6 +1716,7 @@ class AwdSettingsDialog(QDialog):
                     self.card_blur.value() if self.card_blur is not None
                     else config.get("cardBlur", 18)
                 ),
+                "reduceEffects": self._reduce_effects_value(),
                 "events": self._events,
                 "cardSkinDecks": skin_map,
                 "cardSkinDefault": self.card_skin_default.isChecked(),

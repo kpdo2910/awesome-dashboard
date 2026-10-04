@@ -51,6 +51,10 @@ DEFAULTS = {
     # 0 leaves it sharp, which is the only way to actually read the image
     # through a card rather than see a smear of its colours.
     "cardBlur": 18,
+    # No blur, no motion. None is automatic — on when Anki's video driver is
+    # Software, off otherwise — and a bool is the user's own choice. See
+    # core/webfeatures.py.
+    "reduceEffects": None,
     # Quizlet-style study modes, opened from the deck overview.
     "showQuizlet": True,
     # Which side of the card is the prompt: "term", "definition" or "mixed".

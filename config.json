@@ -30,6 +30,7 @@
     "backgroundDim": 25,
     "cardOpacity": 100,
     "cardBlur": 18,
+    "reduceEffects": null,
     "showQuizlet": true,
     "qzDirection": "term",
     "qzTestLength": 20,

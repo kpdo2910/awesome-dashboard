@@ -7,6 +7,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- **Reduce visual effects** (Settings → Appearance → Effects): no blur behind
+  translucent blocks, no animations, no fades. Switches itself on when Anki's
+  video driver is *Software*, where a blurred block was measured at over
+  100 ms per frame; the About page now shows which driver is running.
+
+### Changed
+
+- **Hovering the deck list and the heatmap is lighter.** Rows highlight
+  instantly, like Anki's own list, and the heatmap tooltip sits above the day
+  rather than following the pointer — a sweep now draws a tenth of the
+  frames it used to, which is what a webview without GPU acceleration felt
+  as lag.
+
 ## [1.7.0] - 2026-09-29
 
 ### Added

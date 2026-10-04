@@ -1,0 +1,27 @@
+/* ============================================================
+   lite.css — "reduce visual effects".
+
+   Loaded, with html.awd-lite, when the user asked for it or when
+   Anki runs its webview on the Software video driver (--disable-gpu).
+   Measured there: a translucent card with a backdrop-filter costs
+   ~120 ms per composited frame against ~3 ms without, and every
+   transition turns one hover into ten frames.
+
+   Durations go to zero rather than `animation: none`: a finished
+   animation still lands on its fill-mode end state, so a tick drawn
+   by `forwards` stays drawn and nothing here has to know a single
+   keyframe. The class is doubled to outrank theme.css's own
+   `!important` cross-fade on `html.awd-theming *`.
+   ============================================================ */
+
+html.awd-lite.awd-lite,
+html.awd-lite.awd-lite *,
+html.awd-lite.awd-lite *::before,
+html.awd-lite.awd-lite *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}

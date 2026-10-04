@@ -61,3 +61,44 @@ def describe() -> str:
         return f"Chromium {chromium}"
     qt = _qt_version()
     return f"Qt {qt[0]}.{qt[1]}" if qt else "—"
+
+
+# Read once: Anki itself needs a restart for a different driver to take effect.
+_driver = None
+
+
+def _video_driver():
+    """Anki's `VideoDriver`, or None where the API is missing."""
+    global _driver
+    if _driver is None:
+        try:
+            from aqt import mw
+
+            read = getattr(mw.pm, "video_driver", None)
+            _driver = read() if read else False
+        except Exception:
+            _driver = False
+    return _driver or None
+
+
+def software_renderer() -> bool:
+    """Whether the webview runs with no GPU at all (`--disable-gpu`)."""
+    driver = _video_driver()
+    return bool(driver) and driver.value == "software"
+
+
+def driver_label() -> str:
+    """The driver's name as Anki's preferences spell it, for the About page."""
+    driver = _video_driver()
+    return driver.name if driver else "—"
+
+
+def effects_reduced(config: dict) -> bool:
+    """Whether the screens should drop blur and motion.
+
+    Unset means automatic: on for the Software driver, where a blurred block
+    was measured at over 100 ms a frame, off everywhere else. A stored bool is
+    the user's own answer and wins either way.
+    """
+    value = config.get("reduceEffects")
+    return value if isinstance(value, bool) else software_renderer()
