@@ -237,6 +237,22 @@ def _sync() -> None:
         handler()
 
 
+def _set_layout(payload: str) -> None:
+    """The page already moved, resized or hid the widgets; this persists what
+    it sent, whole, and nothing is re-rendered."""
+    from ..features import layout
+
+    try:
+        entries = layout.normalize(json.loads(payload))
+    except ValueError as e:
+        print(f"[Awesome Dashboard] layout payload rejected: {e}")
+        return
+    config = conf.get()
+    config["dashboardLayout"] = entries
+    layout.strip_legacy(config)
+    conf.save(config)
+
+
 def handle_message(handled, message: str, context):
     if not isinstance(message, str) or not message.startswith("awd:"):
         return handled
@@ -293,6 +309,8 @@ def handle_message(handled, message: str, context):
         if mode in ("full", "compact", "hidden"):
             # The page already switched client-side; just persist the choice.
             conf.set_value("sidebarMode", mode)
+    elif command.startswith("layout:"):
+        _set_layout(command[len("layout:"):])
     elif command == "undo":
         from ..features.autograde import controller as autograde
 

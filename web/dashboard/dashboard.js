@@ -234,7 +234,11 @@
 
   function buildHeatmap() {
     var host = document.getElementById("awd-heatmap");
-    if (!host || !data().showHeatmap || !window.AwdHeatmap) return;
+    if (!host || !window.AwdHeatmap) return;
+    // A hidden widget is 365 cells nobody sees: layout.js builds it when
+    // the widget is added back.
+    var widget = host.closest(".awd-widget");
+    if (widget && widget.hidden) return;
     if (hmYear === null) hmYear = todayYearNum();
 
     var calendar = data().calendar || {};
@@ -269,6 +273,7 @@
     bindHeatmap(host);
     renderYearPills();
   }
+  Awd.buildHeatmap = buildHeatmap;
 
   /* ---------- tooltip & day click ---------- */
 
@@ -637,7 +642,7 @@
     if (!document.getElementById("awd-root")) return;
     restoreScroll();
     buildHeatmap();
-    if (data().showPomodoro && data().pom) Awd.pomRender(data().pom);
+    if (data().pom) Awd.pomRender(data().pom);
   }
 
   if (document.readyState === "loading") {

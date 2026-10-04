@@ -9,12 +9,11 @@ DEFAULTS = {
     "customAccent": None,
     "language": "auto",
     "sidebarMode": "hidden",  # "full" | "compact" | "hidden"
-    "showStats": True,
-    "showHeatmap": True,
-    "showPomodoro": True,
-    # The habits themselves live in collection config, not here — this is only
-    # whether the dashboard shows the block. See features/habits/store.py.
-    "showHabits": True,
+    # Which widgets the dashboard shows, in what order, at what size — edited
+    # on the dashboard itself. None is the default layout; the old
+    # showStats/showHeatmap/showPomodoro/showHabits switches are migrated into
+    # it on first read. See features/layout.py.
+    "dashboardLayout": None,
     "pomodoroFocusMinutes": 25,
     "pomodoroBreakMinutes": 5,
     "hideNativeBottomBar": True,

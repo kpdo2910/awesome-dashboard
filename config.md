@@ -15,8 +15,17 @@ what each feature does.
 
 - `sidebarMode` — `full`, `compact` or `hidden`. While the sidebar is shown,
   the deck list and header card move into it.
-- `showStats` / `showHeatmap` / `showPomodoro` / `showHabits` — toggle dashboard
-  sections.
+- `dashboardLayout` — the widgets, in order, each `{"id": "heatmap", "size":
+  "m", "hidden": false}`. Ids: `studied`, `time`, `streak`, `retention`, `due`
+  (the five stat cards), `habits`, `heatmap`, `pomodoro`, `decks`. Sizes are
+  `xs` (a fifth of the row), `s` (a third), `m` (two thirds), `l` (the whole
+  row); each widget offers a subset and falls back to its default when given
+  another. Edit it with **Edit widgets** at the bottom of the dashboard —
+  remove, resize, drag, add back — rather than by hand; an unknown id is
+  dropped and a
+  missing widget is appended. `null` is the default layout. The switches this
+  replaced (`showStats`, `showHeatmap`, `showPomodoro`, `showHabits`) are read
+  once more on upgrade so a block that was off stays off, then removed.
 - `pomodoroFocusMinutes` / `pomodoroBreakMinutes` — session lengths in minutes.
 - `events` — exam countdowns, each `{"name": "JLPT N2", "date": "2026-12-06"}`.
 

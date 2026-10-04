@@ -165,22 +165,22 @@ def on_webview_will_set_content(web_content, context) -> None:
         web_content.head += _theme_shell(theme_vars)
         web_content.head += _css("shared", "heatmap.css")
         web_content.head += _css("dashboard", "dashboard.css")
-        if config.get("showHabits", True):
-            web_content.head += _css("shared", "loading.css")
-            web_content.head += _css("shared", "switch.css")
-            web_content.head += _css("habits", "habits.css")
+        # Every widget is in the page even when hidden — adding one back in
+        # edit mode is a class toggle, not a render — so its assets always load.
+        web_content.head += _css("shared", "loading.css")
+        web_content.head += _css("shared", "switch.css")
+        web_content.head += _css("habits", "habits.css")
         web_content.head += _background_layer(config)
         web_content.head += _lite_layer(config)
         # heatmap.js before dashboard.js: the activity grid is built from it.
         web_content.head += _js("shared", "heatmap.js")
         web_content.head += _js("dashboard", "dashboard.js")
-        if config.get("showHabits", True):
-            web_content.head += _js("habits", "habits.js")
-            # The report is an overlay in this same page, not a webview of its
-            # own — see screens/habit_report.py.
-            web_content.head += _js("habits", "report.js")
+        web_content.head += _js("dashboard", "layout.js")
+        web_content.head += _js("habits", "habits.js")
+        # The report is an overlay in this same page, not a webview of its
+        # own — see screens/habit_report.py.
+        web_content.head += _js("habits", "report.js")
         if not config.get("shownWelcome", False):
-            web_content.head += _css("shared", "loading.css")
             web_content.head += _css("dashboard", "onboarding.css")
             web_content.head += _js("dashboard", "onboarding.js")
     elif isinstance(context, Overview):

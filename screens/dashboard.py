@@ -22,7 +22,7 @@ from ..core.translations import (
     tr,
     weekday_name,
 )
-from ..features import pomodoro
+from ..features import layout, pomodoro
 
 ICONS = {
     "plus": '<path d="M12 5v14M5 12h14"/>',
@@ -51,6 +51,7 @@ ICONS = {
     "grid": '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/>'
             '<rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>',
     "check": '<path d="M4.5 12.5l4.8 4.8L19.5 7"/>',
+    "layout": '<rect x="3.5" y="3.5" width="17" height="6.5" rx="2"/><rect x="3.5" y="14" width="7" height="6.5" rx="2"/><rect x="14.5" y="14" width="6" height="6.5" rx="2"/>',
     "gear": '<circle cx="12" cy="12" r="3"/>'
             '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06'
             'a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09'
@@ -201,7 +202,8 @@ def _stat_card(icon_name: str, label: str, value: str, unit: str, footer: str = 
     """
 
 
-def _stats_row_html(bundle: dict, due_total: int) -> str:
+def _stat_widgets(bundle: dict, due_total: int) -> dict:
+    """The five stat cards, one widget each."""
     cards_today = bundle.get("cards_today", 0)
     minutes = bundle.get("minutes_today", 0.0)
     minutes_text = f"{minutes:.0f}" if minutes >= 10 else f"{minutes:.1f}"
@@ -230,15 +232,14 @@ def _stats_row_html(bundle: dict, due_total: int) -> str:
     except Exception:
         pass
 
-    cards = [
-        _stat_card("book", tr("studied_today"), fmt_int(cards_today), tr("cards_unit")),
-        _stat_card("clock", tr("minutes_label"), minutes_text, tr("minutes_unit")),
-        _stat_card("", tr("streak"), fmt_int(streak), tr("days_unit"),
-                   footer=f'{tr("longest_streak")}: {fmt_int(longest)}', emoji="🔥"),
-        _stat_card("target", tr("retention"), retention_text, "", footer=retention_footer),
-        _stat_card("inbox", tr("due_today"), fmt_int(due_total), tr("cards_unit"), footer=progress),
-    ]
-    return f'<section class="awd-stats">{"".join(cards)}</section>'
+    return {
+        "studied": _stat_card("book", tr("studied_today"), fmt_int(cards_today), tr("cards_unit")),
+        "time": _stat_card("clock", tr("minutes_label"), minutes_text, tr("minutes_unit")),
+        "streak": _stat_card("", tr("streak"), fmt_int(streak), tr("days_unit"),
+                             footer=f'{tr("longest_streak")}: {fmt_int(longest)}', emoji="🔥"),
+        "retention": _stat_card("target", tr("retention"), retention_text, "", footer=retention_footer),
+        "due": _stat_card("inbox", tr("due_today"), fmt_int(due_total), tr("cards_unit"), footer=progress),
+    }
 
 
 # --- heatmap & pomodoro shells (filled in by web/dashboard/dashboard.js) ------
@@ -397,7 +398,112 @@ def _footer_html() -> str:
         f'{icon(name)}<span>{html.escape(label)}</span></button>'
         for cmd, name, label in buttons
     )
+    # The one door into edit mode — a button, as on macOS, rather than a
+    # long press nobody discovers with a mouse. Client-side: layout.js.
+    pills += (
+        f'<button class="awd-pill awd-pill-ghost" id="awd-edit-widgets"'
+        f' onclick="Awd.editWidgets()">{icon("layout")}<span>{html.escape(tr("edit_widgets"))}</span></button>'
+    )
     return f'<footer class="awd-footer">{pills}</footer>'
+
+
+# --- widgets ---------------------------------------------------------------------
+
+WIDGET_ICONS = {
+    "studied": "📚", "time": "⏱️", "streak": "🔥", "retention": "🎯", "due": "📥",
+    "habits": "✅", "heatmap": "🗓️", "pomodoro": "🍅", "decks": "🗂️",
+}
+
+
+def widget_catalog() -> dict:
+    """`AWD_DATA.widgets`: what edit mode needs to name a widget and offer
+    its sizes. The names are the same strings as the cards' own chips."""
+    names = {
+        "studied": tr("studied_today"), "time": tr("minutes_label"), "streak": tr("streak"),
+        "retention": tr("retention"), "due": tr("due_today"), "habits": tr("habits"),
+        "heatmap": tr("activity"), "pomodoro": "Pomodoro", "decks": tr("decks"),
+    }
+    return {
+        widget_id: {
+            "name": names[widget_id],
+            "icon": WIDGET_ICONS[widget_id],
+            "sizes": list(layout.WIDGETS[widget_id][0]),
+        }
+        for widget_id in layout.ORDER
+    }
+
+
+def _widget_html(entry: dict, inner: str) -> str:
+    hidden = " hidden" if entry["hidden"] else ""
+    return (
+        f'<div class="awd-widget" data-widget="{entry["id"]}"'
+        f' data-size="{entry["size"]}"{hidden}>{inner}</div>'
+    )
+
+
+def compose_shell(config: dict, tree, bundle: dict, due_total: int, entries: list) -> str:
+    """The dashboard itself: sidebar, greeting, widgets in layout order, footer.
+
+    Hidden widgets are in the page too, so adding one back in edit mode is a
+    class toggle rather than a render. Everything it needs arrives as an
+    argument, which is what lets `.preview/layout/build.py` draw it headless.
+    """
+    sidebar_mode = config.get("sidebarMode", "hidden")
+    if sidebar_mode not in ("full", "compact", "hidden"):
+        sidebar_mode = "hidden"
+
+    widgets = _stat_widgets(bundle, due_total)
+    widgets["heatmap"] = _heatmap_card_html(bundle)
+    widgets["pomodoro"] = _pomodoro_card_html()
+    widgets["decks"] = _decks_card_html(tree)
+    try:
+        from . import habits
+
+        widgets["habits"] = habits.card_html()
+    except Exception as e:
+        # The block degrades to nothing rather than taking the page with it.
+        print(f"[Awesome Dashboard] habits block failed: {e}")
+        widgets["habits"] = ""
+
+    # The bare greeting replaces the header card while the sidebar is shown;
+    # both live in the DOM, CSS mode classes decide which one is visible.
+    sections = [_greet_bare_html(config), _header_html(config)]
+    sections += [_widget_html(entry, widgets.get(entry["id"], "")) for entry in entries]
+    sections.append(_footer_html())
+    return (
+        f'<div class="awd-shell mode-{sidebar_mode}" id="awd-shell">'
+        + _sidebar_html(config, tree, due_total)
+        + _sidebar_mini_html(config, tree)
+        + '<div class="awd-main">'
+        + _topline_html()
+        + '<div class="awd" id="awd-root">'
+        + "".join(sections)
+        + "</div></div></div>"
+        + '<div id="awd-tooltip" class="awd-tooltip" hidden></div>'
+    )
+
+
+def js_i18n() -> dict:
+    """The strings dashboard.js and layout.js draw themselves."""
+    return {
+        "start": tr("start"),
+        "pause": tr("pause"),
+        "resume": tr("resume"),
+        "focus": tr("focus"),
+        "break": tr("break_"),
+        "idle": tr("pomodoro_idle"),
+        "cards": tr("cards_unit"),
+        "dueLabel": tr("due_label"),
+        "sessions": tr("sessions_today"),
+        "mon": tr("mon"), "wed": tr("wed"), "fri": tr("fri"),
+        "dropTop": tr("drop_top_level"),
+        "widgetsDone": tr("widgets_done"),
+        "widgetAdd": tr("widget_add"),
+        "galleryTitle": tr("widget_gallery_title"),
+        "galleryEmpty": tr("widget_gallery_empty"),
+        "widgetRemove": tr("widget_remove"),
+        "inSidebar": tr("widget_in_sidebar"),
+    }
 
 
 # --- sidebar (full 288px / compact rail / hidden) ---------------------------------
@@ -512,6 +618,10 @@ def _sidebar_html(config: dict, tree, due_total: int) -> str:
         f'{icon(ic)}<span>{html.escape(label)}</span></a>'
         for cmd, ic, label in footer_items
     )
+    footer += (
+        f'<a class="awd-side-item ghost" onclick="Awd.editWidgets()">'
+        f'{icon("layout")}<span>{html.escape(tr("edit_widgets"))}</span></a>'
+    )
     return f"""
     <aside class="awd-side">
       <div class="awd-side-user">
@@ -575,6 +685,8 @@ def _sidebar_mini_html(config: dict, tree) -> str:
       <div class="awd-mini-decks">{decks}</div>
       <button class="awd-mini-btn ghost" title="{html.escape(tr("new_deck"))}"
               onclick="pycmd('create')">{icon("plus")}</button>
+      <button class="awd-mini-btn ghost" title="{html.escape(tr("edit_widgets"))}"
+              onclick="Awd.editWidgets()">{icon("layout")}</button>
     </aside>
     """
 
@@ -781,10 +893,8 @@ def _fake_calendar(real: dict) -> dict:
     return fake
 
 
-def _habit_report_html(config: dict) -> str:
+def _habit_report_html() -> str:
     """The report overlay's shell, outside `.awd` so `position: fixed` works."""
-    if not config.get("showHabits", True):
-        return ""
     try:
         from . import habit_report
 
@@ -892,40 +1002,17 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
     new_n, learn_n, review_n = stats.due_counts(tree)
     due_total = new_n + learn_n + review_n
 
-    sidebar_mode = config.get("sidebarMode", "hidden")
-    if sidebar_mode not in ("full", "compact", "hidden"):
-        sidebar_mode = "hidden"
-
-    # The bare greeting replaces the header card while the sidebar is shown;
-    # both live in the DOM, CSS mode classes decide which one is visible.
-    sections = [_greet_bare_html(config), _header_html(config)]
-    if config.get("showStats", True):
-        sections.append(_stats_row_html(bundle, due_total))
-    # Above the heatmap: this is the one block on the page you act on rather
-    # than read, so it sits where the eye lands after the day's numbers.
+    entries = layout.from_config(config)
     habits_data = {}
-    if config.get("showHabits", True):
-        try:
-            from . import habits
+    try:
+        from . import habits
 
-            sections.append(habits.card_html())
-            habits_data = habits.data_for_web()
-        except Exception as e:
-            # The block degrades to its empty state rather than taking the
-            # whole dashboard down with it.
-            print(f"[Awesome Dashboard] habits block failed: {e}")
-    show_heatmap = config.get("showHeatmap", True)
-    show_pomodoro = config.get("showPomodoro", True)
-    if show_heatmap or show_pomodoro:
-        middle = ""
-        if show_heatmap:
-            middle += _heatmap_card_html(bundle)
-        if show_pomodoro:
-            middle += _pomodoro_card_html()
-        mode = "both" if (show_heatmap and show_pomodoro) else "single"
-        sections.append(f'<section class="awd-middle {mode}">{middle}</section>')
-    sections.append(_decks_card_html(tree))
-    sections.append(_footer_html())
+        habits_data = habits.data_for_web()
+    except Exception as e:
+        # The strip degrades to its empty state rather than taking the whole
+        # dashboard down with it.
+        print(f"[Awesome Dashboard] habits data failed: {e}")
+    shell = compose_shell(config, tree, bundle, due_total, entries)
 
     heatmap_calendar = bundle.get("calendar", {})
     if config.get("debugFakeYears", False):
@@ -935,24 +1022,13 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
         "calendar": heatmap_calendar,
         "forecast": bundle.get("forecast", {}),
         "todayKey": bundle.get("today_key", ""),
-        "showHeatmap": show_heatmap,
-        "showPomodoro": show_pomodoro,
+        "layout": entries,
+        "widgets": widget_catalog(),
+        "decksInSidebar": config.get("sidebarMode", "hidden") in ("full", "compact"),
         "habits": habits_data,
         "pom": pomodoro.get().state(),
         "lang": current_lang(),
-        "i18n": {
-            "start": tr("start"),
-            "pause": tr("pause"),
-            "resume": tr("resume"),
-            "focus": tr("focus"),
-            "break": tr("break_"),
-            "idle": tr("pomodoro_idle"),
-            "cards": tr("cards_unit"),
-            "dueLabel": tr("due_label"),
-            "sessions": tr("sessions_today"),
-            "mon": tr("mon"), "wed": tr("wed"), "fri": tr("fri"),
-            "dropTop": tr("drop_top_level"),
-        },
+        "i18n": js_i18n(),
         "months": [month_name(m) for m in range(1, 13)],
         "dayMonthFormat": day_month_format(),
         "heatmapScale": _heatmap_scale(bundle, due_total),
@@ -960,16 +1036,8 @@ def render_page(self: DeckBrowser, reuse: bool = False) -> None:
     }
 
     body = (
-        f'<div class="awd-shell mode-{sidebar_mode}" id="awd-shell">'
-        + _sidebar_html(config, tree, due_total)
-        + _sidebar_mini_html(config, tree)
-        + '<div class="awd-main">'
-        + _topline_html()
-        + '<div class="awd" id="awd-root">'
-        + "".join(sections)
-        + "</div></div></div>"
-        + '<div id="awd-tooltip" class="awd-tooltip" hidden></div>'
-        + _habit_report_html(config)
+        shell
+        + _habit_report_html()
         + _onboarding_html(config)
         + f'<script>window.AWD_DATA = {json.dumps(js_data)};</script>'
     )

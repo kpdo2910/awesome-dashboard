@@ -625,12 +625,16 @@ class AwdSettingsDialog(QDialog):
             ],
             sidebar_mode,
         )
-        self.show_stats = self._switch(bool(config.get("showStats", True)))
-        self.show_heatmap = self._switch(bool(config.get("showHeatmap", True)))
-        self.show_pomodoro = self._switch(bool(config.get("showPomodoro", True)))
-        self.show_habits = self._switch(bool(config.get("showHabits", True)))
-        # No "manage habits" button: this row is only whether the block is
-        # drawn, and the habits themselves are the Habits page in the nav.
+        # The switches read the widget layout: a group is on while any of its
+        # widgets is shown, and switching it on shows them all. Order and size
+        # are the dashboard's own edit mode, not a page here.
+        from ..features import layout as widget_layout
+
+        entries = widget_layout.from_config(config)
+        self.show_stats = self._switch(widget_layout.any_visible(entries, widget_layout.STATS))
+        self.show_heatmap = self._switch(widget_layout.any_visible(entries, ("heatmap",)))
+        self.show_pomodoro = self._switch(widget_layout.any_visible(entries, ("pomodoro",)))
+        self.show_habits = self._switch(widget_layout.any_visible(entries, ("habits",)))
         self._block(
             box,
             tr("dashboard"),
@@ -639,6 +643,7 @@ class AwdSettingsDialog(QDialog):
             self._row(tr("show_heatmap"), self.show_heatmap),
             self._row(tr("show_pomodoro"), self.show_pomodoro),
             self._row(tr("show_habits"), self.show_habits),
+            hint=tr("widgets_hint"),
         )
 
         self.focus_minutes = QSpinBox()
@@ -1596,10 +1601,7 @@ class AwdSettingsDialog(QDialog):
         "customGreeting",
         "language",
         "sidebarMode",
-        "showStats",
-        "showHeatmap",
-        "showPomodoro",
-        "showHabits",
+        "dashboardLayout",
         "showQuizlet",
         "showPreview",
         "hideNativeBottomBar",
@@ -1692,10 +1694,6 @@ class AwdSettingsDialog(QDialog):
                 "customAccent": self.theme_picker.accent(),
                 "language": self.lang_box.currentData(),
                 "sidebarMode": self._seg_value(self.sidebar_seg, "hidden"),
-                "showStats": self.show_stats.isChecked(),
-                "showHeatmap": self.show_heatmap.isChecked(),
-                "showPomodoro": self.show_pomodoro.isChecked(),
-                "showHabits": self.show_habits.isChecked(),
                 "pomodoroFocusMinutes": self.focus_minutes.value(),
                 "pomodoroBreakMinutes": self.break_minutes.value(),
                 "hideNativeBottomBar": self.hide_bottom.isChecked(),
@@ -1737,6 +1735,21 @@ class AwdSettingsDialog(QDialog):
                 "settingsPage": self._page_keys[self._stack.currentIndex()],
             }
         )
+        # The group switches fold into the widget layout; an untouched switch
+        # leaves each widget's own state alone.
+        from ..features import layout as widget_layout
+
+        entries = widget_layout.from_config(config)
+        for ids, switch in (
+            (widget_layout.STATS, self.show_stats),
+            (("heatmap",), self.show_heatmap),
+            (("pomodoro",), self.show_pomodoro),
+            (("habits",), self.show_habits),
+        ):
+            if switch.isChecked() != widget_layout.any_visible(entries, ids):
+                widget_layout.set_hidden(entries, ids, not switch.isChecked())
+        config["dashboardLayout"] = entries
+        widget_layout.strip_legacy(config)
         # Copies or deletes the file, then writes the filename into `config` so
         # it lands in the same conf.save as everything else.
         self._commit_background(config)
